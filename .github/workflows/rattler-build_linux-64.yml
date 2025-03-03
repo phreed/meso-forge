@@ -5,6 +5,9 @@ on:
     paths:
       - '*/build.sh'
       - '*/recipe.yaml'
+      
+on: workflow_dispatch
+
 
 jobs:
   setup:
