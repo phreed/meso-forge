@@ -1,12 +1,10 @@
 name: Build conda package (rattler-build linux-64)
 
-# on:
-#   pull_request:
-#     paths:
-#       - '*/build.sh'
-#       - '*/recipe.yaml'
-
-on: 
+on:
+  pull_request:
+    paths:
+      - '*/build.sh'
+      - '*/recipe.yaml'
   workflow_dispatch:
     inputs:
         logLevel:
