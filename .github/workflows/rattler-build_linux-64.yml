@@ -1,4 +1,4 @@
-name: linux-64
+name: Build conda package (rattler-build linux-64)
 
 on:
   pull_request:
@@ -93,8 +93,8 @@ jobs:
             --volume /etc/passwd:/etc/passwd:ro \
             --volume /etc/group:/etc/group:ro \
             --user $(id -u) rattler-build \
-            rattler-build build -c dnachun -c conda-forge -c bioconda \
-            --output-dir /tmp/rattler-build --recipe-dir /tmp/recipes
+            rattler-build build -c $ANACONDA_OWNER -c conda-forge \
+              --output-dir /tmp/rattler-build --recipe-dir /tmp/recipes
 
       - name: Upload artifacts to GitHub Actions
         uses: actions/upload-artifact@v4

@@ -1,4 +1,4 @@
-name: osx-64
+name: Build conda package (rattler-build osx-64)
 
 on:
   pull_request:
@@ -72,7 +72,7 @@ jobs:
       - name: Build conda packages
         shell: pixi exec --spec rattler-build -- bash -e {0}
         run: |
-          rattler-build build -c dnachun -c conda-forge -c bioconda \
+          rattler-build build -c $ANACONDA_OWNER -c conda-forge -c bioconda \
             --output-dir /tmp/rattler-build --recipe-dir /tmp/recipes
 
       - name: Upload packages to GitHub Actions
