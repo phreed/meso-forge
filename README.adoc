@@ -87,7 +87,7 @@ include::.github/workflows/rattler-build_upload.yml[tag=api_token]
 * Choose an informative name
 * Select an expiration date that is sufficiently far in the future
 
-image:.docs/anacoda-token-creation.png[]
+image:.resources/anacoda-token-creation.png[]
 
 Copy the secret and then go to your fork of this repository and go to "Settings"
 
@@ -95,4 +95,4 @@ Copy the secret and then go to your fork of this repository and go to "Settings"
 
 The secret must be called ANACONDA_API_TOKEN, and you can paste the secret you copied before into here.
 
-image:.docs/github-action-secret.png[]
+image:.resources/github-action-secret.png[]
