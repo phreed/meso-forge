@@ -1,4 +1,4 @@
-name: Build conda package (rattler-build linux-64)
+name: rattler-build linux-64
 
 on:
   pull_request:

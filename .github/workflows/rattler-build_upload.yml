@@ -1,4 +1,4 @@
-name: Upload conda packages to anaconda.org
+name: rattler-build upload (to anaconda.org)
 
 on:
   pull_request_target:
