@@ -1,0 +1,11 @@
+FROM --platform=linux/amd64 centos:7
+
+SHELL ["/bin/bash", "-c"]
+RUN sed -i '/^enabled=/d; /^\[/a\enabled=0' /etc/yum.repos.d/CentOS-Base.repo
+COPY .github/centos7-x86_64-vault.repo /etc/yum.repos.d/vault.repo
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+RUN yum install -y mesa-libGL ca-certificates
+RUN curl -fsSL https://pixi.sh/install.sh | bash
+ENV PATH="/root/.pixi/bin:$PATH"
+RUN pixi global install rattler-build git patch
+ENV LANG=en_US.UTF-8

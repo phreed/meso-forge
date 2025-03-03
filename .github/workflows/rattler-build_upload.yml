@@ -1,0 +1,43 @@
+name: Upload conda packages to anaconda.org
+
+on:
+  pull_request_target:
+    types: [closed]
+
+jobs:
+  upload:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'upload')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ["linux-64", "osx-64", "osx-arm64"]
+    env:
+      ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_TOKEN }}
+      ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download packages
+        id: download-packages
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow: rattler-build_${{ matrix.platform }}.yml
+          name: rattler-build_${{ github.event.pull_request.head.sha }}_${{ matrix.platform }}
+          path: /tmp/rattler-build
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          run-install: false
+
+      - name: Upload packages
+        if: steps.download-packages.outputs.found_artifact == 'true'
+        shell: pixi exec --spec rattler-build -- bash -e {0}
+        run: |
+          shopt -s globstar
+          rattler-build upload anaconda --force /tmp/rattler-build/**/*.conda
