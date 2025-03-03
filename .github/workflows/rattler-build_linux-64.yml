@@ -37,6 +37,9 @@ jobs:
         id: branch-name
         uses: tj-actions/branch-names@v8
 
+      - name: Log branch name
+        run: echo "Base branch name: ${{ steps.branch-name.outputs.base_ref_branch }}"
+
       - name: Get SHA of last commit to main branch
         uses: nrwl/nx-set-shas@v4
         id: last_successful_commit_pull_request
