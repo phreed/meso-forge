@@ -1,4 +1,4 @@
-name: Build conda package (linux-64)
+name: Build conda package (dispatch build linux-64)
 
 on:
   workflow_dispatch:
@@ -68,7 +68,7 @@ jobs:
       - name: Build conda packages
         run: |
           docker run --rm --volume /tmp:/tmp rattler-build \
-            rattler-build build -c dnachun -c conda-forge -c bioconda \
+            rattler-build build -c $ANACONDA_OWNER -c conda-forge -c bioconda \
             --output-dir /tmp/rattler-build --recipe-dir /tmp/recipes
 
       - name: Setup pixi

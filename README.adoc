@@ -47,7 +47,7 @@ You will also want to modify the
 link:.github/conda_channels[default channels configuration]
 to use whatever channels you want.
 The order of the channels in this config file determines their precedence for dependency resolution
-- `mamba` will search for the dependency in the channels in the order they are given in the file.
+- `pixi` will search for the dependency in the channels in the order they are given in the file.
 You should usually leave the last 3 channels as `conda-forge`, `bioconda` and `nodefaults` 
 in that order so that any custom channels you add before them are checked first, 
 that `bioconda` is checked after `conda-forge`, and the legacy `defaults` channels are ignored.
@@ -55,15 +55,18 @@ that `bioconda` is checked after `conda-forge`, and the legacy `defaults` channe
 == Adding new packages
 
 To add a new package, clone the repository locally and create a new branch.
-Each package recipe should be in its own folder with a `meta.yaml`, and when needed, a `build.sh` script.
+Each package recipe should be in its own folder with a `recipe.yaml`,
+and when needed, a `build.sh` script.
 Some complex recipes may use multiple shell scripts.
 
 Push the branch to the repository and open a pull request from it.
-Once the pull request has been opened, the `conda_mambabuild` workflow will attempt to build the recipes using the `mambaforge` docker image.
+Once the pull request has been opened,
+the `rattler-build_linux-64.yml` workflow will attempt to build the recipes
+using the `ratter-build_container.df` docker image.
 If the recipes build successfully, 
-you can merge the pull request to trigger the `anaconda_upload` workflow, 
+you can merge the pull request to trigger the `rattler-build_upload.yml` workflow, 
 which will upload the conda packages to your personal channel.
-This is the step that requires the `ANACONDA_API_TOKEN` secret.
+This is the step that requires the `ANACONDA_API_TOKEN` secret and `ANACONDA_OWNER` variable.
 
 === Managing ANACONDA_API_TOKEN
 

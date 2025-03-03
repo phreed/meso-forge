@@ -1,4 +1,4 @@
-name: Build conda package (osx-64)
+name: Build conda package (dispatch build osx-64)
 
 on:
   workflow_dispatch:
@@ -42,7 +42,7 @@ jobs:
       - name: Build conda packages
         shell: pixi exec --spec rattler-build -- bash -e {0}
         run: |
-          rattler-build build -c dnachun -c conda-forge -c bioconda \
+          rattler-build build -c $ANACONDA_OWNER -c conda-forge -c bioconda \
             --output-dir /tmp/rattler-build --recipe-dir /tmp/recipes
 
       - name: Upload package

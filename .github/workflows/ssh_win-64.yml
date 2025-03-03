@@ -1,4 +1,4 @@
-name: Create runner (win-64)
+name: Create runner (ssh win-64)
 
 on:
   workflow_dispatch:
