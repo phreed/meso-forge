@@ -1,10 +1,27 @@
 name: Build conda package (rattler-build linux-64)
 
-on:
-  pull_request:
-    paths:
-      - '*/build.sh'
-      - '*/recipe.yaml'
+# on:
+#   pull_request:
+#     paths:
+#       - '*/build.sh'
+#       - '*/recipe.yaml'
+
+on: 
+  workflow_dispatch:
+    inputs:
+        logLevel:
+          description: 'Log level'
+          required: true
+          default: 'warning'
+          type: choice
+          options:
+          - info
+          - warning
+          - debug
+        environment:
+          description: 'Environment to run tests against'
+          type: environment
+          required: true
 
 jobs:
   setup:
