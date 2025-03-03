@@ -44,7 +44,7 @@ See link:{dan_nach_url}/wiki/Creating-and-adding-an-Anaconda-API-token-to-the-re
 for a step-by-step walkthrough.
 
 You will also want to modify the
-link:{dan_nach_url}/blob/main/.github/conda_channels[default channels configuration]
+link:.github/conda_channels[default channels configuration]
 to use whatever channels you want.
 The order of the channels in this config file determines their precedence for dependency resolution
 - `mamba` will search for the dependency in the channels in the order they are given in the file.
