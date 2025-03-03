@@ -12,9 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         platform: ["linux-64", "osx-64", "osx-arm64"]
+# tag::api_token[]
     env:
       ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_TOKEN }}
       ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
+# end::api_token[]
 
     steps:
       - uses: actions/checkout@v4

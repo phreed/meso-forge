@@ -16,9 +16,11 @@ jobs:
     runs-on: macos-14
     strategy:
       fail-fast: false
+# tag::api_token[]
     env:
       ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_TOKEN }}
       ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
+# end::api_token[]
 
     steps:
       - name: Checkout main

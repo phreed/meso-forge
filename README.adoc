@@ -64,3 +64,35 @@ If the recipes build successfully,
 you can merge the pull request to trigger the `anaconda_upload` workflow, 
 which will upload the conda packages to your personal channel.
 This is the step that requires the `ANACONDA_API_TOKEN` secret.
+
+=== Managing ANACONDA_API_TOKEN
+
+The ANACONDA_API_TOKEN is used in the following jobs:
+.github/workflows/dispatch_build_linux64.yml
+[source,yaml]
+include::.github/workflows/dispatch_build_linux-64.yml[tag=api_token]
+
+[source,yaml]
+include::.github/workflows/dispatch_build_osx-64.yml[tag=api_token]
+
+[source,yaml]
+include::.github/workflows/dispatch_build_osx-arm64.yml[tag=api_token]
+
+[source,yaml]
+include::.github/workflows/rattler-build_upload.yml[tag=api_token]
+
+==== Create the Anaconda Token
+
+* Enable "Allow all operations"
+* Choose an informative name
+* Select an expiration date that is sufficiently far in the future
+
+image:.docs/anacoda-token-creation.png[]
+
+Copy the secret and then go to your fork of this repository and go to "Settings"
+
+==== Register the Token for Github Action
+
+The secret must be called ANACONDA_API_TOKEN, and you can paste the secret you copied before into here.
+
+image:.docs/github-action-secret.png[]
