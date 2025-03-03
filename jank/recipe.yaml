@@ -1,0 +1,62 @@
+schema_version: 1
+
+context:
+  name: jank
+  group: jank-lang
+  version: 0.1.0
+  sig: f38883ffc1fad5a1eb7e01f0c9d3f0635f594993b02739c0a641eef77ce10c4d
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/${{ group }}/${{ name }}/archive/refs/heads/main.zip
+  sha256: ${{ sig }}
+  patches:
+    - 0001-fix-includes.patch
+
+build:
+  number: 0
+  script: |
+    cd compiler+runtime
+    ./bin/configure -GNinja -DCMAKE_BUILD_TYPE=Release
+    ./bin/compile
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - binutils
+    - clangdev
+    - llvmdev
+    - ninja
+    - pkg-config
+    - sbcl
+    - sed
+    - if: linux
+      then: sysroot_linux-64=2.17
+  host:
+    - boost-cpp
+    - if: linux
+      then: elfutils
+    - fmt
+    - gmp
+    - libclang-cpp
+    - libllvm16
+
+tests:
+  - script:
+      - ${{ name }} --help
+
+about:
+  license: Mozilla
+  license_file: https://github.com/${{ group }}/${{ name }}/blob/main/LICENSE
+  summary: Jank a LLVM hosted Clojure
+  homepage: https://jank-lang.org/
+  repository: https://github.com/${{ group }}/${{ name }}
+
+extra:
+  recipe-maintainers:
+    - phreed
+
