@@ -1,4 +1,4 @@
-name: Build conda package (rattler-build osx-arm64)
+name: rattler-build osx-arm64
 
 on:
   pull_request:

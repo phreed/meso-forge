@@ -1,10 +1,21 @@
-name: Build conda package (rattler-build linux-64)
+name: rattler-build linux-64
 
 on:
   pull_request:
     paths:
       - '*/build.sh'
       - '*/recipe.yaml'
+  workflow_dispatch:
+    inputs:
+        logLevel:
+          description: 'Log level'
+          required: true
+          default: 'warning'
+          type: choice
+          options:
+          - info
+          - warning
+          - debug
 
 jobs:
   setup:
@@ -25,6 +36,9 @@ jobs:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v8
+
+      - name: Log branch name
+        run: echo "Base branch name ${{ steps.branch-name.outputs.base_ref_branch }}"
 
       - name: Get SHA of last commit to main branch
         uses: nrwl/nx-set-shas@v4

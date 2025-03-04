@@ -1,4 +1,4 @@
-name: Create runner (ssh osx-arm64)
+name: ssh osx-arm64
 
 on:
   workflow_dispatch:

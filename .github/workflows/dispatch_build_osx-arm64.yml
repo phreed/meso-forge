@@ -1,4 +1,4 @@
-name: Build conda package (dispatch build osx-arm64)
+name: dispatch build osx-arm64
 
 on:
   workflow_dispatch:
