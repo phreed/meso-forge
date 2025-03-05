@@ -50,11 +50,12 @@ jobs:
         # https://rattler.build/latest/authentication_and_upload/#anacondaorg
         for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
           echo "Uploading ${pkg}"
-          rattler-build upload anaconda -o phread -c dev "${pkg}"
+          rattler-build upload anaconda -v "${pkg}"
         done
       env:
-        ANACONDA_SERVER_URL: https://anaconda.org
-        ANACONDA_USERNAME: phread
+        ANACONDA_OWNER: phread
         ANACONDA_CHANNEL: mesomorph
-        ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_TOKEN }}
+        ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
+        # ANACONDA_SERVER_URL: https://anaconda.org
+        RATTLER_BUILD_LOG_STYLE: fancy
 
