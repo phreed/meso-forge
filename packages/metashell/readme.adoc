@@ -1,0 +1,4 @@
+= `metashell` learning Template Meta-programming
+
+http://metashell.org/
+

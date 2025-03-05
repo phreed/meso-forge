@@ -1,0 +1,6 @@
+= `pwgen` a password generator
+
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/pwgen.rb
+
+https://pwgen.sourceforge.net/
+

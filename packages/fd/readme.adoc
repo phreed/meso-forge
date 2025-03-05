@@ -1,0 +1,8 @@
+= A new version of `find`
+
+https://github.com/sharkdp/fd
+
+Written in Rust.
+
+https://github.com/sharkdp/fd
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/f/fd.rb

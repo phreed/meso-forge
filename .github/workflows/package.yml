@@ -1,0 +1,63 @@
+# https://github.com/prefix-dev/rattler-build-action
+name: Build Packages
+
+on: [push]
+
+jobs:
+  establish_runner_map:
+    name: Establish runner map
+    runs-on: ubuntu-latest
+    outputs:
+      runners: '{"linux-64":"ubuntu-latest", "linux-aarch64": "ubuntu-latest", "win-64": "windows-latest"}, "osx-64": "macos-latest", "osx-arm64": "macos-14"'
+    steps:
+      - run: echo no-op
+
+  build_packages:
+    name: Build packages
+    needs: [ establish_runner_map ]
+    strategy:
+      matrix:
+        package: 
+          # - asyncio
+          # - bash-preexe
+          # - bitwarden-cli
+          - digitalpy
+          # - dysk
+          # - fd
+          # - freetakserver
+          # - fsarchiver
+          # - iamb
+          # - jank
+          # - mediamtx
+          # - metashell
+          # - mumble
+          # - node-red
+          # - node-red-contrib-web-worldmap
+          # - pwgen
+          # - testresources
+        target-platform:
+          - linux-64
+          # - linux-aarch64
+          # - win-64
+          # - osx-64
+          # - osx-arm64
+    runs-on: ${{ ifromJSON(needs.establish_runner_map.outputs.runners)[matrix.target-platform] }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build conda package
+      uses: prefix-dev/rattler-build-action@v0.2.31
+      with:
+        recipe-path: ./packages/${{ matrix.package }}
+        artifact-name: package-${{ matrix.target-platform }}
+        build-args: --target-platform ${{ matrix.target-platform }}${{ matrix.target-platform == 'linux-aarch64' && ' --no-test' || '' }}
+    - run: |
+        # https://rattler.build/latest/authentication_and_upload/#anacondaorg
+        for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
+          echo "Uploading ${pkg}"
+          rattler-build upload anaconda -o mesomorph -c dev "${pkg}"
+        done
+      env:
+        ANACONDA_SERVER_URL: https://anaconda.org
+        ANACONDA_USERNAME: mesomorph
+        ANACONDA_PASSWORD: ${{ secrets.ANACONDA_API_TOKEN }}
+

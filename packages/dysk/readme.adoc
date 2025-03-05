@@ -1,0 +1,12 @@
+= `dysk` 
+
+A linux utility to get information on filesystems, like df but better.
+
+https://dystroy.org/dysk/
+
+https://dystroy.org/dysk/install/#from-source
+https://github.com/Canop/dysk
+
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/d/dysk.rb
+
+

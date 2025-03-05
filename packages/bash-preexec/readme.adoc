@@ -1,0 +1,8 @@
+= `bash-preexec`
+
+Preexec and precmd functions for Bash (like Zsh)
+https://github.com/rcaloras/bash-preexec
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/b/bash-preexec.rb
+License: MIT
+Add the following line to your bash profile (e.g. ~/.bashrc, ~/.profile, or ~/.bash_profile)
+[ -f /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh ] && . /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh
