@@ -4,13 +4,6 @@ name: Build Packages
 on: [push]
 
 jobs:
-  establish_runner_map:
-    name: Establish runner map
-    runs-on: ubuntu-latest
-    outputs:
-    steps:
-      - run: echo no-op
-
   build_packages:
     name: Build packages
     strategy:
