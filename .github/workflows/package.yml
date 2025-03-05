@@ -44,7 +44,7 @@ jobs:
       uses: prefix-dev/rattler-build-action@v0.2.31
       with:
         recipe-path: ./packages/${{ matrix.package }}
-        artifact-name: package-${{ matrix.target.platform }}
+        artifact-name: ${{ matrix.package }}-${{ matrix.target.platform }}
         build-args: >
           --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }}
           --channel mesomorph --channel conda-forge
@@ -59,4 +59,4 @@ jobs:
         ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
         # ANACONDA_SERVER_URL: https://anaconda.org
         RATTLER_BUILD_LOG_STYLE: fancy
-        ANACONDA_FORCE: true
+        # ANACONDA_FORCE: false
