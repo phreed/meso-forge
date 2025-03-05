@@ -29,12 +29,15 @@ requirements:
     - pip
   run:
     - python >=${{ python_min }},<4.0.0
+    - asyncio 3.4.3.*
+    - bcrypt
     - bitarray
     - click >=8.1.3
     - colorama 0.4.4.*
+    - connexion
     - cryptography 
-    - bcrypt
     - defusedxml 0.7.1.*
+    - digitalpy 0.3.13.7.*
     - dnspython
     - eventlet 0.33.1.*
     - flask 3.0.2.*
@@ -47,36 +50,33 @@ requirements:
     - geopy 2.2.0.*
     - greenlet 3.1.1.*
     - itsdangerous >=2.0.1
-    - testresources 2.0.1.*
     - jinja2 3.1.3.*
     - lxml
     - markupsafe 2.1.5.*
     - monotonic 1.6.*
+    - opentelemetry-sdk
     - pathlib2 2.3.7.post1.*
+    - pillow 11.0.0.*
     - protobuf
     - psutil 6.1.1.*
+    - pyjwt
     - pykml 0.2.0.*
     - python-engineio 4.11.2.*
     - python-socketio 5.11.1.*
+    - pyopenssl 
     - pyyaml 6.0.2.*
+    - pyzmq
+    - qrcode 7.3.1.*
     - ruamel.yaml 0.18.10.*
     - ruamel.yaml.clib 0.2.8.*
     - six 1.16.0.*
     - sqlalchemy 2.0.38.*
+    - swagger-ui-bundle >=0.0.2
     - tabulate 0.8.7.*
+    - testresources 2.0.1.*
     - werkzeug 3.0.1.*
     - wtforms 2.3.3.*
-    - pyopenssl 
-    - qrcode 7.3.1.*
-    - pillow 11.0.0.*
-    - asyncio 3.4.3.*
     - xmltodict
-    - pyzmq
-    - digitalpy 0.3.13.7.*
-    - opentelemetry-sdk
-    - pyjwt
-    - connexion
-    - swagger-ui-bundle >=0.0.2
   run_constraints:
     - FreeTAKServer_UI 2.1.*
     - pytak 5.4.1.*
