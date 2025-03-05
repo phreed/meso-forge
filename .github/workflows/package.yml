@@ -29,14 +29,14 @@ jobs:
         target:
           - platform: linux-64
             os: "ubuntu-latest"
-          - platform: linux-aarch64
-            os: "ubuntu-latest"
-          - platform: win-64
-            os: "windows-latest"
-          - platform: osx-64
-            os: "macos-latest"
-          - platform: osx-arm64
-            os: "macos-14"
+          # - platform: linux-aarch64
+          #   os: "ubuntu-latest"
+          # - platform: win-64
+          #   os: "windows-latest"
+          # - platform: osx-64
+          #   os: "macos-latest"
+          # - platform: osx-arm64
+          #   os: "macos-14"
     runs-on: ${{ matrix.target.os }}
     steps:
     - uses: actions/checkout@v4
