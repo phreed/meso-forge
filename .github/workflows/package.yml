@@ -47,7 +47,7 @@ jobs:
         artifact-name: package-${{ matrix.target.platform }}
         build-args: >
           --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }}
-          --channel mesomorph,conda-forge
+          --channel mesomorph --channel conda-forge
     - run: |
         # https://rattler.build/latest/authentication_and_upload/#anacondaorg
         for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do

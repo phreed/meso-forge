@@ -1,0 +1,4 @@
+= `testresources`
+
+https://github.com/testing-cabal/testresources
+
