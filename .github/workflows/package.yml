@@ -46,14 +46,15 @@ jobs:
         recipe-path: ./packages/${{ matrix.package }}
         artifact-name: package-${{ matrix.target.platform }}
         build-args: --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }}
-    # - run: |
-    #     # https://rattler.build/latest/authentication_and_upload/#anacondaorg
-    #     for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
-    #       echo "Uploading ${pkg}"
-    #       rattler-build upload anaconda -o mesomorph -c dev "${pkg}"
-    #     done
-    #   env:
-    #     ANACONDA_SERVER_URL: https://anaconda.org
-    #     ANACONDA_USERNAME: mesomorph
-    #     ANACONDA_PASSWORD: ${{ secrets.ANACONDA_API_TOKEN }}
+    - run: |
+        # https://rattler.build/latest/authentication_and_upload/#anacondaorg
+        for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
+          echo "Uploading ${pkg}"
+          rattler-build upload anaconda -o phread -c dev "${pkg}"
+        done
+      env:
+        ANACONDA_SERVER_URL: https://anaconda.org
+        ANACONDA_USERNAME: phread
+        ANACONDA_CHANNEL: mesomorph
+        ANACONDA_PASSWORD: ${{ secrets.ANACONDA_API_TOKEN }}
 
