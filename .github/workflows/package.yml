@@ -23,8 +23,8 @@ jobs:
           # - mediamtx
           # - metashell
           # - mumble
-          # - node-red
-          # - node-red-contrib-web-worldmap
+          - node-red
+          - node-red-contrib-web-worldmap
           # - pwgen
           - testresources
         target:
@@ -58,6 +58,7 @@ jobs:
       env:
         ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
         ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
+        ANACONDA_CHANNEL: dev
         # ANACONDA_SERVER_URL: https://anaconda.org
         RATTLER_BUILD_LOG_STYLE: fancy
         # ANACONDA_FORCE: false
