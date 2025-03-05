@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         package: 
-          - asyncio
+          # - asyncio # is this included with python?
           # - bash-preexe
           # - bitwarden-cli
           - digitalpy
@@ -25,7 +25,7 @@ jobs:
           # - node-red
           # - node-red-contrib-web-worldmap
           # - pwgen
-          - testresources
+          - test-resources
         target:
           - platform: linux-64
             os: "ubuntu-latest"
