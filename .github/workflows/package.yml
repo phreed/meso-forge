@@ -56,5 +56,5 @@ jobs:
         ANACONDA_SERVER_URL: https://anaconda.org
         ANACONDA_USERNAME: phread
         ANACONDA_CHANNEL: mesomorph
-        ANACONDA_PASSWORD: ${{ secrets.ANACONDA_API_TOKEN }}
+        ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_TOKEN }}
 
