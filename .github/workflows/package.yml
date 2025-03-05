@@ -15,7 +15,7 @@ jobs:
           - digitalpy
           # - dysk
           # - fd
-          # - freetakserver
+          - freetakserver
           # - fsarchiver
           # - iamb
           # - jank
