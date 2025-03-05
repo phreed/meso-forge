@@ -1,0 +1,19 @@
+[project]
+channels = ["mesomorph", "conda-forge"]
+name = "conda-recipes"
+platforms = ["linux-64"]
+
+[tasks]
+promote = { cmd = [
+    "echo",
+    "eventually, this will generate a 'staged-recipe' suitable for `conda-forge` submission.",
+] }
+
+build = { cmd = [
+    "rattler-build",
+    "build",
+    "--recipe", "./packages/${PKG}",
+    "--target-platform", "linux-64", 
+    "--channel", "mesomorph", 
+    "--channel", "conda-forge" ],  env = { PKG = "testresources" } }
+
