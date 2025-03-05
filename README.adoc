@@ -110,3 +110,24 @@ Copy the secret and then go to your fork of this repository and go to "Settings"
 The secret must be called ANACONDA_API_TOKEN, and you can paste the secret you copied before into here.
 
 image:.resources/github-action-secret.png[]
+
+== Troubleshooting
+
+Here is an example of how to run a build for `testresources`.
+It pulls from two channels, `mesomorph` and `conda-forge`.
+[source,bash]
+----
+rattler-build build --recipe "./packages/testresources" --target-platform linux-64 --channel mesomorph --channel conda-forge
+----
+
+Uploading the constructed package.
+
+[source,bash]
+----
+PACKAGE_FILE=$(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) )
+ANACONDA_OWNER: mesomorph
+ANACONDA_API_KEY: ***
+RATTLER_BUILD_LOG_STYLE: fancy
+rattler-build upload anaconda -v $PACKAGE_FILE
+----
+
