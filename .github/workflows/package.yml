@@ -7,6 +7,7 @@ jobs:
   build_packages:
     name: Build packages
     strategy:
+      fail-fast: false
       matrix:
         package: 
           # - asyncio # is this included with python?
@@ -38,7 +39,6 @@ jobs:
           # - platform: osx-arm64
           #   os: "macos-14"
     runs-on: ${{ matrix.target.os }}
-    fail-fast: false
     steps:
     - uses: actions/checkout@v4
     - name: Build conda package ${{ matrix.package }}
