@@ -45,7 +45,7 @@ jobs:
       with:
         recipe-path: ./packages/${{ matrix.package }}
         artifact-name: package-${{ matrix.target.platform }}
-        build-args: --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }}
+        build-args: --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }} --channel mesomorph
     - run: |
         # https://rattler.build/latest/authentication_and_upload/#anacondaorg
         for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
