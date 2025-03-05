@@ -26,7 +26,7 @@ jobs:
           # - node-red
           # - node-red-contrib-web-worldmap
           # - pwgen
-          # - test-resources
+          - testresources
         target:
           - platform: linux-64
             os: "ubuntu-latest"
