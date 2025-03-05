@@ -54,7 +54,7 @@ jobs:
         done
       env:
         ANACONDA_OWNER: phread
-        ANACONDA_CHANNEL: mesomorph
+        # ANACONDA_CHANNEL: mesomorph
         ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
         # ANACONDA_SERVER_URL: https://anaconda.org
         RATTLER_BUILD_LOG_STYLE: fancy
