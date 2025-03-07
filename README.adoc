@@ -117,7 +117,8 @@ Here is an example of how to run a build for `testresources`.
 It pulls from two channels, `mesomorph` and `conda-forge`.
 [source,bash]
 ----
-rattler-build build --recipe "./packages/testresources" --target-platform linux-64 --channel mesomorph --channel conda-forge
+PKG_NAME=node-red
+rattler-build build --recipe "./packages/$PKG_NAME" --target-platform linux-64 --channel mesomorph --channel conda-forge
 ----
 
 Uploading the constructed package.

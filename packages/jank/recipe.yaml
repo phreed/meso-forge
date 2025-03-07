@@ -4,15 +4,17 @@ context:
   name: jank
   group: jank-lang
   version: 0.1.0
-  sig: f38883ffc1fad5a1eb7e01f0c9d3f0635f594993b02739c0a641eef77ce10c4d
+  commit: "fe32c9deac434de4b88b9f3e25dc2ca5b1ba925f"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/${{ group }}/${{ name }}/archive/refs/heads/main.zip
-  sha256: ${{ sig }}
+  git: https://github.com/jank-lang/jank.git
+  rev: ${{ commit }}
+  # url: https://github.com/${{ group }}/${{ name }}/archive/refs/heads/main.zip
+  # sha256: ${{ sig }}
   patches:
     - 0001-fix-includes.patch
 

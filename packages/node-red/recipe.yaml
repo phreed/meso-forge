@@ -14,8 +14,12 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://registry.npmjs.org/${{ name }}/-/${{ name }}-${{ version }}.tgz
-  sha256: ${{ sha }} 
+  - url: https://registry.npmjs.org/${{ name }}/-/${{ name }}-${{ version }}.tgz
+    sha256: ${{ sha }}  
+  - path: systemd/node-red.service
+    target-directory: systemd/node-red.service
+  - path: systemd/install-node-red.sh
+    target-directory: systemd/install-node-red.sh
  
 build:
   number: 0

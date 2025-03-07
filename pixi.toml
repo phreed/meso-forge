@@ -17,3 +17,5 @@ build = { cmd = [
     "--channel", "mesomorph", 
     "--channel", "conda-forge" ],  env = { PKG = "testresources" } }
 
+[dependencies]
+rattler-build = ">=0.38.0,<0.39"
