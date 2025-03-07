@@ -84,16 +84,8 @@ This is the step that requires the `ANACONDA_API_TOKEN` secret and `ANACONDA_OWN
 The ANACONDA_API_TOKEN is used in the following jobs:
 .github/workflows/dispatch_build_linux64.yml
 [source,yaml]
-include::.github/workflows/dispatch_build_linux-64.yml[tag=api_token]
+include::.github/workflows/package.yml[tag=api-token]
 
-[source,yaml]
-include::.github/workflows/dispatch_build_osx-64.yml[tag=api_token]
-
-[source,yaml]
-include::.github/workflows/dispatch_build_osx-arm64.yml[tag=api_token]
-
-[source,yaml]
-include::.github/workflows/rattler-build_upload.yml[tag=api_token]
 
 ==== Create the Anaconda Token
 

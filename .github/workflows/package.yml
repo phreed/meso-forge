@@ -55,6 +55,7 @@ jobs:
           echo "Uploading ${pkg}"
           rattler-build upload anaconda -v "${pkg}"
         done
+      # tag::api-token[]
       env:
         ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
         ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
@@ -62,3 +63,4 @@ jobs:
         # ANACONDA_SERVER_URL: https://anaconda.org
         RATTLER_BUILD_LOG_STYLE: fancy
         # ANACONDA_FORCE: false
+      # end::api-token[]
