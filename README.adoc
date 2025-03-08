@@ -73,7 +73,7 @@ Some complex recipes may use multiple shell scripts.
 Push the branch to the repository and open a pull request from it.
 Once the pull request has been opened,
 the `rattler-build_linux-64.yml` workflow will attempt to build the recipes
-using the `ratter-build_container.df` docker image.
+using the `ratter-build_container.df` linux container image.
 If the recipes build successfully, 
 you can merge the pull request to trigger the `rattler-build_upload.yml` workflow, 
 which will upload the conda packages to your personal channel.
