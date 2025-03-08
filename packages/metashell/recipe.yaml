@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  version: "5.0.0"
+
+package:
+  name: metashell
+  version: ${{ version }}
+
+source:
+  url: https://github.com/metashell/metashell/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: 028e37be072ec4e85d18ead234a208d07225cf335c0bb1c98d4d4c3e30c71f0e
+  patches:
+    - url: https://github.com/metashell/metashell/commit/0d81415616d33e39ff6d1add91e71f9789ea8657.patch?full_index=1
+      sha256: 31472db5ae8e67483319dcbe104d5c7a533031f9845af2ddf5147f3caabf3ac2
+
+build:
+  number: 0
+  script: |
+    cmake -S 3rd/templight/llvm -B build/templight -DLIBCLANG_BUILD_STATIC=ON -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_PROJECTS=clang ${{ CMAKE_ARGS }}
+    cmake --build build/templight --target templight
+    cmake -S . -B build/metashell ${{ CMAKE_ARGS }}
+    cmake --build build/metashell
+    cmake --install build/metashell
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    - cmake
+  host:
+    - if: linux
+      then:
+       - libedit
+       - libxml2
+       - zlib  
+       - readline
+
+tests:
+  - script: |
+      cat << EOF > test.hpp
+      template <class T> struct add_const { using type = const T; };
+      add_const<int>::type
+      EOF
+      ${{ PREFIX }}/bin/metashell -H < test.hpp | grep "const int"
+
+about:
+  homepage: http://metashell.org
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: Metaprogramming shell for C++ templates
+
+extra:
+  recipe-maintainers:
+    - phreed

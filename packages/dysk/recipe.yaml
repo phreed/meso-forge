@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  version: "2.10.0"
+
+package:
+  name: dysk
+  version: ${{ version }}
+
+source:
+  url: https://github.com/Canop/dysk/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: af6a19493f3ca1d471605cd3e40016aaf89d383c87705f6c32d8232b7e433c14
+
+build:
+  number: 0
+  script: cargo install --root $PREFIX --path .
+
+requirements:
+  build:
+    - rust
+  host:
+    - rust
+  run:
+    - if: linux
+      then:
+        - linux-only-dependency
+
+tests:
+  - script: |
+      dysk -s free-d | grep "filesystem"
+      dysk --version | grep ${{ version }}
+
+about:
+  homepage: https://dystroy.org/dysk/
+  license: MIT
+  license_file: LICENSE
+  summary: Linux utility to get information on filesystems, like df but better
+  repository: https://github.com/Canop/dysk
+
+extra:
+  recipe-maintainers:
+    - phreed

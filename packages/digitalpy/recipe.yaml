@@ -28,6 +28,8 @@ requirements:
     - python >=${{ python_min }},<4.0.0
     - rule-engine
     - pyzmq
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
 
 tests:
   - python:

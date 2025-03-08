@@ -1,47 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
 
-class Fsarchiver < Formula
-  desc "File system archiver for linux"
-  homepage "https://www.fsarchiver.org"
-  url "https://github.com/fdupoux/fsarchiver/releases/download/0.8.7/fsarchiver-0.8.7.tar.gz"
-  sha256 "f7cd059e70fc57e888db282c622ec050c0dcdbaacc65e3c1eb163cd9d92d810d"
-  license "GPL-2.0-only"
+context:
+  version: "0.8.7"
+  sig: "f7cd059e70fc57e888db282c622ec050c0dcdbaacc65e3c1eb163cd9d92d810d"
 
-  depends_on "autoconf" => :build
-  depends_on "automake" => :build
-  depends_on "libtool" => :build
-  depends_on "pkg-config" => :build
-  depends_on "bzip2"
-  depends_on "e2fsprogs"
-  depends_on "libgcrypt"
-  depends_on :linux
-  depends_on "lz4"
-  depends_on "lzo"
-  depends_on "util-linux"
-  depends_on "xz"
-  depends_on "zlib"
-  depends_on "zstd"
+package:
+  name: fsarchiver
+  group: fdupoux
+  version: ${{ version }}
 
-  def install
-    args = [
-      "--enable-elf-shlibs",
-      "--disable-fsck",
-      "--disable-uuidd",
-      "--disable-libuuid",
-      "--disable-libblkid",
-      "--without-crond-dir",
-      "--sysconfdir=#{etc}",
-      "--disable-e2initrd-helper",
-      "MKDIR_P=mkdir -p",
-    ]
+source:
+  url: "https://github.com/${{ group }}/${{ name }}/releases/download/0.8.7/fsarchiver-0.8.7.tar.gz"
+  sha256:  ${{ sig }}
 
-    system "autoreconf", "--force", "--install", "--verbose"
-    system "./configure", *args, *std_configure_args
+build:
+  number: 0
+  # skip: win
+  script: |
+    autoreconf --force --install --verbose
+    MKDIR_P=${mkdir -p}
+    ./configure \
+        --enable-elf-shlibs \
+        --disable-fsck \
+        --disable-uuidd \
+        --disable-libuuid \
+        --disable-libblkid \
+        --without-crond-dir \
+        --sysconfdir=#{etc} \
+        --disable-e2initrd-helper \
+        $MKDIR_P 
+    make
+    make install
 
-    system "make"
-    system "make", "install"
-  end
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - make
+    - autoconf
+    - automake
+    - libtool
+    - pkg-config
+  host:
+    - bzip2
+    - e2fsprogs
+    - libgcrypt
+    - linux
+    - lz4
+    - lzo
+    - util-linux
+    - liblzma
+    - zlib
+    - zstd
 
-  test do
-    system bin/"fsarchiver", "usage"
-  end
-end
+tests:
+  - command:
+      - ./bin/fsarchiver usage
+
+about:
+  homepage: "https://www.fsarchiver.org"
+  license: GPL-2.0-only
+  license_file: LICENSE
+  summary: File system archiver for linux
+  description: |
+    FSArchiver is a system tool that allows you to 
+    save the contents of a filesystem to a compressed archive file.
+    The filesystem contents can be restored on a device 
+    which has a different size and it can be restored on a
+    different filesystem. 
+    Unlike tar/dar, FSArchiver also creates the filesystem 
+    when it extracts the data to devices. 
+    Everything is checksummed in the archive 
+    in order to protect the data. If the archive is corrupt, 
+    you just lose the current file, not the whole archive.
+  repository: https://github.com/fdupoux/fsarchiver
+  
+extra:
+  recipe-maintainers:
+    - phreed

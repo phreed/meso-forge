@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  version: "0.5.0"
+
+package:
+  name: bash-preexec
+  version: ${{ version }}
+
+source:
+  url: https://github.com/rcaloras/bash-preexec/archive/refs/tags/${{ version }}.tar.gz
+  sha256: 23c589cd1da209c0598f92fac8d81bb11632ba1b2e68ccaf4ad2c4f3204b877c
+
+build:
+  noarch: generic
+  script: |
+    mkdir -p $PREFIX/etc/profile.d
+    cp bash-preexec.sh $PREFIX/etc/profile.d/
+  number: 0
+
+tests:
+  - script: |
+      test -f $PREFIX/etc/profile.d/bash-preexec.sh
+
+about:
+  homepage: https://github.com/rcaloras/bash-preexec
+  license: MIT
+  license_file: LICENSE.md
+  summary: Preexec and precmd functions for Bash (like Zsh)
+  description: |
+    bash-preexec.sh is a library that provides preexec and precmd functionality 
+    in bash that is typically found in zsh. This allows you to execute functions 
+    before every command, as well as right before the prompt is displayed.
+
+extra:
+  recipe-maintainers:
+    - phreed

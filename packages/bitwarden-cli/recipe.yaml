@@ -2,19 +2,17 @@
 schema_version: 1
 
 context:
-  name: testresources
-  original: testresources
-  version: 2.0.1
+  name: bitwarden-cli
+  version: 3.4.3
   python_min: 3.7.0
-  sha256: ee9d1982154a1e212d4e4bac6b610800bfb558e4fb853572a827bc14a96e4417
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ original[0] }}/${{ original }}/${{ original }}-${{ version }}.tar.gz
-  sha256: ${{ sha256 }}
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/bw-${{ version }}.tar.gz
+  sha256: 83360ff8bc97980e4ff25c964c7bd3923d333d177aa4f7fb736b019f26c7cb41
 
 build:
   number: 0
@@ -24,24 +22,22 @@ build:
 requirements:
   host:
     - python ==${{ python_min }}
-    - pbr
     - pip
     - setuptools
   run:
-    - python >=${{ python_min }},<4.0.0
-    - pbr
+    - python >=${{ python_min }}
 
 tests:
   - python:
       imports:
-        - testresources
+        - bw
       pip_check: true
 
 about:
-  summary: Testresources, a pyunit extension for managing expensive test resources
-  license: JSON
+  homepage: http://www.python.org/dev/peps/pep-3156/
+  summary: reference implementation of PEP 3156
+  license: Apache-2.0
   license_file: COPYING
-  homepage: https://launchpad.net/testresources
 
 extra:
   recipe-maintainers:

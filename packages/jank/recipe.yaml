@@ -29,6 +29,7 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
     - binutils
     - clangdev
     - llvmdev
@@ -36,10 +37,8 @@ requirements:
     - pkg-config
     - sbcl
     - sed
-    - if: linux
-      then: sysroot_linux-64=2.17
   host:
-    - boost-cpp
+    - libboost-devel
     - if: linux
       then: elfutils
     - fmt
@@ -52,7 +51,7 @@ tests:
       - ${{ name }} --help
 
 about:
-  license: Mozilla
+  license: MPL-2.0
   license_file: https://github.com/${{ group }}/${{ name }}/blob/main/LICENSE
   summary: Jank a LLVM hosted Clojure
   homepage: https://jank-lang.org/
@@ -61,4 +60,3 @@ about:
 extra:
   recipe-maintainers:
     - phreed
-

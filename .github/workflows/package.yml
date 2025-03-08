@@ -11,21 +11,21 @@ jobs:
       matrix:
         package: 
           # - asyncio # is this included with python?
-          # - bash-preexe
-          # - bitwarden-cli
+          - bash-preexec
+          - bitwarden-cli
           - digitalpy
-          # - dysk
-          # - fd
+          - dysk
+          - fd
           - freetakserver
-          # - fsarchiver
-          # - iamb
-          # - jank
-          # - mediamtx
-          # - metashell
-          # - mumble
+          - fsarchiver
+          - iamb
+          - jank
+          - mediamtx
+          - metashell
+          - mumble
           - node-red
           - node-red-contrib-web-worldmap
-          # - pwgen
+          - pwgen
           - testresources
         target:
           - platform: linux-64
@@ -53,14 +53,14 @@ jobs:
         # https://rattler.build/latest/authentication_and_upload/#anacondaorg
         for pkg in $(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) ); do
           echo "Uploading ${pkg}"
-          rattler-build upload anaconda -v "${pkg}"
+          rattler-build upload anaconda -v --force "${pkg}"
         done
-      # tag::api-token[]
       env:
+        # tag::api-token[]
         ANACONDA_OWNER: ${{ vars.ANACONDA_OWNER }}
         ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
         ANACONDA_CHANNEL: dev
         # ANACONDA_SERVER_URL: https://anaconda.org
         RATTLER_BUILD_LOG_STYLE: fancy
         # ANACONDA_FORCE: false
-      # end::api-token[]
+        # end::api-token[]

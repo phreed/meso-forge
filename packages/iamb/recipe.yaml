@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  version: "0.0.10"
+
+package:
+  name: iamb
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ulyssa/iamb/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: f628cfbd9eba9e8881902b970e9432fec815044ec9bea901a8562ea3ef8f4615
+
+build:
+  number: 0
+  script: cargo install --root $PREFIX --path .
+  env:
+    LIBSQLITE3_SYS_USE_PKG_CONFIG: "1"
+    VERGEN_GIT_SHA: ${{ env.get('CONDA_PREFIX', '') }}
+
+requirements:
+  build:
+    - pkgconf
+    - rust
+  host:
+    - sqlite  # since ventura
+  run:
+    - if: linux
+      then:
+        - openssl
+
+tests:
+  - script: |
+      iamb
+    stderr:
+      contains: "Please create a configuration file"
+    exit: 2
+
+about:
+  homepage: https://iamb.chat
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Matrix client for Vim addicts
+  description: |
+    iamb is a Matrix client for the terminal that uses Vim keybindings.
+  repository: https://github.com/ulyssa/iamb
+  
+extra:
+  recipe-maintainers:
+    - phreed

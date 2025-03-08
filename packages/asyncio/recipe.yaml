@@ -4,7 +4,7 @@ schema_version: 1
 context:
   name: asyncio
   version: 3.4.3
-  python_min: 3.7.0
+  python_min: 3.11.0
 
 package:
   name: ${{ name|lower }}
@@ -30,6 +30,7 @@ requirements:
 tests:
   - python:
       imports:
+        - python ${{ python_min }}
         - asyncio
       pip_check: true
 

@@ -1,0 +1,44 @@
+context:
+  version: "2.08"
+
+package:
+  name: pwgen
+  version: ${{ version }}
+
+source:
+  url: https://downloads.sourceforge.net/project/pwgen/pwgen/${{ version }}/pwgen-${{ version }}.tar.gz
+  sha256: dab03dd30ad5a58e578c5581241a6e87e184a18eb2c3b2e0fffa8a9cf105c97b
+
+build:
+  number: 0
+  script: |
+    ./configure --disable-debug --disable-dependency-tracking \
+                --prefix=$PREFIX \
+                --mandir=$PREFIX/share/man
+    make
+    make install
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - make
+
+tests:
+  - command:
+      - pwgen --secure 20 10
+
+about:
+  homepage: https://pwgen.sourceforge.net/
+  license: GPL-2.0-only
+  license_file: LICENSE
+  summary: Password generator
+  description: |
+    pwgen generates random, meaningless but pronounceable passwords.
+    These passwords contain either only lowercase letters, or upper
+    and lower case mixed, or digits thrown in.
+  repository: https://sourceforge.net/projects/pwgen/
+  
+extra:
+  recipe-maintainers:
+    - phreed

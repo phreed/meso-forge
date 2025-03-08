@@ -1,7 +1,46 @@
+"$schema" = "https://pixi.sh/v0.36.0/schema/manifest/schema.json"
+
 [project]
-channels = ["mesomorph", "conda-forge"]
 name = "conda-recipes"
-platforms = ["linux-64"]
+description = "A pre-build before going to conda-forge"
+version = "0.1.0"
+license = "BSD-3-Clause"
+license-file = "LICENSE.txt"
+authors = ["@mesomorph"]
+channels = ["mesomorph", "conda-forge"]
+platforms = [
+    "linux-64",
+    "linux-aarch64",
+    "osx-64",
+    "osx-arm64",
+    "win-64",
+    ]
+
+[feature.python.dependencies]
+python = "3.12.*"
+
+[feature.build.dependencies]
+rattler-build-conda-compat = ">=1.2.0,<2.0.0a0"
+
+[feature.linux]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+[feature.linux.tasks.build-linux]
+description = "build for Linux inside a docker container"
+cmd = "python build-locally.py"
+env = { BUILD_LOCALLY_FILTER = "linux*" }
+
+
+[feature.conda-smithy.dependencies]
+conda-smithy = ">=3.44.6,<4"
+[feature.conda-smithy.tasks.lint]
+description = "validate all recipes with `conda-smithy`"
+cmd = "conda-smithy recipe-lint --conda-forge packages/*"
+
+[environments]
+# linux only needs Python to run build-locally.py. Everything else happens in Docker.
+linux = ["linux", "python"]
+build = ["python", "build"]
+conda-smithy = ["python", "conda-smithy"]
 
 [tasks]
 promote = { cmd = [
@@ -12,7 +51,7 @@ promote = { cmd = [
 build = { cmd = [
     "rattler-build",
     "build",
-    "--recipe", "./packages/${PKG}",
+    "--recipe", "./packages/$PKG",
     "--target-platform", "linux-64", 
     "--channel", "mesomorph", 
     "--channel", "conda-forge" ],  env = { PKG = "testresources" } }
