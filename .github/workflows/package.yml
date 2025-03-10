@@ -43,7 +43,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build conda package ${{ matrix.package.self }}
-      uses: prefix-dev/rattler-build-action@v0.2.31
+      uses: prefix-dev/rattler-build-action@v0.2.32
       with:
         recipe-path: ./packages/${{ matrix.package.self }}
         artifact-name: ${{ matrix.package.self }}-${{ matrix.target.platform }}
