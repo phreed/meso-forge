@@ -15,8 +15,8 @@ source:
   rev: ${{ commit }}
   # url: https://github.com/${{ group }}/${{ name }}/archive/refs/heads/main.zip
   # sha256: ${{ sig }}
-  patches:
-    - 0001-fix-includes.patch
+  # patches:
+  #   - 0001-fix-includes.patch
 
 build:
   number: 0

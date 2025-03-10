@@ -11,22 +11,23 @@ jobs:
       matrix:
         package: 
           # - asyncio # is this included with python?
-          - bash-preexec
-          - bitwarden-cli
-          - digitalpy
-          - dysk
-          - fd
-          - freetakserver
-          - fsarchiver
-          - iamb
-          - jank
-          - mediamtx
-          - metashell
-          - mumble
-          - node-red
-          - node-red-contrib-web-worldmap
-          - pwgen
-          - testresources
+          - self: bash-preexec
+          - self: bitwarden-cli
+          - self: digitalpy
+          - self: dysk
+          - self: fd
+          - self: freetakserver
+            needs: [digitalpy]
+          - self: fsarchiver
+          - self: iamb
+          - self: jank
+          - self: mediamtx
+          - self: metashell
+          - self: mumble
+          - self: node-red
+          - self: node-red-contrib-web-worldmap
+          - self: pwgen
+          - self: testresources
         target:
           - platform: linux-64
             os: "ubuntu-latest"
@@ -41,11 +42,11 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
     - uses: actions/checkout@v4
-    - name: Build conda package ${{ matrix.package }}
+    - name: Build conda package ${{ matrix.package.self }}
       uses: prefix-dev/rattler-build-action@v0.2.31
       with:
-        recipe-path: ./packages/${{ matrix.package }}
-        artifact-name: ${{ matrix.package }}-${{ matrix.target.platform }}
+        recipe-path: ./packages/${{ matrix.package.self }}
+        artifact-name: ${{ matrix.package.self }}-${{ matrix.target.platform }}
         build-args: >
           --target-platform ${{ matrix.target.platform }}${{ matrix.target.platform == 'linux-aarch64' && ' --no-test' || '' }}
           --channel mesomorph --channel conda-forge

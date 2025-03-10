@@ -8,13 +8,7 @@ license = "BSD-3-Clause"
 license-file = "LICENSE.txt"
 authors = ["@mesomorph"]
 channels = ["mesomorph", "conda-forge"]
-platforms = [
-    "linux-64",
-    "linux-aarch64",
-    "osx-64",
-    "osx-arm64",
-    "win-64",
-    ]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
 
 [feature.python.dependencies]
 python = "3.12.*"
@@ -43,18 +37,11 @@ build = ["python", "build"]
 conda-smithy = ["python", "conda-smithy"]
 
 [tasks]
-promote = { cmd = [
-    "echo",
-    "eventually, this will generate a 'staged-recipe' suitable for `conda-forge` submission.",
-] }
+promote.cmd = ["./.scripts/run_promote.sh"]
+promote.env.ANACONDA_OWNER = "mesomorph"
+promote.env.description = "ANACONDA_API_KEY=<provide the key> PKG=./output/noarch/freetakserver-2.2.1-pyh4616a5c_0.conda pixi run promote"
 
-build = { cmd = [
-    "rattler-build",
-    "build",
-    "--recipe", "./packages/$PKG",
-    "--target-platform", "linux-64", 
-    "--channel", "mesomorph", 
-    "--channel", "conda-forge" ],  env = { PKG = "*" } }
+build.cmd = ["./.scripts/run_build.sh"]
 
 [dependencies]
 rattler-build = ">=0.38.0,<0.39"

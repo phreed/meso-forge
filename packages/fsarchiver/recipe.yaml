@@ -2,16 +2,17 @@
 schema_version: 1
 
 context:
+  name: fsarchiver
+  group: fdupoux
   version: "0.8.7"
   sig: "f7cd059e70fc57e888db282c622ec050c0dcdbaacc65e3c1eb163cd9d92d810d"
 
 package:
-  name: fsarchiver
-  group: fdupoux
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: "https://github.com/${{ group }}/${{ name }}/releases/download/0.8.7/fsarchiver-0.8.7.tar.gz"
+  url: "https://github.com/${{ group }}/${{ name }}/releases/download/${{ versin }}/${{ name }}-${{ version }}.tar.gz"
   sha256:  ${{ sig }}
 
 build:

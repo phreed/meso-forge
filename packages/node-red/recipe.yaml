@@ -19,7 +19,7 @@ source:
   - if: linux
     then: 
       path: systemd/configure-service.sh
-      target-directory: systemd/configure-node-red.sh
+      target_directory: systemd/configure-node-red.sh
  
 build:
   number: 0

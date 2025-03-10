@@ -11,7 +11,7 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/digitalpy-${{ version }}.tar.gz
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
   sha256: 6efc3e9f51ab2b66116c133db56a36666915736c75bc30a54869c1262604c137
 
 build:

@@ -11,7 +11,7 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/freetakserver-${{ version }}.tar.gz
+  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
   sha256: b4d1313d924403a38d08aaf94bda56045b3387a8c87f10166a30f37422e456e7
 
 build:
