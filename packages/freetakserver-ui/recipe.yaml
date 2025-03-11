@@ -25,11 +25,11 @@ build:
 
 requirements:
   host:
-    - python >=3.11,<4.0
+    - python ==${{ python_min }}
     - poetry-core
     - pip
   run:
-    - python >= ${{ python_min }},<4.0.0
+    - python >=${{ python_min }},<4.0.0
     - alembic 1.13.1.*
     - blinker 1.7.0.*
     - certifi 2024.2.2.*
@@ -45,7 +45,7 @@ requirements:
     - flask-migrate 4.0.6.*
     - flask-sqlalchemy 3.1.1.*
     - flask-wtf 1.2.1.*
-    - greenlet 3.0.3.*
+    - greenlet 3.1.1.*
     - gunicorn 21.2.0.*
     - idna 3.6.*
     - itsdangerous 2.1.2.*
@@ -55,7 +55,7 @@ requirements:
     - packaging 24.0.*
     - python-decouple 3.8.*
     - requests 2.31.0.*
-    - sqlalchemy 2.0.29.*
+    - sqlalchemy 2.0.38.*
     - sqlalchemy-utils 0.41.1.*
     - typing_extensions 4.10.0.*
     - urllib3 2.2.1.*

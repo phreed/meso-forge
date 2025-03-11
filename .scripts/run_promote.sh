@@ -3,7 +3,7 @@
 export ANACONDA_API_KEY=$(secret-tool lookup ANACONDA API_KEY)
 export ANACONDA_FORCE=true
 export ANACONDA_OWNER=mesomorph
-export ANACONDA_CHANNEL=dev
+# export ANACONDA_CHANNEL=dev
 export RATTLER_BUILD_LOG_STYLE=fancy
 
 for pkg in "$@"; do
