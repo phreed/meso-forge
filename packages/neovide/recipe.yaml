@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  name: neovide
+  group: neovide
+  version: "0.14.1"
+  sig: ca89ddd63b2a321ff0b7fb2afbaa33d125c207ed6b8663e5fb6d6f665329b899
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/${{ version }}.tar.gz
+  sha256: ${{ sig }}
+
+build:
+  number: 0
+  script: |
+    cmake -S cmake.deps -B .deps -G Ninja -D CMAKE_BUILD_TYPE=Release
+    cmake --build .deps
+
+requirements:
+  build:
+    - ${{ compiler("c") }}
+    # - ${{ stdlib("c") }}
+    - cmake
+    - make
+    - ninja
+
+tests:
+  - script: |
+      echo "make unittest"
+
+about:
+  homepage: https://neovide.dev/
+  license: MIT
+  license_file: LICENSE.txt
+  summary: Neovim is a project that seeks to aggressively refactor Vim
+  description: |
+    This is a simple, 
+    no-nonsense, 
+    cross-platform graphical user interface for Neovim 
+    (an aggressively refactored and updated Vim editor). 
+    Where possible there are some graphical improvements, 
+    but functionally it should act like the terminal UI.
+  repository: https://github.com/neovide/neovide
+
+extra:
+  recipe-maintainers:
+    - phreed

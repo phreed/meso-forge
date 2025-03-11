@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  name: freetakserver-ui
+  group: freetakteam
+  version: 2.2.1
+  python_min: 3.11.0
+  sig: 5d2f2dc633863f9a82a985e52cc561dfdb322a1b38e6783c6ff6de21b3b2775f
+  hash_path: f5/7a/ac001fffe4873908dd6c2c55701ebdd3f59be8f703527dbd3eb94d5e6d18
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  # url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  url: https://files.pythonhosted.org/packages/${{ hash_path }}/freetakserver_ui-${{ version }}.tar.gz
+  sha256: ${{ sig }} 
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python >=3.11,<4.0
+    - poetry-core
+    - pip
+  run:
+    - python >= ${{ python_min }},<4.0.0
+    - alembic 1.13.1.*
+    - blinker 1.7.0.*
+    - certifi 2024.2.2.*
+    - charset-normalizer 3.3.2.*
+    - click 8.1.7.*
+    - colorama 0.4.6.*
+    - dnspython 2.6.1.*
+    - email_validator 2.1.1.*
+    - eventlet 0.35.2.*
+    - flask 3.0.2.*
+    - flask-cors 4.0.0.*
+    - flask-login 0.6.3.*
+    - flask-migrate 4.0.6.*
+    - flask-sqlalchemy 3.1.1.*
+    - flask-wtf 1.2.1.*
+    - greenlet 3.0.3.*
+    - gunicorn 21.2.0.*
+    - idna 3.6.*
+    - itsdangerous 2.1.2.*
+    - jinja2 3.1.3.*
+    - mako 1.3.2.*
+    - markupsafe 2.1.5.*
+    - packaging 24.0.*
+    - python-decouple 3.8.*
+    - requests 2.31.0.*
+    - sqlalchemy 2.0.29.*
+    - sqlalchemy-utils 0.41.1.*
+    - typing_extensions 4.10.0.*
+    - urllib3 2.2.1.*
+    - werkzeug 3.0.1.*
+    - wtforms 2.3.3.*
+
+test:
+
+about:
+  homepage: https://github.com/FreeTAKTeam/UI
+  summary: An optional UI for FreeTAKServer
+  description: |
+    This FreeTAKServer UI repository hosts the web user interface for the FreeTAKServer project. 
+    It is built using Python with Flask, 
+    employing additional technologies such as SQLite for database management, 
+    Alembic for database schema migrations, 
+    and Flask_Login for session-based authentication. 
+    The UI supports various features like modular design through Flask Blueprints, 
+    forms validation, and provides a dashboard for server management. 
+    The front-end utilizes HTML, CSS, SCSS, and JavaScript, 
+    making it a comprehensive tool for administrators to manage the FreeTAKServer. 
+    The project is licensed under the EPL/MIT License.
+  license: MIT
+  license_file: 
+    - LICENSE.txt
+  documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
+  repository: https://github.com/FreeTAKTeam/UI
+
+extra:
+  recipe-maintainers:
+    - phreed

@@ -3,8 +3,10 @@ schema_version: 1
 
 context:
   name: freetakserver
+  group: freetakteam
   version: 2.2.1
   python_min: 3.11.0
+  sig: b4d1313d924403a38d08aaf94bda56045b3387a8c87f10166a30f37422e456e7
 
 package:
   name: ${{ name|lower }}
@@ -12,7 +14,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  sha256: b4d1313d924403a38d08aaf94bda56045b3387a8c87f10166a30f37422e456e7
+  sha256: ${{ sig }}
 
 build:
   number: 0
@@ -20,7 +22,7 @@ build:
   script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   python:
     entry_points:
-      - swagger_server=swagger_server.__main__:main
+      - fts_server=swagger_server.__main__:main
 
 requirements:
   host:
