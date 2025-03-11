@@ -18,20 +18,36 @@ source:
 build:
   number: 0
   script: |
-    cmake -S cmake.deps -B .deps -G Ninja -D CMAKE_BUILD_TYPE=Release
-    cmake --build .deps
+    cargo install --root $PREFIX --path .
 
 requirements:
   build:
-    - ${{ compiler("c") }}
+    # - ${{ compiler("c") }}
     # - ${{ stdlib("c") }}
-    - cmake
-    - make
+    - rust
     - ninja
+  host:
+    - rust
+    - if: linux
+      then:
+       - expat
+       - fontconfig
+       - freetype
+       - harfbuzz
+       - icu
+       - jpeg
+       - libpng
+       - xorg-libxcursor
+       - libxkbcommon
+       - mesa
+       - zlib
+  run:
+    - nvim
+    
 
 tests:
   - script: |
-      echo "make unittest"
+      nvim --version
 
 about:
   homepage: https://neovide.dev/
