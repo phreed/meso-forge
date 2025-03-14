@@ -9,11 +9,11 @@ context:
   sig: b4d1313d924403a38d08aaf94bda56045b3387a8c87f10166a30f37422e456e7
 
 package:
-  name: ${{ name|lower }}
+  name: freetakserver
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v${{ version }}.tar.gz
   sha256: ${{ sig }}
 
 build:

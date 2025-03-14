@@ -10,12 +10,11 @@ context:
   hash_path: f5/7a/ac001fffe4873908dd6c2c55701ebdd3f59be8f703527dbd3eb94d5e6d18
 
 package:
-  name: ${{ name|lower }}
+  name: freetakserver-ui
   version: ${{ version }}
 
 source:
-  # url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
-  url: https://files.pythonhosted.org/packages/${{ hash_path }}/freetakserver_ui-${{ version }}.tar.gz
+  url: https://github.com/FreeTAKTeam/UI/archive/refs/tags/v${{ version }}.tar.gz
   sha256: ${{ sig }} 
 
 build:

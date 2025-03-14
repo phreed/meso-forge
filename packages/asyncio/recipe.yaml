@@ -7,11 +7,11 @@ context:
   python_min: 3.11.0
 
 package:
-  name: ${{ name|lower }}
+  name: asyncio
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/asyncio-${{ version }}.tar.gz
+  url: https://github.com/python/asyncio/archive/refs/tags/${{ version }}.tar.gz
   sha256: 83360ff8bc97980e4ff25c964c7bd3923d333d177aa4f7fb736b019f26c7cb41
 
 build:

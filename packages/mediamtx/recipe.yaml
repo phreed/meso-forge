@@ -4,12 +4,12 @@ schema_version: 1
 context:
   group: bluenviron
   name: mediamtx
-  version: "1.11.3"
+  version: 1.11.3
   sha: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
 
 package:
   version: ${{ version }}
-  name: ${{ name|lower }}
+  name: mediamtx
   
 source:
   url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz

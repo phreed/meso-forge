@@ -9,11 +9,11 @@ context:
   sha256: ee9d1982154a1e212d4e4bac6b610800bfb558e4fb853572a827bc14a96e4417
 
 package:
-  name: ${{ name|lower }}
+  name: testresources
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/${{ original[0] }}/${{ original }}/${{ original }}-${{ version }}.tar.gz
+  url: https://github.com/testing-cabal/testresources/archive/refs/tags/${{ version }}.tar.gz
   sha256: ${{ sha256 }}
 
 build:

@@ -10,11 +10,11 @@ context:
   sha: d8548204752c8ed7c1c5648e6fe2843342797ff5f0214647bdd1078366811cba
 
 package:
-  name: ${{ name|lower }}
+  name: node-red
   version: ${{ version }}
 
 source:
-  - url: https://registry.npmjs.org/${{ name }}/-/${{ name }}-${{ version }}.tgz
+  - url: https://github.com/node-red/node-red/archive/refs/tags/${{ version }}.tar.gz
     sha256: ${{ sha }}  
   - if: linux
     then: 

@@ -5,10 +5,10 @@ import requests
 from pathlib import Path
 import hashlib
 
-def get_github_latest_release(repo: str, package_name: str):
-    """Get latest release version from GitHub."""
-    api_url = f"https://api.github.com/repos/{repo}/releases/latest"
 
+def get_github_latest_commit(repo: str, package_name: str):
+    """Get latest release version from GitHub."""
+    api_url = f"https://api.github.com/repos/{repo}/commits/latest"
     # Use GitHub token if available
     token = os.getenv('GITHUB_TOKEN')
     headers = {}
@@ -21,10 +21,41 @@ def get_github_latest_release(repo: str, package_name: str):
 
         if tag_name.startswith(package_name):
             tag_name = tag_name[len(package_name)+1:]
-        if tag_name.startswith('v'):
-            tag_name = tag_name[1:]
     
         return tag_name
+    return None
+
+
+def get_github_latest_release(repo: str, package_name: str):
+    """
+    Get latest release version from GitHub.
+    https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases
+    """
+    api_url = f"https://api.github.com/repos/{repo}/releases/latest"
+
+    # Use GitHub token if available
+    token = os.getenv('GITHUB_TOKEN')
+    headers = {}
+    if token:
+        headers['Authorization'] = f'token {token}'
+
+    response = requests.get(api_url, headers=headers)
+    match response.status_code:
+        case 200:
+            resp_json = response.json()
+            tag_name = resp_json['tag_name']
+
+            if tag_name.startswith(package_name):
+                tag_name = tag_name[len(package_name)+1:]
+            if tag_name.startswith('v'):
+                tag_name = tag_name[1:]
+        
+            return tag_name
+        case 404:
+            print(f"({package_name}) Could not fetch {api_url} ")
+        case _:    
+            print(f"({package_name}) Could not fetch {response.status_code} ")
+
     return None
 
 def calculate_sha256(url):
@@ -48,52 +79,132 @@ def replace_version_string(content, new_version):
             break
     return '\n'.join(lines)
 
+
+def update_recipe_release(recipe_path, recipe, current_version, package_name, release_url):
+    # Determine package source
+    if 'github.com' in release_url:
+        # Extract owner/repo from GitHub URL
+        repo = '/'.join(release_url.split('github.com/')[1].split('/')[0:2])
+        new_version = get_github_latest_release(repo, package_name)
+    elif 'pypi.org' in release_url:
+        print(f"({package_name}) PyPi not yet supported source URL format: {release_url}")
+        return None
+    elif 'registry.npmjs.org' in release_url:
+        print(f"({package_name}) npm registry not yet supported source URL format: {release_url}")
+        return None
+    else:
+        print(f"({package_name}) Unsupported source URL format: {release_url}")
+        return None
+
+    if new_version == current_version:
+        print(f"({package_name}) Already at latest version: {current_version}")
+        return None
+
+    print(f"({package_name}) Checking package {recipe['package']['name']} for updates")
+    print(f"({package_name}) Current version: {current_version}, Latest version: {new_version}")
+    # Update URL and calculate new hash
+    new_url = release_url.replace("${{ version }}", new_version)
+    new_hash = calculate_sha256(new_url)
+
+    if not new_hash:
+        print(f"({package_name}) Failed to calculate new hash for {recipe_path}")
+        return None
+
+    return (new_version, new_url, new_hash)
+
+
+def update_recipe_commit(recipe_path, recipe, current_version, package_name, repo_url):
+    """
+    Determine package source
+    """
+    if 'github.com' in repo_url:
+        # Extract owner/repo from GitHub URL
+        repo = '/'.join(repo_url.split('github.com/')[1].split('/')[0:2])
+        new_version = get_github_latest_commit(repo, package_name)
+    else:
+        print(f"({package_name}) Unsupported source URL format: {repo_url}")
+        return None
+
+    if new_version == current_version:
+        print(f"({package_name}) Already at latest version: {current_version}")
+        return None
+
+    print(f"({package_name}) Checking package {recipe['package']['name']} for updates")
+    print(f"({package_name}) Current revision: {current_version}, Latest revision: {new_version}")
+    # Update URL and calculate new hash
+    new_url = repo_url
+    new_hash = calculate_sha256(new_url)
+
+    if not new_hash:
+        print(f"({package_name}) Failed to calculate new hash for {recipe_path}")
+        return None
+
+    return (new_version, new_url, new_hash)
+
+def update_source(recipe_path, recipe, current_version, package_name, source):
+    """Update version and hash in easch source"""
+    if 'if' in source:
+        source = source['then']
+    if 'path' in source:
+        print(f"local path")
+        return
+    if 'url' in source:
+        release_url = source['url']
+        old_hash = source['sha256']
+        result = update_recipe_release(recipe_path, recipe, current_version, package_name, release_url)
+        if result is None:
+            return
+        new_version, new_url, new_hash = result
+        # Update recipe as a string replace because we want to keep all YAML formatting
+        release_url = new_url
+        recipe_str = recipe_path.read_text()
+        recipe_str = replace_version_string(recipe_str, new_version)
+        recipe_str = recipe_str.replace(old_hash, new_hash)
+
+        print(f"({package_name}) Updated {recipe_path}: {current_version} -> {new_version}")
+
+    elif 'git' in source:
+        repo_url = source['git']
+        old_hash = source['rev']
+        update_recipe_commit(recipe_path, recipe, current_version, old_hash, package_name, repo_url)
+        if result is None:
+            return
+        new_version, new_url, new_hash = result
+        repo_url = new_url
+        recipe_str = recipe_path.read_text()
+        recipe_str = replace_version_string(recipe_str, new_version)
+        recipe_str = recipe_str.replace(old_hash, new_hash)
+
+        print(f"({package_name}) Updated {recipe_path}: {current_version} -> {new_version}")
+    else:
+        print(f"({package_name}) unknown source url must be one of ('git', 'url')")
+        return
+
+    # Save updated recipe
+    recipe_path.write_text(recipe_str.strip())
+
+
 def update_recipe(recipe_path):
     """Update version and hash in recipe file."""
     with open(recipe_path) as f:
         recipe = yaml.safe_load(f)
 
     current_version = recipe['context']['version']
-    source_url = recipe['source']['url']
-    old_hash = recipe['source']['sha256']
     package_name = recipe['package']['name']
 
-    # Determine package source (GitHub or PyPI)
-    if 'github.com' in source_url:
-        # Extract owner/repo from GitHub URL
-        repo = '/'.join(source_url.split('github.com/')[1].split('/')[0:2])
-        new_version = get_github_latest_release(repo, package_name)
+    sources = recipe['source']
+    if isinstance(sources, dict):
+        update_source(recipe_path, recipe, current_version, package_name, sources)
+        return
+    elif isinstance(sources, list):
+        if all(isinstance(item, dict) for item in sources):
+            update_source(recipe_path, recipe, current_version, package_name, sources)
+        else:
+            update_source(recipe_path, recipe, current_version, package_name, sources)
+        return
     else:
-        print(f"Unsupported source URL format: {source_url}")
-        return
-
-    if not new_version:
-        print(f"Could not fetch new version for {recipe_path}")
-        return
-
-    if new_version == current_version:
-        print(f"Already at latest version: {current_version}")
-        return
-
-    print(f"Checking package {recipe['package']['name']} for updates")
-    print(f"Current version: {current_version}, Latest version: {new_version}")
-    # Update URL and calculate new hash
-    new_url = source_url.replace("${{ version }}", new_version)
-    new_hash = calculate_sha256(new_url)
-
-    if not new_hash:
-        print(f"Failed to calculate new hash for {recipe_path}")
-        return
-
-    # Update recipe as a string replace because we want to keep all YAML formatting
-    recipe_str = recipe_path.read_text()
-    recipe_str = replace_version_string(recipe_str, new_version)
-    recipe_str = recipe_str.replace(old_hash, new_hash)
-
-    # Save updated recipe
-    recipe_path.write_text(recipe_str.strip())
-
-    print(f"Updated {recipe_path}: {current_version} -> {new_version}")
+        print(f"({package_name}) sources is neither list nor dictionary.")
+        return None
 
 def main():
     recipe_dir = Path('./packages')

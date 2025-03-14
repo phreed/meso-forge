@@ -10,7 +10,7 @@ context:
   sha: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae 
 
 package:
-  name: ${{ name|lower }}
+  name: node-red-contrib-web-worldmap
   version: ${{ version }}
 
 source:

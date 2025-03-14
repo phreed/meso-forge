@@ -7,7 +7,7 @@ context:
   commit: "fe32c9deac434de4b88b9f3e25dc2ca5b1ba925f"
 
 package:
-  name: ${{ name|lower }}
+  name: jank
   version: ${{ version }}
 
 source:
