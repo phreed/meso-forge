@@ -73,7 +73,7 @@ Some complex recipes may use multiple shell scripts.
 Push the branch to the repository and open a pull request from it.
 Once the pull request has been opened,
 the `rattler-build_linux-64.yml` workflow will attempt to build the recipes
-using the `ratter-build_container.df` docker image.
+using the `ratter-build_container.df` linux container image.
 If the recipes build successfully, 
 you can merge the pull request to trigger the `rattler-build_upload.yml` workflow, 
 which will upload the conda packages to your personal channel.
@@ -84,16 +84,8 @@ This is the step that requires the `ANACONDA_API_TOKEN` secret and `ANACONDA_OWN
 The ANACONDA_API_TOKEN is used in the following jobs:
 .github/workflows/dispatch_build_linux64.yml
 [source,yaml]
-include::.github/workflows/dispatch_build_linux-64.yml[tag=api_token]
+include::.github/workflows/package.yml[tag=api-token]
 
-[source,yaml]
-include::.github/workflows/dispatch_build_osx-64.yml[tag=api_token]
-
-[source,yaml]
-include::.github/workflows/dispatch_build_osx-arm64.yml[tag=api_token]
-
-[source,yaml]
-include::.github/workflows/rattler-build_upload.yml[tag=api_token]
 
 ==== Create the Anaconda Token
 
@@ -110,3 +102,33 @@ Copy the secret and then go to your fork of this repository and go to "Settings"
 The secret must be called ANACONDA_API_TOKEN, and you can paste the secret you copied before into here.
 
 image:.resources/github-action-secret.png[]
+
+== Troubleshooting
+
+Here is an example of how to run a build for `testresources`.
+It pulls from two channels, `mesomorph` and `conda-forge`.
+[source,bash]
+----
+PKG_NAME=node-red
+rattler-build build --recipe "./packages/$PKG_NAME" --target-platform linux-64 --channel mesomorph --channel conda-forge
+----
+
+Uploading the constructed package.
+
+[source,bash]
+----
+PACKAGE_FILE=$(find output -type f \( -name "*.conda" -o -name "*.tar.bz2" \) )
+ANACONDA_OWNER: mesomorph
+ANACONDA_API_KEY: ***
+RATTLER_BUILD_LOG_STYLE: fancy
+rattler-build upload anaconda -v $PACKAGE_FILE
+----
+
+https://www.mankier.com/1/secret-tool
+
+Presume that the ANACONDA_API_KEY has been stored locally as a secret.
+
+[source,bash]
+----
+echo -n <the anaconda api key token> | secret-tool store --label="ANACONDA_API_KEY" ANACONDA API_KEY
+----
