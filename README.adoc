@@ -1,14 +1,9 @@
 = Build conda recipes and upload them to your personal channel
-:dan_nach_url: https://github.com/danielnachun/recipe_staging/
+:rust-forge: https://github.com/wolfv/rust-forge
 
 == Origin
 
-This is derived from link:{dan_nach_url}[Daniel Nachun's recipe_staging project].
-My motivation for making a fork is:
-
-* I want to learn what is happening
-* I do not want to contaminate the main branch with projects.
-* I want to experiment with pixi.
+This is derived from link:{rust-forge}[rust-forge project].
 
 == Approach
 
