@@ -6,7 +6,6 @@ context:
   original: testresources
   version: 2.0.1
   python_min: 3.7.0
-  sha256: ee9d1982154a1e212d4e4bac6b610800bfb558e4fb853572a827bc14a96e4417
 
 package:
   name: testresources
@@ -14,7 +13,7 @@ package:
 
 source:
   url: https://github.com/testing-cabal/testresources/archive/refs/tags/${{ version }}.tar.gz
-  sha256: ${{ sha256 }}
+  sha256: b63a21dcab14be9dbb858ef378ef392fdf797a7be31b7a247e986e56a98d9a17
 
 build:
   number: 0
@@ -24,12 +23,15 @@ build:
 requirements:
   host:
     - python ==${{ python_min }}
-    - pbr
-    - pip
-    - setuptools
+    - docutils
+    - testtools
+    - fixtures
+    # - pbr
+    # - pip
+    # - setuptools
   run:
     - python >=${{ python_min }},<4.0.0
-    - pbr
+    # - pbr
 
 tests:
   - python:
@@ -41,7 +43,8 @@ about:
   summary: Testresources, a pyunit extension for managing expensive test resources
   license: JSON
   license_file: COPYING
-  homepage: https://launchpad.net/testresources
+  homepage: https://github.com/testing-cabal/testresources/tags
+  repository: https://github.com/testing-cabal/testresources
 
 extra:
   recipe-maintainers:

@@ -5,7 +5,6 @@ context:
   name: fsarchiver
   group: fdupoux
   version: "0.8.8"
-  sig: "f7cd059e70fc57e888db282c622ec050c0dcdbaacc65e3c1eb163cd9d92d810d"
 
 package:
   name: fsarchiver
@@ -20,24 +19,24 @@ build:
   # skip: win
   script: |
     autoreconf --force --install --verbose
-    MKDIR_P=${mkdir -p}
     ./configure \
+        --prefix=/usr \
         --enable-elf-shlibs \
         --disable-fsck \
         --disable-uuidd \
         --disable-libuuid \
         --disable-libblkid \
         --without-crond-dir \
-        --sysconfdir=#{etc} \
+        --sysconfdir=/etc \
         --disable-e2initrd-helper \
-        $MKDIR_P 
+        "MKDIR_P=mkdir -p"
     make
     make install
 
 requirements:
   build:
     - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
+    # - ${{ stdlib("c") }}
     - make
     - autoconf
     - automake
@@ -56,7 +55,7 @@ requirements:
     - zstd
 
 tests:
-  - command:
+  - script:
       - ./bin/fsarchiver usage
 
 about:

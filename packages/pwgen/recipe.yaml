@@ -21,11 +21,11 @@ build:
 requirements:
   build:
     - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
+    # - ${{ stdlib('c') }}
     - make
 
 tests:
-  - command:
+  - script:
       - pwgen --secure 20 10
 
 about:

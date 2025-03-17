@@ -6,8 +6,6 @@ context:
   group: freetakteam
   version: 2.2.1
   python_min: 3.11.0
-  sig: 5d2f2dc633863f9a82a985e52cc561dfdb322a1b38e6783c6ff6de21b3b2775f
-  hash_path: f5/7a/ac001fffe4873908dd6c2c55701ebdd3f59be8f703527dbd3eb94d5e6d18
 
 package:
   name: freetakserver-ui
@@ -15,12 +13,14 @@ package:
 
 source:
   url: https://github.com/FreeTAKTeam/UI/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: ${{ sig }} 
+  sha256: 05b4d286d3f67b4bd359972adaa1b6e912a5ef1f8df7a93eb72ab5b06f21ed31
 
 build:
   number: 0
   noarch: python
-  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: |
+    ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+    touch LICENSE.txt
 
 requirements:
   host:
@@ -80,6 +80,8 @@ about:
   license: MIT
   license_file: 
     - LICENSE.txt
+    - freetakserver-ui/LICENSE.txt
+    - https://github.com/FreeTAKTeam/UI/blob/master/LICENSE.md
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/UI
 

@@ -12,8 +12,7 @@ source:
   url: https://github.com/metashell/metashell/archive/refs/tags/v${{ version }}.tar.gz
   sha256: 028e37be072ec4e85d18ead234a208d07225cf335c0bb1c98d4d4c3e30c71f0e
   patches:
-    - url: https://github.com/metashell/metashell/commit/0d81415616d33e39ff6d1add91e71f9789ea8657.patch?full_index=1
-      sha256: 31472db5ae8e67483319dcbe104d5c7a533031f9845af2ddf5147f3caabf3ac2
+    - ./patches/01-include-missiong-cstddef.patch
 
 build:
   number: 0
@@ -28,7 +27,7 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
-    - ${{ stdlib('c') }}
+    # - ${{ stdlib('c') }}
     - cmake
   host:
     - if: linux

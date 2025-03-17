@@ -19,5 +19,40 @@ pyyaml = ">=6.0.2,<7"
 [feature.update-versions.tasks]
 update-versions = "python .scripts/update-versions.py"
 
+[tasks]
+build-all = { cmd = [
+  "rattler-build", "build",
+  "--recipe-dir", "./packages",
+  "--skip-existing=all",
+  "--target-platform=$TARGET_PLATFORM",
+  "--channel", "https://prefix.dev/meso-forge",
+  "--channel", "conda-forge",
+  "-vvv",
+], env = { TARGET_PLATFORM = 'linux-64' } }
+
+upload-all = { cmd = """
+  for (file in output/**/*.conda) { 
+    rattler-build upload prefix --channel https://prefix.dev/meso-forge file
+  }
+""" }
+
+deno-sample = { cmd = """
+// parse
+let list = deno_task_shell::parser::parse(&text)?;
+
+// execute
+let env_vars = HashMap::from(&[
+  ("SOME_VAR".to_string(), "value".to_string()),
+]);
+let cwd = std::env::current_dir()?;
+
+let exit_code = deno_task_shell::execute(
+  list,
+  env_vars,
+  &cwd,
+  Default::default(), // custom commands
+).await;"}
+""" }
+
 [environments]
 update-versions = ["update-versions"]

@@ -3,7 +3,7 @@ schema_version: 1
 
 context:
   name: digitalpy
-  version: 0.3.13.7
+  version: 0.3.12
   python_min: 3.11.11
 
 package:
@@ -12,7 +12,7 @@ package:
 
 source:
   url: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 6efc3e9f51ab2b66116c133db56a36666915736c75bc30a54869c1262604c137
+  sha256:  6efc3e9f51ab2b66116c133db56a36666915736c75bc30a54869c1262604c137
 
 build:
   number: 0

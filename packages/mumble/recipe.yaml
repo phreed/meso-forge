@@ -56,7 +56,7 @@ requirements:
     - nushell
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
+    # - ${{ stdlib('c') }}
     # - qt6-main
     - qt
     - qt-main
@@ -75,7 +75,7 @@ requirements:
     - libprotobuf-static
     - protobuf
   host:
-    - ${{ stdlib('c') }}
+    # - ${{ stdlib('c') }}
     # - qt
     # - qt6-main
     # - qt6-wayland 

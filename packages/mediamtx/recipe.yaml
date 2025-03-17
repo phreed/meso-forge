@@ -38,7 +38,7 @@ requirements:
   build:
     - cmake
     - ${{ compiler('go') }}
-    - ${{ stdlib('c') }}
+    # - ${{ stdlib('c') }}
     - go-licenses
 
 tests:

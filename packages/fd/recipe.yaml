@@ -22,16 +22,22 @@ build:
     mkdir -p $PREFIX/share/fish/vendor_completions.d
     cp fd.bash $PREFIX/share/bash-completion/completions/fd
     cp fd.fish $PREFIX/share/fish/vendor_completions.d/fd.fish
+    mkdir -p $PREFIX/share/zsh/site-functions
     cp contrib/completion/_fd $PREFIX/share/zsh/site-functions/_fd
+    mkdir -p $PREFIX/share/man/man1
     cp doc/fd.1 $PREFIX/share/man/man1/fd.1
+    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml 
+    # --previous missing-licenses.yaml --check-previous
 
 requirements:
   build:
     - rust
-    - cargo
+    - cargo-bundle-licenses
 
 tests:
   - script: |
+      mkdir -p trial
+      cd trial
       touch foo_file
       touch test_file
       test "$(fd test)" = "test_file"
@@ -39,7 +45,9 @@ tests:
 about:
   homepage: https://github.com/sharkdp/fd
   license: Apache-2.0 OR MIT
-  license_file: LICENSE
+  license_file: 
+    - LICENSE
+    - thirdpartylicenses.yaml
   summary: Simple, fast and user-friendly alternative to find
   description: |
     fd is a simple, fast and user-friendly alternative to find.
