@@ -16,19 +16,13 @@ source:
 
 build:
   number: 0
-  # skip: win
+  skip: win
   script: |
     autoreconf --force --install --verbose
     ./configure \
-        --prefix=/usr \
-        --enable-elf-shlibs \
-        --disable-fsck \
-        --disable-uuidd \
-        --disable-libuuid \
-        --disable-libblkid \
-        --without-crond-dir \
+        --prefix=$PREFIX \
+        --disable-lzma \
         --sysconfdir=/etc \
-        --disable-e2initrd-helper \
         "MKDIR_P=mkdir -p"
     make
     make install
@@ -46,7 +40,6 @@ requirements:
     - bzip2
     - e2fsprogs
     - libgcrypt
-    - linux
     - lz4
     - lzo
     - util-linux
@@ -56,12 +49,12 @@ requirements:
 
 tests:
   - script:
-      - ./bin/fsarchiver usage
+      - fsarchiver usage
 
 about:
   homepage: "https://www.fsarchiver.org"
   license: GPL-2.0-only
-  license_file: LICENSE
+  license_file: LICENSE.txt
   summary: File system archiver for linux
   description: |
     FSArchiver is a system tool that allows you to 

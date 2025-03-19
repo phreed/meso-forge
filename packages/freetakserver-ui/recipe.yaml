@@ -80,8 +80,6 @@ about:
   license: MIT
   license_file: 
     - LICENSE.txt
-    - freetakserver-ui/LICENSE.txt
-    - https://github.com/FreeTAKTeam/UI/blob/master/LICENSE.md
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/UI
 

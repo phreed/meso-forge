@@ -42,7 +42,7 @@ requirements:
     - connexion-with-swagger-ui >= 2.6.0
     - cryptography 
     - defusedxml 0.7.1.*
-    - digitalpy 0.3.13.7.*
+    - digitalpy  # 0.3.13.7.*
     - dnspython
     - eventlet 0.35.2.*
     - flask 3.0.2.*

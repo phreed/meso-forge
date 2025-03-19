@@ -15,8 +15,8 @@ source:
 build:
   number: 0
   script: |
-    export LIBSQLITE3_SYS_USE_PKG_CONFIG: "1"
-    export VERGEN_GIT_SHA: ${{ env.get('CONDA_PREFIX') }}
+    export LIBSQLITE3_SYS_USE_PKG_CONFIG="1"
+    export VERGEN_GIT_SHA=${{ env.get('CONDA_PREFIX') }}
     cargo install --root $PREFIX --path .
 
 requirements:
@@ -24,7 +24,8 @@ requirements:
     - pkgconf
     - rust
   host:
-    - sqlite  # since ventura
+    - sqlite 
+    - ratatui
   run:
     - if: linux
       then:
@@ -40,7 +41,8 @@ tests:
 about:
   homepage: https://iamb.chat
   license: Apache-2.0
-  license_file: LICENSE
+  license_file: 
+    - LICENSE
   summary: Matrix client for Vim addicts
   description: |
     iamb is a Matrix client for the terminal that uses Vim keybindings.
