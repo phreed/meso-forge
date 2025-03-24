@@ -7,7 +7,6 @@ schema_version: 1
 context:
   name: node-red
   version: "4.0.9"
-  sha: d8548204752c8ed7c1c5648e6fe2843342797ff5f0214647bdd1078366811cba
 
 package:
   name: node-red
@@ -15,7 +14,7 @@ package:
 
 source:
   - url: https://github.com/node-red/node-red/archive/refs/tags/${{ version }}.tar.gz
-    sha256: ${{ sha }}  
+    sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
   - if: linux
     then: 
       path: systemd/configure-service.sh
@@ -38,7 +37,8 @@ requirements:
     - nodejs
 
 tests:
-  - script: 
+  - script:
+      - "find . -maxdepth 2" 
       - "node-red --help 2>&1"
 
 about:

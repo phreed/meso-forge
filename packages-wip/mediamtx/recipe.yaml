@@ -21,18 +21,19 @@ build:
   script:
     - cd src/mediamtx
     - go generate ./...
-    - go build -ldflags="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release" 
-        -o $PREFIX/bin/${{ name }}
-    - go-licenses save . --save_path ../../library_licenses
-        --ignore=golang.org/x/crypto/internal/poly1305
-        --ignore=golang.org/x/crypto/salsa20/salsa
-        --ignore=golang.org/x/sys/unix
-        --ignore=golang.org/x/crypto/argon2
-        --ignore=golang.org/x/crypto/blake2b
-        --ignore=golang.org/x/sys/cpu
-        --ignore=golang.org/x/crypto/sha3
-        --ignore=github.com/ugorji/go/codec
-        --ignore=github.com/benburkert/openpgp
+    - CGO_ENABLED=0 go build .
+    # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release" 
+    #     -o $PREFIX/bin/${{ name }}
+    # - go-licenses save . --save_path ../../library_licenses
+    #     --ignore=golang.org/x/crypto/internal/poly1305
+    #     --ignore=golang.org/x/crypto/salsa20/salsa
+    #     --ignore=golang.org/x/sys/unix
+    #     --ignore=golang.org/x/crypto/argon2
+    #     --ignore=golang.org/x/crypto/blake2b
+    #     --ignore=golang.org/x/sys/cpu
+    #     --ignore=golang.org/x/crypto/sha3
+    #     --ignore=github.com/ugorji/go/codec
+    #     --ignore=github.com/benburkert/openpgp
 
 requirements:
   build:
