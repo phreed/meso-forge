@@ -4,9 +4,10 @@ import yaml
 import requests
 from pathlib import Path
 import hashlib
+import semver
 
 
-def get_github_latest_commit(repo: str, package_name: str):
+def get_github_latest_commit(group: str, repo: str, package_name: str):
     """Get latest release version from GitHub."""
     api_url = f"https://api.github.com/repos/{repo}/commits/latest"
     # Use GitHub token if available
@@ -26,12 +27,12 @@ def get_github_latest_commit(repo: str, package_name: str):
     return None
 
 
-def get_github_latest_release(repo: str, package_name: str):
+def get_github_latest_release(group: str, repo: str, package_name: str):
     """
     Get latest release version from GitHub.
     https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases
     """
-    api_url = f"https://api.github.com/repos/{repo}/releases/latest"
+    api_url = f"https://api.github.com/repos/{group}/{repo}/releases/latest"
 
     # Use GitHub token if available
     token = os.getenv('GITHUB_TOKEN')
@@ -55,6 +56,60 @@ def get_github_latest_release(repo: str, package_name: str):
             print(f"({package_name}) Could not fetch {api_url} ")
         case _:    
             print(f"({package_name}) Could not fetch {response.status_code} ")
+
+    return None
+
+
+def get_github_latest_tag(group: str, repo: str, package_name: str):
+    """
+    Get latest tagged version from GitHub.
+    https://docs.github.com/en/rest/git/tags?apiVersion=2022-11-28#about-git-tags
+    """
+    api_url = f"https://api.github.com/repos/{group}/{repo}/tags"
+
+    # Use GitHub token if available
+    token = os.getenv('GITHUB_TOKEN')
+    headers = {}
+    if token:
+        headers['Authorization'] = f'token {token}'
+
+    response = requests.get(api_url, headers=headers)
+    match response.status_code:
+        case 200:
+            tag_name = None
+            tag = None
+            resp_json = response.json()
+            # print(f"Response: {resp_json}")
+            for item in resp_json:
+                candidate = item['name']
+                if candidate.startswith(package_name):
+                    candidate = candidate[len(package_name)+1:]
+                if candidate.startswith('v'):
+                    candidate = candidate[1:]
+                print(candidate)
+                if  tag_name is None:
+                    tag_name = candidate
+                    tag = item
+                else:
+                    try:
+                        match semver.compare(candidate, tag_name):
+                            case 1:
+                                tag_name = candidate
+                                tag = item
+                            case 0:
+                                pass
+                            case -1:
+                                pass
+                    except:
+                        pass                  
+                    
+            return tag_name
+        case 404:
+            print(f"({package_name}) Could not fetch {api_url} ")
+        case 403:    
+            print(f"({package_name}) Could not fetch {api_url} because {response.status_code} ")
+        case _:    
+            print(f"({package_name}) Could not fetch {api_url} because {response.status_code} ")
 
     return None
 
@@ -84,8 +139,11 @@ def update_recipe_release(recipe_path, recipe, current_version, package_name, re
     # Determine package source
     if 'github.com' in release_url:
         # Extract owner/repo from GitHub URL
-        repo = '/'.join(release_url.split('github.com/')[1].split('/')[0:2])
-        new_version = get_github_latest_release(repo, package_name)
+        group, repo = release_url.split('github.com/')[1].split('/')[0:2]
+        new_version = get_github_latest_release(group, repo, package_name)
+        if new_version is None:
+            new_version = get_github_latest_tag(group, repo, package_name)
+
     elif 'pypi.org' in release_url:
         print(f"({package_name}) PyPi not yet supported source URL format: {release_url}")
         return None
@@ -103,7 +161,11 @@ def update_recipe_release(recipe_path, recipe, current_version, package_name, re
     print(f"({package_name}) Checking package {recipe['package']['name']} for updates")
     print(f"({package_name}) Current version: {current_version}, Latest version: {new_version}")
     # Update URL and calculate new hash
-    new_url = release_url.replace("${{ version }}", new_version)
+    if new_version is None:
+        print(f"no new version is supplied, it seems to be None")
+        new_url = None
+    else:
+        new_url = release_url.replace("${{ version }}", new_version)
     new_hash = calculate_sha256(new_url)
 
     if not new_hash:

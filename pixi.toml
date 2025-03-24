@@ -15,6 +15,7 @@ rattler-build = ">=0.31.1,<0.32"
 python = "3.12.*"
 requests = ">=2.32.3,<3"
 pyyaml = ">=6.0.2,<7"
+semver = ">=3.0.2,<4"
 
 [feature.update-versions.tasks]
 update-versions = "python .scripts/update-versions.py"
