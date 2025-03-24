@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  name: flask-jwt-extended
+  version: 4.7.1
+  python_min: 3.11
+
+package:
+  name: flask-jwt-extended
+  version: ${{ version }}
+
+source:
+  url: https://github.com/vimalloc/flask-jwt-extended/archive/refs/tags/${{ version }}.tar.gz
+  sha256:  c5bba87248b2253537891511f928dd3b51faf74e8e5ec1746529a6a36d819b9a
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python ==${{ python_min }}
+    - pip
+  run:
+    - python >=${{ python_min }},<4.0.0
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
+tests:
+  - python:
+      imports:
+        - flask_jwt_extended
+      pip_check: true
+
+about:
+  homepage: https://github.com/vimalloc/flask-jwt-extended
+  summary: "An open source Flask extension that provides JWT support (with batteries included)! "
+  license: MIT
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - phreed

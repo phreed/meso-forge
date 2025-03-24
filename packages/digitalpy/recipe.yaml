@@ -3,8 +3,8 @@ schema_version: 1
 
 context:
   name: digitalpy
-  version: 0.3.12
-  python_min: 3.11.11
+  version: 0.3.15
+  python_min: 3.11
 
 package:
   name: digitalpy
@@ -12,7 +12,7 @@ package:
 
 source:
   url: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v${{ version }}.tar.gz
-  sha256:  6efc3e9f51ab2b66116c133db56a36666915736c75bc30a54869c1262604c137
+  sha256:  75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
 
 build:
   number: 0
@@ -24,6 +24,16 @@ requirements:
     - python ==${{ python_min }}
     - poetry-core
     - pip
+    - flask-cors
+    - flask-jwt-extended
+    - lxml
+    - opentelemetry-sdk
+    - psutil
+    - requests
+    - ruamel.yaml
+    - setuptools
+    - sqlalchemy
+    - xmltodict
   run:
     - python >=${{ python_min }},<4.0.0
     - rule-engine
