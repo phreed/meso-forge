@@ -65,6 +65,7 @@ def get_github_latest_tag(group: str, repo: str, package_name: str):
     Get latest tagged version from GitHub.
     https://docs.github.com/en/rest/git/tags?apiVersion=2022-11-28#about-git-tags
     """
+    print(f"Releasable tags:")
     api_url = f"https://api.github.com/repos/{group}/{repo}/tags"
 
     # Use GitHub token if available

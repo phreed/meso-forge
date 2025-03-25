@@ -20,7 +20,6 @@ build:
   noarch: python
   script: |
     ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-    touch LICENSE.txt
 
 requirements:
   host:
