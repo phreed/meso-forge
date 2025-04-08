@@ -1,0 +1,12 @@
+= `devcontainer-cli` a CLI tool for managing devcontainers
+
+A reference implementation for the specification
+that can create and configure a dev container from a devcontainer.json. 
+
+
+https://github.com/devcontainers/cli
+
+https://github.com/devcontainers/cli/archive/refs/tags/v0.75.0.tar.gz
+
+https://alessandro-annini.medium.com/lightning-fast-development-with-zed-and-dev-containers-11df1135b635
+

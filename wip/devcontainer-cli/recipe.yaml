@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+schema_version: 1
+
+context:
+  version: "0.75.0"
+
+package:
+  name: iamb
+  version: ${{ version }}
+
+source:
+  url: https://github.com/devcontainers/cli/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: f628cfbd9eba9e8881902b970e9432fec815044ec9bea901a8562ea3ef8f4615
+
+build:
+  number: 0
+  script: |
+    yarn
+    yarn compile
+
+requirements:
+  build:
+    - yarn
+  host:
+    - nodejs
+  run:
+    - nodejs
+
+tests:
+  - script: |
+      node devcontainer.js --help
+    # stderr:
+    #   contains: "Please create a configuration file"
+    # exit: 2
+
+about:
+  homepage: https://containers.dev/
+  license: MIT
+  license_file: 
+    - LICENSE.txt
+  summary: Configure Devcontainer CLI
+  description: |
+    A reference implementation for the specification that
+    can create and configure a dev container from a devcontainer.json. 
+  repository: https://github.com/devcontainers/cli
+  
+extra:
+  recipe-maintainers:
+    - phreed
