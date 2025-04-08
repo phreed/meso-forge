@@ -1,0 +1,23 @@
+= `bw` the Bitwarden Command Line Interface
+
+https://bitwarden.com/help/cli/
+
+It seems to be a `typescript` program.
+https://bitwarden.com/help/cli/#tab-npm-bI3gMs3A3z4pl0fwvRie9
+
+https://github.com/bitwarden/clients
+
+bitwarden-cli: stable 2025.1.3
+Secure and free password manager for all of your devices
+
+https://bitwarden.com/
+
+== Homebrew formula
+
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/b/bitwarden-cli.rb
+
+== License
+License: GPL-3.0-only
+
+== Dependencies
+Required: node ✔

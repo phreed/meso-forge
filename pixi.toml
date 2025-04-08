@@ -9,36 +9,48 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 preview = ["pixi-build"]
 
+[tasks.clean-all]
+cmd = ["rm", "-rf", "pkgs-out", "wip-out"]
+
 [feature.update-ver.dependencies]
 python = "3.12.*"
 requests = ">=2.32.3,<3"
 pyyaml = ">=6.0.2,<7"
 semver = ">=3.0.2,<4"
 
-[feature.update-ver.tasks]
-update-ver = { cmd = ["python", ".scripts/update-versions.py" ] }
+[feature.update-ver.tasks.update-ver]
+cmd = ["python", ".scripts/update-versions.py" ]
 
 [feature.build-all.dependencies]
 rattler-build = ">=0.31.1,<0.32"
 
-[feature.build-all.tasks]
-build-all = { cmd = [
+[feature.build-all.tasks.build-all]
+cmd = [
   "rattler-build", "build",
-  "--recipe-dir", "./packages",
+  "--recipe-dir", "./{{ pkg-dir }}",
+  "--output-dir", "./{{ pkg-dir }}-out",
   "--skip-existing=all",
-  "--target-platform=$TARGET_PLATFORM",
+  "--target-platform={{ target-platform }}",
   "--channel", "https://prefix.dev/meso-forge",
   "--channel", "conda-forge",
   "-vvv",
-], env = { TARGET_PLATFORM = 'linux-64' } }
+]
+args =  [
+  { "arg" = "target-platform", "default" = "linux-64" },
+  { "arg" = "pkg-dir", "default" = "pkgs" },
+]
+
+[feature.build-all.tasks.build-all-wip]
+depends-on = [{ "task" = "build-all", "args" = ["linux-64", "wip"] }]
 
 [feature.upload-all.dependencies]
-deno = ">=2.2.5,<3"
+nushell = ">=0.103.0,<1"
 
-[feature.upload-all.tasks]
-upload-all = { cmd = [ 
-  "deno", "run", ".scripts/upload-all.ts"
-] }
+[feature.upload-all.tasks.upload-all]
+cmd = [ 
+  "nu", ".scripts/upload-all.nu",
+  "./{{ pkg-dir }}-out",
+]
 
 [environments]
 update = { features = ["update-ver"] }

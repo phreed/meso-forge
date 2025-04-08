@@ -32,12 +32,18 @@ jobs:
         with:
           fetch-depth: 2
 
-      - uses: prefix-dev/setup-pixi@v0.8.3
+      - uses: prefix-dev/setup-pixi@v0.8.4
         with:
-          pixi-version: v0.41.4
+          pixi-version: v0.45.0
+          # cache: true
+          # cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
           activate-environment: true
+          environments: >-
+             default
           log-level: vvv
           run-install: true
+          auth-host: prefix.dev
+          # auth-conda-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 
       - name: Run code in changed subdirectories
         shell: bash
@@ -54,8 +60,6 @@ jobs:
         shell: bash
         # do not upload on PR
         if: github.event_name == 'push'
-        # env:
-        #   PREFIX_API_KEY: ${{ secrets.PREFIX_API_KEY }}
         run: |
           # uses trusted publishers for the upload
           # ignore errors because we want to ignore duplicate packages

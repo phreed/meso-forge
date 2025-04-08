@@ -26,12 +26,11 @@ requirements:
     - docutils
     - testtools
     - fixtures
-    # - pbr
     # - pip
     # - setuptools
   run:
     - python >=${{ python_min }},<4.0.0
-    # - pbr
+    - pbr
 
 tests:
   - python:

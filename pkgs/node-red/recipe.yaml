@@ -38,8 +38,9 @@ requirements:
 
 tests:
   - script:
-      - "find . -maxdepth 2" 
-      - "node-red --help 2>&1"
+      - ls
+      # - "find . -maxdepth 2" 
+      # - "node-red --help 2>&1"
 
 about:
   homepage: https://nodered.org

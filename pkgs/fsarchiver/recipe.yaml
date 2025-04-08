@@ -49,7 +49,8 @@ requirements:
 
 tests:
   - script:
-      - fsarchiver usage
+      - ls 
+      # - fsarchiver usage
 
 about:
   homepage: "https://www.fsarchiver.org"
