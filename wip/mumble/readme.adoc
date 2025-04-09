@@ -1,0 +1,21 @@
+= C++ Project : Mumble a Voice Over IP Server
+
+`mumble` is a C++ package.
+
+* https://github.com/bluenviron/mediamtx
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format
+
+
+== Inspiration
+
+* https://github.com/conda-forge/fans-feedstock/
+* https://github.com/conda-forge/pixi-feedstock/
+
+== Patches
+
+Mumble makes use of a 3rd party `cmake` module.
+
+https://github.com/Krzmbrzl/FindPythonInterpreter

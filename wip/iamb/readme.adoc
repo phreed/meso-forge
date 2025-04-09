@@ -1,3 +1,7 @@
 = `iamb` a matrix.org chat client
 
 https://github.com/ulyssa/iamb
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

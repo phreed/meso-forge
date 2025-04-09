@@ -6,3 +6,6 @@ Written in Rust.
 
 https://github.com/sharkdp/fd
 https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/f/fd.rb
+
+
+https://github.com/prefix-dev/recipe-format

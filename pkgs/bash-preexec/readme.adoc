@@ -6,3 +6,6 @@ https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/b/bash-preexec.rb
 License: MIT
 Add the following line to your bash profile (e.g. ~/.bashrc, ~/.profile, or ~/.bash_profile)
 [ -f /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh ] && . /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh
+
+https://github.com/prefix-dev/recipe-format
+

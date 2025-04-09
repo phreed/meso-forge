@@ -21,3 +21,8 @@ License: GPL-3.0-only
 
 == Dependencies
 Required: node ✔
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format
+

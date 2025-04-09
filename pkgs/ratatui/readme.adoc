@@ -1,3 +1,7 @@
-= `iamb` a matrix.org chat client
+= `ratatui` A Rust crate for cooking up Terminal User Interfaces
 
-https://github.com/ulyssa/iamb
+https://ratatui.rs/
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

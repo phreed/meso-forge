@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
 context:
@@ -34,6 +34,10 @@ requirements:
     - setuptools
     - sqlalchemy
     - xmltodict
+    - cryptography
+    - jinja2
+    - packaging
+    - pyyaml
   run:
     - python >=${{ python_min }},<4.0.0
     - rule-engine

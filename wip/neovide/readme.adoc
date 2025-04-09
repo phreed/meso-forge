@@ -1,2 +1,7 @@
 = `neovide` a simple graphical user interface for Neovim
 
+
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

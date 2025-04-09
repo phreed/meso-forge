@@ -1,2 +1,3 @@
 
 https://github.com/fdupoux/fsarchiver
+https://github.com/prefix-dev/recipe-format

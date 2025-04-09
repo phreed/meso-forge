@@ -2,3 +2,8 @@
 
 http://metashell.org/
 
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format
+

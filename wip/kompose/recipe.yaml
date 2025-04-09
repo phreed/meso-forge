@@ -2,23 +2,21 @@
 schema_version: 1
 
 context:
-  group: bluenviron
-  name: mediamtx
-  version: 1.11.3
+  version: 1.35.0
 
 package:
   version: ${{ version }}
   name: mediamtx
   
 source:
-  url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
+  url: https://github.com/kubernetes/kompose/archive/refs/tags/v${{ version }}.tar.gz
   sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
-  target_directory: src/mediamtx
+  target_directory: src/kompose
 
 build:
   number: 0
   script:
-    - cd src/mediamtx
+    - cd src/kompose
     - go generate ./...
     - CGO_ENABLED=0 go build .
     # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release" 
@@ -43,22 +41,20 @@ requirements:
 
 tests:
   - script: | 
-      mediamtx --help 2>&1  | grep "${{ version }}"
+      kompose --help 2>&1  | grep "${{ version }}"
 
 about:
-  homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md
-  summary: 'MediaMTX is a live media server'
+  homepage: https://kompose.io/ 
+  summary: Kompose is a conversion tool for Docker Compose to container orchestrators
   description: |
-     MediaMTX is a ready-to-use and zero-dependency real-time media server and 
-     media proxy that allows to publish, read, proxy, record and playback video and audio streams. 
-     It has been conceived as a "media router" that routes media streams from one end to the other.
+    Kompose is a conversion tool for Docker Compose to container orchestrators
+    such as Kubernetes or OpenShift.
   license: Apache-2.0
   license_file:
-    - LICENSE.txt
-    - https://github.com/bluenviron/mediamtx/blob/main/LICENSE
+    - LICENSE
     - library_licenses
-  documentation: https://github.com/bluenviron/mediamtx/blob/main/README.md
-  repository: https://github.com/bluenviron/mediamtx
+  documentation: https://kompose.io/user-guide/
+  repository: ttps://github.com/bluenviron/mediamtx
 
 extra:
   recipe-maintainers:

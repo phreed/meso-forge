@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/73cd2eed94c576213c5f25ab57adf6d8c83e792a/schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
 context:
@@ -20,10 +20,15 @@ build:
   script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
 
 requirements:
-  host:
+  build:
     - python ==${{ python_min }}
     - pip
     - setuptools
+  host:
+    - cryptography
+    - jinja2
+    - packaging
+    - pyyaml
   run:
     - python >=${{ python_min }}
 

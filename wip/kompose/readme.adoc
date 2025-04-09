@@ -1,0 +1,19 @@
+= Go Project : Kompose is a docker-compose convertere
+
+`kompose` is an go package.
+
+* https://github.com/kubernetes/kompose/archive/refs/tags/v1.35.0.tar.gz
+* https://kompose.io/
+
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format
+
+
+== Inspiration
+
+* https://github.com/conda-forge/carapace-feedstock/blob/main/recipe/recipe.yaml
+* https://github.com/conda-forge/minio-client-feedstock/blob/main/recipe/recipe.yaml
+
+

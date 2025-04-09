@@ -4,3 +4,7 @@ https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/pwgen.rb
 
 https://pwgen.sourceforge.net/
 
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

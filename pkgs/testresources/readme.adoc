@@ -2,3 +2,7 @@
 
 https://github.com/testing-cabal/testresources
 
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

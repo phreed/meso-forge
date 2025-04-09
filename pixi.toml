@@ -1,10 +1,12 @@
-"$schema" = "https://pixi.sh/v0.43.1/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.45.0/schema/manifest/schema.json"
 
 [workspace]
 name = "meso-forge"
 version = "0.1.0"
 description = "Packages needed by my projects"
-authors = ["Wolf Vollprecht <w.vollprecht@gmail.com>", "Fred Eisele <fred.eisele@vanderbilt.edu>"]
+authors = [
+  "Wolf Vollprecht <w.vollprecht@gmail.com>", 
+  "Fred Eisele <fred.eisele@vanderbilt.edu>"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 preview = ["pixi-build"]
@@ -36,12 +38,12 @@ cmd = [
   "-vvv",
 ]
 args =  [
-  { "arg" = "target-platform", "default" = "linux-64" },
   { "arg" = "pkg-dir", "default" = "pkgs" },
+  { "arg" = "target-platform", "default" = "linux-64" },
 ]
 
 [feature.build-all.tasks.build-all-wip]
-depends-on = [{ "task" = "build-all", "args" = ["linux-64", "wip"] }]
+depends-on = [{ "task" = "build-all", "args" = ["wip", "linux-64"] }]
 
 [feature.upload-all.dependencies]
 nushell = ">=0.103.0,<1"
