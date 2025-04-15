@@ -55,7 +55,7 @@ about:
   license: Apache-2.0
   license_file:
     - LICENSE # https://github.com/node-red/node-red/blob/master/LICENSE
-    - lib/node_modules/node-red/node_modules/
+    # - lib/node_modules/node-red/node_modules/
   documentation: https://nodered.org/docs/
   repository: https://github.com/node-red/node-red
 
