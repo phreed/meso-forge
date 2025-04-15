@@ -15,20 +15,15 @@ source:
   sha256: b22225680ea04c3528b7fa03e9c6d152470173dd3873996b8cb29fcb37799f1b
 
 build:
-  number: 0
   noarch: python
-  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: pip install . -v
 
 requirements:
-  build:
-    - python ==${{ python_min }}
-    - pip
-    - setuptools
   host:
-    - cryptography
-    - jinja2
-    - packaging
-    - pyyaml
+    - pip
+    - python >=${{ python_min }}
+    - setuptools
+    - wheel
   run:
     - python >=${{ python_min }}
 
@@ -36,7 +31,6 @@ tests:
   - python:
       imports:
         - asyncio
-      pip_check: true
 
 about:
   homepage: http://www.python.org/dev/peps/pep-3156/

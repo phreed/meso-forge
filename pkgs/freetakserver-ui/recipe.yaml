@@ -2,8 +2,6 @@
 schema_version: 1
 
 context:
-  name: freetakserver-ui
-  group: freetakteam
   version: 2.2.1
   python_min: 3.11.0
 
@@ -16,16 +14,14 @@ source:
   sha256: 05b4d286d3f67b4bd359972adaa1b6e912a5ef1f8df7a93eb72ab5b06f21ed31
 
 build:
-  number: 0
   noarch: python
-  script: |
-    ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: pip install . -v
 
 requirements:
   host:
+    - pip
     - python ==${{ python_min }}
     - poetry-core
-    - pip
   run:
     - python >=${{ python_min }},<4.0.0
     - alembic 1.13.1.*
@@ -60,7 +56,11 @@ requirements:
     - werkzeug 3.0.1.*
     - wtforms 2.3.3.*
 
-test:
+tests:
+  - python:
+      imports:
+        - freetakserver 
+        # - freetakserver-ui
 
 about:
   homepage: https://github.com/FreeTAKTeam/UI

@@ -51,7 +51,7 @@ jobs:
           TARGET_PLATFORM: ${{ matrix.target }}
         run: |
           rattler-build build \
-            --recipe-dir ./packages \
+            --recipe-dir ./pkgs \
             --skip-existing=all --target-platform=$TARGET_PLATFORM \
             --channel https://prefix.dev/meso-forge \
             --channel conda-forge
@@ -63,7 +63,7 @@ jobs:
         run: |
           # uses trusted publishers for the upload
           # ignore errors because we want to ignore duplicate packages
-          for file in output/**/*.conda; do
+          for file in pkgs-out/**/*.conda; do
             rattler-build upload prefix \
                --channel meso-forge \
                "$file" || true

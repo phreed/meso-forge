@@ -15,15 +15,16 @@ source:
   sha256:  75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
 
 build:
-  number: 0
   noarch: python
-  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: pip install . -v
 
 requirements:
   host:
-    - python ==${{ python_min }}
-    - poetry-core
     - pip
+    - python >=${{ python_min }}
+    - setuptools
+    - wheel
+    - poetry-core
     - flask-cors
     - flask-jwt-extended
     - lxml
@@ -31,7 +32,6 @@ requirements:
     - psutil
     - requests
     - ruamel.yaml
-    - setuptools
     - sqlalchemy
     - xmltodict
     - cryptography
@@ -63,7 +63,10 @@ tests:
 
 about:
   homepage: https://github.com/FreeTAKTeam/DigitalPy
-  summary: "A python implementation of the aphrodite's specification, heavily based on WCMF"
+  summary: A python implementation of the aphrodite specification
+  description: |
+    A python implementation of the aphrodite specification, 
+    heavily based on WCMF.
   license: EPL-2.0
   license_file: LICENSE.md
 

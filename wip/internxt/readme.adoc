@@ -1,0 +1,4 @@
+= Internxt
+
+npm install -g @internxt/cli
+

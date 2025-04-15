@@ -2,8 +2,6 @@
 schema_version: 1
 
 context:
-  name: freetakserver
-  group: freetakteam
   version: 2.2.1
   python_min: 3.11.0
 
@@ -13,23 +11,21 @@ package:
 
 source:
   url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 05b4d286d3f67b4bd359972adaa1b6e912a5ef1f8df7a93eb72ab5b06f21ed31
+  sha256: 14a16adb3260b82b097807596d69002322522ebc43e40c382a54bdc6f9f61a8b
 
 build:
   number: 0
   noarch: python
-  script: |
-    ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-    touch LICENSE.txt
+  script: pip install . -v
   python:
     entry_points:
       - fts_server=swagger_server.__main__:main
 
 requirements:
   host:
-    - python ==${{ python_min }}
-    - poetry-core
     - pip
+    - python >=${{ python_min }}
+    - poetry-core
   run:
     - python >=${{ python_min }},<4.0.0
     # - asyncio 3.4.3.*
@@ -93,12 +89,6 @@ tests:
   - python:
       imports:
         - digitalpy
-        # - base
-        # - configuration
-        # - controllers
-        # - domain
-        # - persistence
-        # - swagger_server
       pip_check: false
 
 about:
@@ -110,8 +100,7 @@ about:
     It is used by civilian and military organization for planning.
   license: EPL-2.0
   license_file: 
-    - LICENSE.txt
-    - https://github.com/FreeTAKTeam/FreeTakServer/blob/master/LICENSE
+    - LICENSE
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/FreeTakServer
 

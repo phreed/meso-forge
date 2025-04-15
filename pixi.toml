@@ -23,13 +23,13 @@ semver = ">=3.0.2,<4"
 [feature.update-ver.tasks.update-ver]
 cmd = ["python", ".scripts/update-versions.py" ]
 
-[feature.build-all.dependencies]
-rattler-build = ">=0.31.1,<0.32"
+[feature.build.dependencies]
+rattler-build = ">=0.39.0,<1"
 
-[feature.build-all.tasks.build-all]
+[feature.build.tasks.build]
 cmd = [
   "rattler-build", "build",
-  "--recipe-dir", "./{{ pkg-dir }}",
+  "--recipe-dir", "./{{ pkg-dir }}/{{ pkg }}",
   "--output-dir", "./{{ pkg-dir }}-out",
   "--skip-existing=all",
   "--target-platform={{ target-platform }}",
@@ -38,12 +38,13 @@ cmd = [
   "-vvv",
 ]
 args =  [
+  { "arg" = "pkg", "default" = "" },
   { "arg" = "pkg-dir", "default" = "pkgs" },
   { "arg" = "target-platform", "default" = "linux-64" },
 ]
 
-[feature.build-all.tasks.build-all-wip]
-depends-on = [{ "task" = "build-all", "args" = ["wip", "linux-64"] }]
+[feature.build.tasks.build-wip-all]
+depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
 
 [feature.upload-all.dependencies]
 nushell = ">=0.103.0,<1"
@@ -56,6 +57,6 @@ cmd = [
 
 [environments]
 update = { features = ["update-ver"] }
-build = { features = ["build-all"] }
+build = { features = ["build"] }
 upload = { features = ["upload-all"] }
 

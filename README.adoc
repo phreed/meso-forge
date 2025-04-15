@@ -5,6 +5,34 @@
 
 This is derived from link:{rust-forge}[rust-forge project].
 
+== Tasks
+
+The following pixi tasks are provided:
+
+=== `pixi run build`
+
+The build takes 3 parameters with defaults.
+
+The following commands do the same thing.
+The first example sets all the arguments, the second uses defaults.
+[source,bash]
+----
+pixi run build digitalpy pkgs linux-64
+pixi run build digitalpy
+----
+
+Build all of the packages in the default `pkgs` folder.
+[source,bash]
+----
+pixi run build
+----
+
+The following examples builds packages in the `wip` folder.
+[source,bash]
+----
+pixi run build bitwarden-cli wip
+----
+
 == Approach
 
 The traditional approach to building software
@@ -79,7 +107,12 @@ This is the step that requires the `ANACONDA_API_TOKEN` secret and `ANACONDA_OWN
 The ANACONDA_API_TOKEN is used in the following jobs:
 .github/workflows/dispatch_build_linux64.yml
 [source,yaml]
-include::.github/workflows/package.yml[tag=api-token]
+----
+include::.github/workflows/build-packages.yml[]
+----
+
+Previously, it was necessary to use a token but http://prefix.dev mesolab
+allows prefered publishers.
 
 
 ==== Create the Anaconda Token

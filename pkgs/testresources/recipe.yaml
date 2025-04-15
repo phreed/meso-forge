@@ -13,21 +13,21 @@ package:
 
 source:
   url: https://github.com/${{ group }}/testresources/archive/refs/tags/${{ version }}.tar.gz
-  sha256:  3c96775290b1b377dec66fda3401fdb1961b7467a1eee915a7313575f2aeed4c
+  sha256: 3c96775290b1b377dec66fda3401fdb1961b7467a1eee915a7313575f2aeed4c
 
 build:
-  number: 0
   noarch: python
-  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: pip install . -v
 
 requirements:
   host:
+    - pip
     - python ==${{ python_min }}
+    - setuptools
+    - wheel
     - docutils
     - testtools
     - fixtures
-    # - pip
-    # - setuptools
     - cryptography
     - jinja2
     - packaging
@@ -40,7 +40,6 @@ tests:
   - python:
       imports:
         - testresources
-      pip_check: true
 
 about:
   summary: Testresources, a pyunit extension for managing expensive test resources

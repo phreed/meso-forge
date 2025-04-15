@@ -6,7 +6,7 @@ schema_version: 1
 # The sha256 is currently not available from these sources. 
 context:
   name: node-red
-  version: "4.0.9"
+  version: 4.0.9
 
 package:
   name: node-red
@@ -15,6 +15,7 @@ package:
 source:
   - url: https://github.com/node-red/node-red/archive/refs/tags/${{ version }}.tar.gz
     sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
+    file_name: node-red-${{ version }}.tgz
   - if: linux
     then: 
       path: systemd/configure-service.sh
@@ -23,13 +24,13 @@ source:
 build:
   number: 0
   noarch: generic
+  script: npm add -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
+
 
 requirements:
   build:
     - nodejs
     - grunt
-    - pnpm
-    - pnpm-licenses
   host:
     - nodejs
     - grunt
@@ -38,9 +39,8 @@ requirements:
 
 tests:
   - script:
-      - ls
+      - "node-red --help 2>&1"
       # - "find . -maxdepth 2" 
-      # - "node-red --help 2>&1"
 
 about:
   homepage: https://nodered.org
@@ -54,9 +54,8 @@ about:
      industrial control systems or anything in between.
   license: Apache-2.0
   license_file:
-    - LICENSE.txt
-    - https://github.com/node-red/node-red/blob/master/LICENSE
-    - third-party-licenses.txt
+    - LICENSE # https://github.com/node-red/node-red/blob/master/LICENSE
+    - lib/node_modules/node-red/node_modules/
   documentation: https://nodered.org/docs/
   repository: https://github.com/node-red/node-red
 
