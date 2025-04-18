@@ -24,7 +24,7 @@ semver = ">=3.0.2,<4"
 cmd = ["python", ".scripts/update-versions.py" ]
 
 [feature.build.dependencies]
-rattler-build = ">=0.39.0,<1"
+rattler-build = ">=0.40.0,<1"
 
 [feature.build.tasks.build]
 cmd = [

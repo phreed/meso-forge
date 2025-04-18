@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 5.2.0
+
+package:
+  name: asciidoctor-revealjs
+  version: ${{ version }}
+
+source:
+  url: https://github.com/asciidoctor/asciidoctor-reveal.js/archive/refs/tags/v${{ version }}.tar.gz
+  sha256:  b22225680ea04c3528b7fa03e9c6d152470173dd3873996b8cb29fcb37799f1b
+
+build:
+  number: 0
+  script: |
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin {{ name }}-{{ version }}.gem
+    - gem unpack {{ name }}-{{ version }}.gem
+    - cp -v asciidoctor.bat $PREFIX/bin/asciidoctor.bat
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    
+
+tests:
+  - script: |
+      - ruby -r asciidoctor -e 'exit 0'
+      - asciidoctor -V
+
+about:
+  homepage: https://docs.asciidoctor.org/reveal.js-converter/latest/
+  license: MIT
+  license_file: LICENSE.adoc
+  summary:  A reveal.js converter for Asciidoctor and Asciidoctor.js. Write your slides in AsciiDoc! 
+  description: |
+    Asciidoctor reveal.js is a converter for Asciidoctor and Asciidoctor.js 
+    that transforms an AsciiDoc document into an HTML5 presentation 
+    designed to be executed by the reveal.js presentation framework.
+  repository: https://github.com/asciidoctor/asciidoctor-reveal.js
+
+extra:
+  recipe-maintainers:
+    - phreed

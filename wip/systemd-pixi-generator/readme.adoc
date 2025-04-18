@@ -1,0 +1,8 @@
+= A helper for `pixi` service packages
+
+https://github.com/babeloff/pixi-systemd-generator
+
+Written in Rust.
+
+https://github.com/prefix-dev/recipe-format
+
