@@ -18,14 +18,6 @@ rattler-build = ">=0.40.0,<0.41"
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out", "wip-out"]
 
-[feature.update-ver.dependencies]
-python = "3.12.*"
-requests = ">=2.32.3,<3"
-pyyaml = ">=6.0.2,<7"
-semver = ">=3.0.2,<4"
-
-[feature.update-ver.tasks.update-ver]
-cmd = ["python", ".scripts/update-versions.py" ]
 
 [tasks.build]
 cmd = [
@@ -52,6 +44,15 @@ depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
 #   "nu", ".scripts/upload-all.nu",
 #   "./{{ pkg-dir }}-out",
 # ]
+
+[feature.update-ver.dependencies]
+python = "3.12.*"
+requests = ">=2.32.3,<3"
+pyyaml = ">=6.0.2,<7"
+semver = ">=3.0.2,<4"
+
+[feature.update-ver.tasks.update-ver]
+cmd = ["python", ".scripts/update-versions.py" ]
 
 [environments]
 update = { features = ["update-ver"]}
