@@ -50,7 +50,7 @@ jobs:
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
         run: |
-          rattler-build build \
+          rattler-build build --force \
             --recipe-dir ./pkgs \
             --skip-existing=all --target-platform=$TARGET_PLATFORM \
             --channel https://prefix.dev/meso-forge \
