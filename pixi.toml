@@ -12,6 +12,7 @@ platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 preview = ["pixi-build"]
 
 [dependencies]
+rattler-build = ">=0.40.0,<1"
 nushell = ">=0.103.0,<1"
 
 [tasks.clean-all]
@@ -26,10 +27,7 @@ semver = ">=3.0.2,<4"
 [feature.update-ver.tasks.update-ver]
 cmd = ["python", ".scripts/update-versions.py" ]
 
-[feature.build.dependencies]
-rattler-build = ">=0.40.0,<1"
-
-[feature.build.tasks.build]
+[tasks.build]
 cmd = [
   "rattler-build", "build",
   "--recipe-dir", "./{{ pkg-dir }}/{{ pkg }}",
@@ -46,7 +44,7 @@ args =  [
   { "arg" = "target-platform", "default" = "linux-64" },
 ]
 
-[feature.build.tasks.build-wip-all]
+[tasks.build-wip-all]
 depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
 
 [feature.upload-all.tasks.upload-all]
@@ -56,7 +54,4 @@ cmd = [
 ]
 
 [environments]
-update = { features = ["update-ver"] }
-build = { features = ["build"] }
-upload = { features = ["upload-all"] }
-
+update = { features = ["update-ver"]}
