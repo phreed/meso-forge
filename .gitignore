@@ -2,6 +2,9 @@
 pkgs-out/
 wip-out/
 
+# Something created by rust?
+graph.json
+
 # Prerequisites
 *.d
 

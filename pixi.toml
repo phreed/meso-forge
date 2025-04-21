@@ -8,7 +8,12 @@ authors = [
   "Wolf Vollprecht <w.vollprecht@gmail.com>", 
   "Fred Eisele <fred.eisele@vanderbilt.edu>"]
 channels = ["conda-forge"]
-platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
+platforms = [
+  # "osx-arm64", 
+  "linux-64", 
+  # "win-64", 
+  # "osx-64",
+  ]
 preview = ["pixi-build"]
 
 [dependencies]
