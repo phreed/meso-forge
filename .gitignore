@@ -1,7 +1,6 @@
 .DS_Store
 pkgs-out/
 wip-out/
-.pixi/
 
 # Prerequisites
 *.d

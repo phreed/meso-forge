@@ -1,4 +1,4 @@
-"$schema" = "https://pixi.sh/v0.45.0/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/latest/schema/manifest/schema.json"
 
 [workspace]
 name = "meso-forge"
@@ -10,6 +10,9 @@ authors = [
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 preview = ["pixi-build"]
+
+[dependencies]
+nushell = ">=0.103.0,<1"
 
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out", "wip-out"]
@@ -45,9 +48,6 @@ args =  [
 
 [feature.build.tasks.build-wip-all]
 depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
-
-[feature.upload-all.dependencies]
-nushell = ">=0.103.0,<1"
 
 [feature.upload-all.tasks.upload-all]
 cmd = [ 

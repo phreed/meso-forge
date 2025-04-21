@@ -42,8 +42,9 @@ jobs:
              default
           log-level: vvv
           run-install: true
+          # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
           auth-host: prefix.dev
-          auth-conda-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 
       - name: Run code in changed subdirectories
         shell: bash
