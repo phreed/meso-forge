@@ -38,18 +38,21 @@ pixi run build bitwarden-cli wip
 The traditional approach to building software
 not provided by a host package manager
 is to build it from source on the same system it will be run on.
-For unprivileged users running in HPC environments, all software may need to be built from source.
+For unprivileged users running in HPC environments,
+all software may need to be built from source.
 
-The conda package format is a universal, binary package format that
+The conda package format is a universal binary package format that
 works in any installation prefix in privileged and unprivileged environments.
 While originally developed for distributing Python packages,
 The conda format now provides relocatable, precompiled packages for any language.
-There is a rich set of tooling which may be used to build, publish, and install conda packages.
-This project focuses on the following tools:
+There is a rich set of tooling which may be used to
+build, publish, and install conda packages.
+This project uses the following tools:
 
 * link:https://rattler.build/latest/[rattler-build]
 * link:https://pixi.sh/latest/[pixi and pixi-build]
 * link:https://docs.github.com/en/actions[github actions]
+* link:https://prefix.dev/channels/meso-forge[meso-forge channel]
 * link:https://anaconda.org/phread/dashboard[anaconda channel]
 * link:https://min.io/product/s3-compatibility[S3 compatible MinIO Private channel]
 
@@ -57,12 +60,14 @@ The workflows in this repository provide an easy way to upload Conda recipes and
 have the packages built and uploaded to a personal channel using GitHub Actions.
 This means you don't have to build the Conda packages in an HPC environment or
 in a virtual machine on your personal computer.
-Instructions for doing this are provided in a link:.resources/local-build.adoc[separate document].
+Instructions for doing this are provided in a 
+link:.resources/local-build.adoc[separate document].
 
-Building and uploading Conda packages to a personal channel should **not** be a substitute for
-submitting and maintaining these packages on
-link:https://anaconda.org/conda-forge[conda-forge] and
-link:https://anaconda.org/bioconda[bioconda].
+Building and uploading Conda packages to a personal channel
+should **not** be a substitute for submitting and maintaining these packages on:
+
+* link:https://anaconda.org/conda-forge[conda-forge]
+
 This setup should be used when developing and testing packages with
 the intention of submitting them to upstream channels when they are ready.
 Please see
@@ -73,7 +78,8 @@ for more information on how you should prepare your software for public use.
 
 Make a fork of the 'main' branch of this repository.
 
-You will need to set up a personal Anaconda channel and add an API key for the channel to the repository secrets.
+You will need to set up a personal Anaconda channel and 
+add an API key for the channel to the repository secrets.
 See link:{dan_nach_url}/wiki/Creating-and-adding-an-Anaconda-API-token-to-the-repository-secrets[the wiki]
 for a step-by-step walkthrough.
 
