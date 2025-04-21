@@ -12,8 +12,8 @@ platforms = ["osx-arm64", "linux-64", "win-64", "osx-64"]
 preview = ["pixi-build"]
 
 [dependencies]
-rattler-build = ">=0.40.0,<1"
-nushell = ">=0.103.0,<1"
+rattler-build = ">=0.40.0,<0.41"
+nushell = ">=0.103.0,<0.104"
 
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out", "wip-out"]
@@ -44,8 +44,8 @@ args =  [
   { "arg" = "target-platform", "default" = "linux-64" },
 ]
 
-[tasks.build-wip-all]
-depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
+# [tasks.build-wip-all]
+# depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
 
 [tasks.upload-all]
 cmd = [ 
