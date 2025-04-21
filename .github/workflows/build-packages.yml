@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { target: linux-64, os: ubuntu-20.04 }
+          - { target: linux-64, os: ubuntu-24.04 }
           - { target: win-64, os: windows-latest }
           # force older macos-13 to get x86_64 runners
           - { target: osx-64, os: macos-13 }
@@ -43,7 +43,7 @@ jobs:
           log-level: vvv
           run-install: true
           auth-host: prefix.dev
-          # auth-conda-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+          auth-conda-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 
       - name: Run code in changed subdirectories
         shell: bash
