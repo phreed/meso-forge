@@ -56,11 +56,11 @@ requirements:
     - werkzeug 3.0.1.*
     - wtforms 2.3.3.*
 
-tests:
-  - python:
-      imports:
-        - freetakserver 
-        # - freetakserver-ui
+# tests:
+#   - python:
+#       imports:
+#         - freetakserver 
+#         # - freetakserver-ui
 
 about:
   homepage: https://github.com/FreeTAKTeam/UI
