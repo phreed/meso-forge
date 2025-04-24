@@ -18,17 +18,17 @@ preview = ["pixi-build"]
 
 [dependencies]
 rattler-build = ">=0.40.0,<0.41"
-# nushell = ">=0.103.0,<0.104"
+nushell = ">=0.103.0,<0.104"
 
-[tasks.clean-all]
-cmd = ["rm", "-rf", "pkgs-out", "wip-out"]
+[tasks.clean]
+cmd = ["rm", "-rf", "pkgs-out"]
 
 
-[tasks.build]
+[tasks.build-the]
 cmd = [
   "rattler-build", "build",
-  "--recipe-dir", "./{{ pkg-dir }}/{{ pkg }}",
-  "--output-dir", "./{{ pkg-dir }}-out",
+  "--recipe-dir", "./pkgs/{{ pkg }}",
+  "--output-dir", "./pkgs-out",
   "--skip-existing=all",
   "--target-platform={{ target-platform }}",
   "--channel", "https://prefix.dev/meso-forge",
@@ -36,19 +36,53 @@ cmd = [
   "-vvv",
 ]
 args =  [
-  { "arg" = "pkg", "default" = "" },
-  { "arg" = "pkg-dir", "default" = "pkgs" },
+  { "arg" = "pkg", "default" = "_skeleton" },
   { "arg" = "target-platform", "default" = "linux-64" },
 ]
 
-[tasks.build-wip-all]
-depends-on = [{ "task" = "build", "args" = ["", "wip", "linux-64"] }]
+[tasks.build-skeletons]
+depends-on = [
+  { "task" = "build-the", "args" = ["_skeleton_js", "linux-64"] },
+  { "task" = "build-the", "args" = ["_skeleton_python", "linux-64"] },
+  { "task" = "build-the", "args" = ["_skeleton_rust", "linux-64"] },
+]
 
-# [tasks.upload-all]
-# cmd = [ 
-#   "nu", ".scripts/upload-all.nu",
-#   "./{{ pkg-dir }}-out",
-# ]
+[tasks.build]
+depends-on = [
+  # { "task" = "build-the", "args" = ["asciidoctor-reveal.js", "linux-64"] },
+  { "task" = "build-the", "args" = ["asyncio", "linux-64"] },
+  { "task" = "build-the", "args" = ["bash-preexec", "linux-64"] },
+  # { "task" = "build-the", "args" = ["bitwarden-cli", "linux-64"] },
+  # { "task" = "build-the", "args" = ["devcontainer-cli", "linux-64"] },
+  { "task" = "build-the", "args" = ["digitalpy", "linux-64"] },
+  { "task" = "build-the", "args" = ["dysk", "linux-64"] },
+  { "task" = "build-the", "args" = ["fd", "linux-64"] },
+  { "task" = "build-the", "args" = ["flask-jwt-extended", "linux-64"] },
+  { "task" = "build-the", "args" = ["testresources", "linux-64"] },
+  { "task" = "build-the", "args" = ["freetakserver", "linux-64"] },
+  { "task" = "build-the", "args" = ["freetakserver-ui", "linux-64"] },
+  { "task" = "build-the", "args" = ["fsarchiver", "linux-64"] },
+  # { "task" = "build-the", "args" = ["iamb", "linux-64"] },
+  # { "task" = "build-the", "args" = ["internxt", "linux-64"] },
+  # { "task" = "build-the", "args" = ["jank", "linux-64"] },
+  # { "task" = "build-the", "args" = ["kombose", "linux-64"] },
+  # { "task" = "build-the", "args" = ["mediamtx", "linux-64"] },
+  # { "task" = "build-the", "args" = ["metashell", "linux-64"] },
+  # { "task" = "build-the", "args" = ["mumble", "linux-64"] },
+  # { "task" = "build-the", "args" = ["neovide", "linux-64"] },
+  { "task" = "build-the", "args" = ["node-red", "linux-64"] },
+  { "task" = "build-the", "args" = ["node-red-contrib-web-worldmap", "linux-64"] },
+  { "task" = "build-the", "args" = ["pwgen", "linux-64"] },
+  { "task" = "build-the", "args" = ["ratatui", "linux-64"] },
+  # { "task" = "build-the", "args" = ["systemd-pixi-generator", "linux-64"] },
+  ]
+
+[tasks.publish-all]
+cmd = [ 
+  "nu",
+  ".scripts/publish-all.nu",
+  "./pkgs-out",
+]
 
 [feature.update-ver.dependencies]
 python = "3.12.*"

@@ -19,10 +19,9 @@ jobs:
       matrix:
         include:
           - { target: linux-64, os: ubuntu-24.04 }
-          - { target: win-64, os: windows-latest }
-          # force older macos-13 to get x86_64 runners
-          - { target: osx-64, os: macos-13 }
-          - { target: osx-arm64, os: macos-14 }
+          # - { target: win-64, os: windows-latest }
+          # - { target: osx-64, os: macos-13 }
+          # - { target: osx-arm64, os: macos-14 }
       fail-fast: false
 
     name: ${{ matrix.target }}
@@ -35,37 +34,20 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.8.8
         with:
           pixi-version: v0.45.0
-          # cache: true
+          cache: true
           # cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-          activate-environment: true
-          environments: >-
-             default
           log-level: vvv
           run-install: true
           # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
           auth-host: prefix.dev
           auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 
-      - name: Run code in changed subdirectories
-        shell: bash
+      - name: Build a set of packages
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
-        run: |
-          rattler-build build \
-            --recipe-dir ./pkgs \
-            --skip-existing=all --target-platform=$TARGET_PLATFORM \
-            --channel https://prefix.dev/meso-forge \
-            --channel conda-forge
+        run: pixi run build-them
 
-      - name: Upload all packages
-        shell: bash
+      - name: Publish a set of packages
         # do not upload on PR
         if: github.event_name == 'push'
-        run: |
-          # uses trusted publishers for the upload
-          # ignore errors because we want to ignore duplicate packages
-          for file in pkgs-out/**/*.conda; do
-            rattler-build upload prefix \
-               --channel meso-forge \
-               "$file" || true
-          done
+        run: pixi run publish-them

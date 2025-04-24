@@ -37,6 +37,7 @@ graph.json
 *.exe
 *.out
 *.app
+
 # conda smithy ci-skeleton start
 *.pyc
 build_artifacts

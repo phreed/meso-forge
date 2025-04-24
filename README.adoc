@@ -17,8 +17,8 @@ The following commands do the same thing.
 The first example sets all the arguments, the second uses defaults.
 [source,bash]
 ----
-pixi run build digitalpy pkgs linux-64
-pixi run build digitalpy
+pixi run build-the digitalpy linux-64
+pixi run build-the digitalpy
 ----
 
 Build all of the packages in the default `pkgs` folder.
@@ -27,11 +27,6 @@ Build all of the packages in the default `pkgs` folder.
 pixi run build
 ----
 
-The following examples builds packages in the `wip` folder.
-[source,bash]
-----
-pixi run build bitwarden-cli wip
-----
 
 == Approach
 

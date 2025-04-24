@@ -2,9 +2,7 @@
 schema_version: 1
 
 context:
-  name: asyncio
-  version: "3.4.3"
-  python_min: 3.11.0
+  version: 3.4.3
 
 package:
   name: asyncio
@@ -19,13 +17,14 @@ build:
   script: pip install . -v
 
 requirements:
+  # there is no build section
   host:
     - pip
-    - python >=${{ python_min }}
+    - python >=3.11
     - setuptools
     - wheel
   run:
-    - python >=${{ python_min }}
+    - python >=3.11
 
 tests:
   - python:
@@ -33,10 +32,17 @@ tests:
         - asyncio
 
 about:
-  homepage: http://www.python.org/dev/peps/pep-3156/
-  summary: reference implementation of PEP 3156
+  homepage: https://www.python.org/dev/peps/pep-3156/
   license: Apache-2.0
   license_file: COPYING
+  summary: Reference implementation of PEP 3156
+  description: |
+    This is a proposal for asynchronous I/O in Python 3, starting at Python 3.3. 
+    Consider this the concrete proposal that is missing from PEP 3153. 
+    The proposal includes a pluggable event loop, transport and protocol abstractions similar to those in Twisted, 
+    and a higher-level scheduler based on yield from (PEP 380). 
+    The proposed package name is asyncio.
+  documentation: https://www.python.org/dev/peps/pep-3156/
 
 extra:
   recipe-maintainers:

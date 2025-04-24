@@ -1,0 +1,60 @@
+context:
+  version: "24.01.0"
+
+package:
+  name: poppler
+  version: ${{ version }}
+
+source:
+  url: https://poppler.freedesktop.org/poppler-${{ version }}.tar.xz
+  sha256: c7def693a7a492830f49d497a80cc6b9c85cb57b15e9be2d2d615153b79cae08
+
+# The `install` command will take care of copying the files to the right place
+build:
+  script: |
+    extra_cmake_args=(
+    -GNinja
+    -DCMAKE_INSTALL_LIBDIR=lib
+    -DENABLE_UNSTABLE_API_ABI_HEADERS=ON
+    -DENABLE_GPGME=OFF
+    -DENABLE_LIBCURL=OFF
+    -DENABLE_LIBOPENJPEG=openjpeg2
+    -DENABLE_QT6=OFF
+    -DENABLE_QT5=OFF
+    -DENABLE_NSS3=OFF
+    )
+    mkdir build && cd build
+    cmake ${CMAKE_ARGS} "${extra_cmake_args[@]}" \
+      -DCMAKE_PREFIX_PATH=$PREFIX \
+      -DCMAKE_INSTALL_PREFIX=$PREFIX \
+      -DTIFF_INCLUDE_DIR=$PREFIX/include \
+      $SRC_DIR
+    ninja
+    ninja install
+
+requirements:
+  build:
+    - ${{ compiler('c') }} 
+    - ${{ compiler('cxx') }}
+    - pkg-config
+    - cmake
+    - ninja
+  host:
+    - cairo 
+    - fontconfig
+    - freetype
+    - glib
+    - libboost-headers
+    - libjpeg-turbo
+    - lcms2
+    - libiconv
+    - libpng
+    - libtiff
+    - openjpeg
+    - zlib
+
+tests:
+  - script:
+      - pdfinfo -listenc  
+      - pdfunite --help
+      - pdftocairo --help

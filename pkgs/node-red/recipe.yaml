@@ -18,8 +18,12 @@ source:
     file_name: node-red-${{ version }}.tgz
   - if: linux
     then: 
-      path: systemd/configure-service.sh
-      target_directory: systemd/configure-node-red.sh
+      path: systemd/node-red.service
+      target_directory: systemd/node-red.service
+  - if: win
+    then: 
+      path: bin/node-red.cmd
+      target_directory: bin/node-red.cmd
  
 build:
   number: 0
@@ -28,27 +32,13 @@ build:
     interpreter: nu
     content: 
       - npm add -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
-#       - rg --ignore-case --files --glob '*license*' ../node_modules
-#       mkdir collected-licenses
-
-# # Find license files and copy them with unique names
-# ls node_modules/** | where type == file and (name | str downcase | str contains "license") | each {|file|
-#     let sanitized_name = ($file.name | str replace -a "/" "_" )
-#     cp $file.path (["collected-licenses", $sanitized_name] | path join)
-# }
-#       mkdir -p collected-licenses
-
-# find node_modules -type f \( -iname "license" -o -iname "license.md" -o -iname "license.txt" \) | while read -r file; do
-#   # Generate a unique filename using package path and basename
-#   sanitized_path=$(echo "$file" | sed 's|[\/]|_|g')
-#   cp "$file" "collected-licenses/${sanitized_path}"
-# done
-
+      - nu .scripts/license-summary.nu $PREFIX $PREFIX/license-summary.txt
 
 requirements:
   build:
     - nodejs
     - ripgrep
+    - nushell
   host:
     - nodejs
     - grunt
@@ -57,8 +47,8 @@ requirements:
 
 tests:
   - script:
-      - "node-red --help 2>&1"
-      # - "find . -maxdepth 2" 
+      - find . -maxdepth 2
+      - "node node-red --help"
 
 about:
   homepage: https://nodered.org
@@ -72,8 +62,8 @@ about:
      industrial control systems or anything in between.
   license: Apache-2.0
   license_file:
-    - LICENSE # https://github.com/node-red/node-red/blob/master/LICENSE
-    # - lib/node_modules/node-red/node_modules/
+    - LICENSE 
+    - license-summary.txt
   documentation: https://nodered.org/docs/
   repository: https://github.com/node-red/node-red
 
