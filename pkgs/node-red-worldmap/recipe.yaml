@@ -1,32 +1,33 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
-# Much of the information is available via:
-#  pnpm info node-red-contrib-web-worldmap
-# The sha256 is currently not available from these sources. 
 context:
-  name: node-red-contrib-web-worldmap
-  version: "5.1.2"
-  sha: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae 
+  version: 5.1.4
 
 package:
-  name: node-red-contrib-web-worldmap
+  name: node-red-worldmap
   version: ${{ version }}
 
 source:
-  url: https://registry.npmjs.org/${{ name }}/-/${{ name }}-${{ version }}.tgz
-  sha256: ${{ sha }}
+  git: https://github.com/dceejay/RedMap.git
+  rev: e5cdd1258dc62b553d0f753892adf53e2e9f577c
+  target_directory: node-red-worldmap
+  # url: https://registry.npmjs.org/node-red-contrib-web-worldmap/-/${{ name }}-${{ version }}.tgz
+  # sha256: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae 
+  # file_name: node-red-worldmap-${{ version }}.tgz
  
 build:
-  number: 0
-  noarch: generic
+  script:
+    interpreter: nu
+    content: |
+      $"building ($env.PKG_NAME)!"
+      npm install -g ./node-red-worldmap --prefix ${{ PREFIX }}
 
 requirements:
   build:
+    - nushell
     - nodejs
     - node-red
-    - pnpm
-    - pnpm-licenses
   host:
     - nodejs
   run:
@@ -38,16 +39,14 @@ tests:
 
 about:
   homepage: https://github.com/dceejay/RedMap#readme
-  summary: 'A Node-RED node to provide a world map web page for plotting "things" on.'
+  summary: A Node-RED node to provide a world map web page for plotting "things" on.
   description: |
      Plots "things" on a map.
      By default the map will be served from {httpRoot}/worldmap,
      but this can be changed in the configuration panel.
   license: Apache-2.0
   license_file:
-    - LICENSE.txt
-    - https://github.com/dceejay/RedMap/blob/master/LICENSE
-    - third-party-licenses.txt
+    - node-red-worldmap/LICENSE
   documentation: https://github.com/dceejay/RedMap#readme
   repository: https://github.com/dceejay/RedMap
 

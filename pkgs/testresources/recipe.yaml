@@ -11,7 +11,7 @@ package:
 
 source:
   url: https://github.com/testing-cabal/testresources/archive/refs/tags/${{ version }}.tar.gz
-  sha256: 3c96775290b1b377dec66fda3401fdb1961b7467a1eee915a7313575f2aeed4c
+  sha256: f1cbba61e1e1f720220857f42dc3ee67cfc862ee8c21a2286bb07e46d7a7fc6d
 
 build:
   noarch: python

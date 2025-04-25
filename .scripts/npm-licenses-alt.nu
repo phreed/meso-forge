@@ -1,4 +1,4 @@
-# license-summary.nu
+# npm-licenses-alt.nu
 
 # Define common license file names
 let license_names = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'COPYING', 'COPYING.txt']

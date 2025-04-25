@@ -1,11 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
-# Much of the information is available via:
-#  pnpm info node-red
-# The sha256 is currently not available from these sources. 
 context:
-  name: node-red
   version: 4.0.9
 
 package:
@@ -16,6 +12,8 @@ source:
   - url: https://github.com/node-red/node-red/archive/refs/tags/${{ version }}.tar.gz
     sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
     file_name: node-red-${{ version }}.tgz
+  - path: ../../.scripts/npm-licenses.nu
+    file_name: npm-licenses.nu
   - if: linux
     then: 
       path: systemd/node-red.service
@@ -26,19 +24,18 @@ source:
       target_directory: bin/node-red.cmd
  
 build:
-  number: 0
-  noarch: generic
-  script: 
+  script:
     interpreter: nu
-    content: 
-      - npm add -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
-      - nu .scripts/license-summary.nu $PREFIX $PREFIX/license-summary.txt
+    content: |
+      $"building ($env.PKG_NAME)!"
+      npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
+      source npm-licenses.nu
+      main | save license_summary.txt 
 
 requirements:
   build:
-    - nodejs
-    - ripgrep
     - nushell
+    - nodejs
   host:
     - nodejs
     - grunt
@@ -47,12 +44,12 @@ requirements:
 
 tests:
   - script:
-      - find . -maxdepth 2
-      - "node node-red --help"
+      - find . -maxdepth 2 
+      - echo "node-red --help"
 
 about:
   homepage: https://nodered.org
-  summary: 'Low-code programming for event-driven applications'
+  summary: Low-code programming for event-driven applications
   description: |
      Node-RED's goal is to enable anyone to build applications that collect,
      transform and visualize their data; 

@@ -1,24 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
 context:
-  version: "1.14.0"
+  version: 1.14.0
 
 package:
   name: bibtex-tidy
   version: ${{ version }}
 
 source:
-  url: https://registry.npmjs.org/bibtex-tidy/-/bibtex-tidy-${{ version }}.tgz
-  sha256: 0a2c1bb73911a7cee36a30ce1fc86feffe39b2d39acd4c94d02aac6f84a00285
-  # we do not extract the source code and install the tarball directly as that works better
-  file_name: bibtex-tidy-${{ version }}.tgz
+  - url: https://registry.npmjs.org/bibtex-tidy/-/bibtex-tidy-${{ version }}.tgz
+    sha256: 0a2c1bb73911a7cee36a30ce1fc86feffe39b2d39acd4c94d02aac6f84a00285
+    # we do not extract the source code and install the tarball directly as that works better
+    file_name: bibtex-tidy-${{ version }}.tgz
+  - path: ../../.scripts/npm-licenses.nu
+    file_name: npm-licenses.nu
 
 build:
-  number: 0
   script:
-    # we use NPM to globally install the bibtex-tidy package
-    - npm install -g bibtex-tidy-${{ version }}.tgz --prefix ${{ PREFIX }}
+    interpreter: nu
+    content: |
+      $"building ($env.PKG_NAME)!"
+      npm install -g ./bibtex-tidy-${{ version }}.tgz --prefix $env.PREFIX
+      source npm-licenses.nu
+      main | save license_summary.txt 
 
 requirements:
   build:
+    - nushell
     - nodejs
   run:
     - nodejs
@@ -26,3 +35,19 @@ requirements:
 tests:
   - script:
     - bibtex-tidy --version
+
+about:
+  homepage: https://.org
+  summary: bibtex summary
+  description: |
+    Bibtex description 
+  license: Apache-2.0
+  license_file:
+    - LICENSE 
+    - license-summary.txt
+  documentation: https://.org/docs/
+  repository: https://github.com/
+
+extra:
+  recipe-maintainers:
+    - maintainer

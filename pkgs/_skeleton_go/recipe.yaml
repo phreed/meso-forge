@@ -10,18 +10,21 @@ source:
   sha256: 9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74
 
 build:
-  number: 0
   # The LDFLAGS are used to set the version of the `temporal` binary. This is a common practice in Go.
   # Build the `temporal` binary and store it in the `$PREFIX/bin` directory.
   # Store the license files in a separate directory in the $SRC_DIR. 
   # These are embedded in the package in the `license_file` section.
-  script: |
-    export LDFLAGS="${LDFLAGS} -s -w -X github.com/temporalio/cli/temporalcli.Version=${PKG_VERSION}"
-    go build -ldflags "$LDFLAGS" -o $PREFIX/bin/temporal ./cmd/temporal
-    go-licenses save ./cmd/temporal --save_path="$SRC_DIR/license-files/" || true
+  script:
+    interpreter: nu
+    content: |
+      echo "building sheleton_go!"
+      $env.LDFLAGS = ($env.LDFLAGS? | default "" | append $" -s -w -X github.com/temporalio/cli/temporalcli.Version=($env.PKG_VERSION)")
+      go build -ldflags $"($env.LDFLAGS)" -o $"($env.PREFIX)/bin/temporal" ./cmd/temporal
+      (go-licenses save ./cmd/temporal --save_path=($env.SRC_DIR)/license-files/ | complete | ignore)
 
 requirements:
   build:
+    - nushell
     - ${{ compiler('go-nocgo') }}
     - go-licenses
 
