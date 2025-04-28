@@ -100,6 +100,22 @@ cmd = [
 #   { task = "build-the", args = ['{{ pkg }}', "linux-64"] },
 # ]
 
+[tasks.publish-s3]
+args =  [
+  { arg = "pkg", default = "_skeleton_python" },
+  { arg = "tgt_platform", default = "linux-64" },
+]
+# the upload expects the RATTLER_AUTH_FILE variable to be set
+cmd = [
+  "rattler-build", "upload", "s3",
+  "--channel", "s3://pixi/meso-forge",
+  "--region", "auto",
+  "--endpoint-url", "http://127.0.0.1:9000",
+  "--force-path-style", 
+  "-vvv",
+  "pkgs-out/*/{{ pkg }}*.conda",
+]
+
 [tasks.publish]
 depends-on = [
   # { task = "publish-the", environment = "wip", args = ["asciidoctor-reveal.js", "linux-64"] },
