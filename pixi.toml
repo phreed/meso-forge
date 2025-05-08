@@ -47,6 +47,22 @@ cmd = [
   "-vvv",
 ]
 
+[feature.wip.tasks.build-the]
+args =  [
+  { arg = "pkg", default = "_skeleton_python" },
+  { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+  "rattler-build", "build",
+  "--recipe-dir", "./pkgs/{{ pkg }}",
+  "--output-dir", "./pkgs-out",
+  "--skip-existing=all",
+  "--target-platform={{ tgt_platform }}",
+  "--channel", "https://prefix.dev/meso-forge",
+  "--channel", "conda-forge",
+  "-vvv",
+]
+
 [tasks.build-skeletons]
 depends-on = [
   { task = "build-the", args = ["_skeleton_js", "linux-64"] },
@@ -56,6 +72,8 @@ depends-on = [
 
 [tasks.build]
 depends-on = [
+  { task = "build-the", environment = "default", args = ["asciidoctor", "linux-64"] },
+  { task = "build-the", environment = "default", args = ["asciidoctor-pdf", "linux-64"] },
   # { task = "build-the", environment = "wip", args = ["asciidoctor-reveal.js", "linux-64"] },
   { task = "build-the", environment = "default", args = ["asyncio", "linux-64"] },
   { task = "build-the", environment = "default", args = ["bash-preexec", "linux-64"] },
@@ -145,6 +163,8 @@ depends-on = [
 
 [tasks.publish]
 depends-on = [
+  { task = "publish-s3", args = ["asciidoctor", "linux-64"] },
+  { task = "publish-s3", args = ["asciidoctor-pdf", "linux-64"] },
   { task = "publish-s3", args = ["asciidoctor-reveal.js", "linux-64"] },
   { task = "publish-pd", args = ["asyncio", "noarch"] },
   { task = "publish-pd", args = ["bash-preexec", "linux-64"] },
