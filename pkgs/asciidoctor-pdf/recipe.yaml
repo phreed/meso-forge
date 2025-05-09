@@ -13,6 +13,7 @@ source:
   - url: https://rubygems.org/downloads/asciidoctor-pdf-${{ version }}.gem
     sha256: 034a142964d627b82fd4f08a094abedae981e632e7f1c501d3bd9c2dfbe073f9
   - path: asciidoctor-pdf.bat
+  - path: asciidoctor-pdf.sh
 
 build:
   noarch: generic
@@ -20,6 +21,7 @@ build:
     - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-pdf-${{ version }}.gem
     - gem unpack asciidoctor-pdf-${{ version }}.gem
     - cp -v asciidoctor-pdf.bat $PREFIX/bin/asciidoctor-pdf.bat
+    - cp -v asciidoctor-pdf.sh $PREFIX/bin/asciidoctor-pdf
 
 requirements:
   host:
@@ -30,7 +32,7 @@ requirements:
 tests:
   - script:
     - ruby -r asciidoctor-pdf -e 'exit 0'
-    - asciidoctor -V
+    - asciidoctor-pdf -V
 
 about:
   homepage: https://asciidoctor-pdf.org

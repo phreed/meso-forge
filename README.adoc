@@ -132,6 +132,15 @@ The secret must be called ANACONDA_API_TOKEN, and you can paste the secret you c
 
 image:.resources/github-action-secret.png[]
 
+
+=== Managing RATTLER_AUTH_FILE
+
+Rattler uses a configuration file to specify repositories and their permissions.
+
+To do so it looks for that file in RATTLER_AUTH_FILE.
+Probably something like ` $HOME/.config/rattler-auth.json`.
+
+
 == Troubleshooting
 
 Here is an example of how to run a build for `testresources`.
