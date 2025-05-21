@@ -18,20 +18,21 @@ preview = ["pixi-build"]
 
 [dependencies]
 rattler-build = ">=0.40.0,<0.41"
+rattler-index = ">=0.22.4,<0.23"
 nushell = ">=0.103.0,<0.104"
 
-[tasks.clean-the]
+[tasks.clean]
 args =  [
   { arg = "pkg", default = "_skeleton_python" },
   { arg = "tgt_platform", default = "linux-64" },
 ]
 cmd = ["rm", "pkgs-out/*/{{ pkg }}*.conda"]
 
-[tasks.clean]
+[tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out"]
 
 
-[tasks.build-the]
+[tasks.build]
 args =  [
   { arg = "pkg", default = "_skeleton_python" },
   { arg = "tgt_platform", default = "linux-64" },
@@ -49,45 +50,45 @@ cmd = [
 
 [tasks.build-skeletons]
 depends-on = [
-  { task = "build-the", args = ["_skeleton_js", "linux-64"] },
-  { task = "build-the", args = ["_skeleton_python", "linux-64"] },
-  { task = "build-the", args = ["_skeleton_rust", "linux-64"] },
+  { task = "build", args = ["_skeleton_js", "linux-64"] },
+  { task = "build", args = ["_skeleton_python", "linux-64"] },
+  { task = "build", args = ["_skeleton_rust", "linux-64"] },
 ]
 
-[tasks.build]
+[tasks.build-all]
 depends-on = [
-  { task = "build-the", args = ["asciidoctor", "linux-64"] },
-  { task = "build-the", args = ["asciidoctor-pdf", "linux-64"] },
-  { task = "build-the", args = ["asyncio", "linux-64"] },
-  { task = "build-the", args = ["bash-preexec", "linux-64"] },
-  { task = "build-the", args = ["digitalpy", "linux-64"] },
-  { task = "build-the", args = ["dysk", "linux-64"] },
-  { task = "build-the", args = ["fd", "linux-64"] },
-  { task = "build-the", args = ["flask-jwt-extended", "linux-64"] },
-  { task = "build-the", args = ["testresources", "linux-64"] },
-  { task = "build-the", args = ["freetakserver", "linux-64"] },
-  { task = "build-the", args = ["freetakserver-ui", "linux-64"] },
-  { task = "build-the", args = ["fsarchiver", "linux-64"] },
-  { task = "build-the", args = ["node-red", "linux-64"] },
-  { task = "build-the", args = ["node-red-worldmap", "linux-64"] },
-  { task = "build-the", args = ["pwgen", "linux-64"] },
-  { task = "build-the", args = ["ratatui", "linux-64"] },
+  { task = "build", args = ["asciidoctor", "linux-64"] },
+  { task = "build", args = ["asciidoctor-pdf", "linux-64"] },
+  { task = "build", args = ["asyncio", "linux-64"] },
+  { task = "build", args = ["bash-preexec", "linux-64"] },
+  { task = "build", args = ["digitalpy", "linux-64"] },
+  { task = "build", args = ["dysk", "linux-64"] },
+  { task = "build", args = ["fd", "linux-64"] },
+  { task = "build", args = ["flask-jwt-extended", "linux-64"] },
+  { task = "build", args = ["testresources", "linux-64"] },
+  { task = "build", args = ["freetakserver", "linux-64"] },
+  { task = "build", args = ["freetakserver-ui", "linux-64"] },
+  { task = "build", args = ["fsarchiver", "linux-64"] },
+  { task = "build", args = ["node-red", "linux-64"] },
+  { task = "build", args = ["node-red-worldmap", "linux-64"] },
+  { task = "build", args = ["pwgen", "linux-64"] },
+  { task = "build", args = ["ratatui", "linux-64"] },
   ]
 
 [tasks.build-wip]
 depends-on = [
-  { task = "build-the", args = ["asciidoctor-revealjs", "linux-64"] },
-  { task = "build-the", args = ["bitwarden-cli", "linux-64"] },
-  { task = "build-the", args = ["devcontainer-cli", "linux-64"] },
-  { task = "build-the", args = ["iamb", "linux-64"] },
-  { task = "build-the", args = ["internxt", "linux-64"] },
-  { task = "build-the", args = ["jank", "linux-64"] },
-  { task = "build-the", args = ["kombose", "linux-64"] },
-  { task = "build-the", args = ["mediamtx", "linux-64"] },
-  { task = "build-the", args = ["metashell", "linux-64"] },
-  { task = "build-the", args = ["mumble", "linux-64"] },
-  { task = "build-the", args = ["neovide", "linux-64"] },
-  { task = "build-the", args = ["systemd-pixi-generator", "linux-64"] },
+  { task = "build", args = ["asciidoctor-revealjs", "linux-64"] },
+  { task = "build", args = ["bitwarden-cli", "linux-64"] },
+  { task = "build", args = ["devcontainer-cli", "linux-64"] },
+  { task = "build", args = ["iamb", "linux-64"] },
+  { task = "build", args = ["internxt", "linux-64"] },
+  { task = "build", args = ["jank", "linux-64"] },
+  { task = "build", args = ["kombose", "linux-64"] },
+  { task = "build", args = ["mediamtx", "linux-64"] },
+  { task = "build", args = ["metashell", "linux-64"] },
+  { task = "build", args = ["mumble", "linux-64"] },
+  { task = "build", args = ["neovide", "linux-64"] },
+  { task = "build", args = ["systemd-pixi-generator", "linux-64"] },
   ]
 
 [tasks.publish-pd]
@@ -101,64 +102,58 @@ cmd = [
   "--skip-existing", "-vvv",
   "--channel", "meso-forge",
   "pkgs-out/*/{{ pkg }}*.conda",
+  "||", "true"
 ]
 # depends-on = [
-#   { task = "build-the", args = ['{{ pkg }}', "linux-64"] },
+#   { task = "build", args = ['{{ pkg }}', "linux-64"] },
 # ]
 
 [tasks.publish-s3]
 args =  [
   { arg = "pkg", default = "_skeleton_python" },
   { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+  { arg = "channel", default = "s3://pixi/meso-forge" },
 ]
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
   "rattler-build", "upload", "s3",
-  "--channel", "s3://pixi/meso-forge",
+  "--channel", "{{ channel }}",
   "--region", "auto",
   "--endpoint-url", "{{ url }}",
   "--force-path-style", 
   "-vvv",
   "pkgs-out/*/{{ pkg }}*.conda",
-]
-
-# [tasks.publish-s3]
-# args =  [
-#   { arg = "pkg", default = "_skeleton_python" },
-#   { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
-# ]
-# # the upload expects the RATTLER_AUTH_FILE variable to be set
-# cmd = [
-#   "rattler-build", "upload", "s3",
-#   "--channel", "s3://pixi-local/meso-forge",
-#   "--region", "auto",
-#   "--endpoint-url", "{{ url }}",
-#   "--force-path-style", 
-#   "-vvv",
-#   "pkgs-out/*/{{ pkg }}*.conda",
-# ]
-
-
-[tasks.index-s3]
-args =  [
-  { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
-]
-# the index expects the RATTLER_AUTH_FILE variable to be set
-cmd = [
-  "rattler-index", "s3",
-  "s3://pixi/meso-forge",
-  "--endpoint-url", "{{ url }}",
-  "--region", "auto",
-  "--force-path-style", 
   "||", "true"
 ]
 
-[tasks.index-s3-local]
+[tasks.publish-s3-local]
+args =  [
+  { arg = "pkg", default = "_skeleton_python" },
+]
 depends-on = [
-  { task = "index-s3", args = ["http://127.0.0.1"] },
+  { task = "index", args = ["{{ pkg }}", "http://127.0.0.1", "s3://pixi-local/meso-forge"] },
 ]
 
-[tasks.publish]
+
+[tasks.index]
+args =  [
+  { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+  { arg = "channel", default = "s3://pixi/meso-forge" },
+]
+cmd = ["rattler-index","s3",
+  "{{ channel }}",
+  "--region", "auto",
+  "--endpoint-url", "{{ url }}",
+  "--force-path-style",
+  "||", "true"
+]
+
+[tasks.index-local]
+depends-on = [
+  { task = "index", args = ["http://127.0.0.1", "s3://pixi-local/meso-forge"] },
+]
+
+[tasks.publish-all]
 depends-on = [
   { task = "publish-s3", args = ["asciidoctor"] },
   { task = "publish-s3", args = ["asciidoctor-pdf"] },
@@ -187,6 +182,38 @@ depends-on = [
   { task = "publish-pd", args = ["node-red-worldmap"] },
   { task = "publish-s3", args = ["pwgen"] },
   { task = "publish-pd", args = ["ratatui"] },
+  { task = "publish-s3", args = ["systemd-pixi-generator"] },
+  ]
+
+[tasks.publish-s3-all]
+depends-on = [
+  { task = "publish-s3", args = ["asciidoctor"] },
+  { task = "publish-s3", args = ["asciidoctor-pdf"] },
+  { task = "publish-s3", args = ["asciidoctor-revealjs"] },
+  { task = "publish-s3", args = ["asyncio"] },
+  { task = "publish-s3", args = ["bash-preexec"] },
+  { task = "publish-s3", args = ["bitwarden-cli"] },
+  { task = "publish-s3", args = ["devcontainer-cli"] },
+  { task = "publish-s3", args = ["digitalpy"] },
+  { task = "publish-s3", args = ["dysk"] },
+  { task = "publish-s3", args = ["fd"] },
+  { task = "publish-s3", args = ["flask-jwt-extended"] },
+  { task = "publish-s3", args = ["testresources"] },
+  { task = "publish-s3", args = ["freetakserver"] },
+  { task = "publish-s3", args = ["freetakserver-ui"] },
+  { task = "publish-s3", args = ["fsarchiver"] },
+  { task = "publish-s3", args = ["iamb"] },
+  { task = "publish-s3", args = ["internxt"] },
+  { task = "publish-s3", args = ["jank"] },
+  { task = "publish-s3", args = ["kombose"] },
+  { task = "publish-s3", args = ["mediamtx"] },
+  { task = "publish-s3", args = ["metashell"] },
+  { task = "publish-s3", args = ["mumble"] },
+  { task = "publish-s3", args = ["neovide"] },
+  { task = "publish-s3", args = ["node-red"] },
+  { task = "publish-s3", args = ["node-red-worldmap"] },
+  { task = "publish-s3", args = ["pwgen"] },
+  { task = "publish-s3", args = ["ratatui"] },
   { task = "publish-s3", args = ["systemd-pixi-generator"] },
   ]
 
