@@ -41,6 +41,9 @@ requirements:
   run:
     - python >=${{ python_min }},<4.0.0
     - rule-engine
+    - cryptography
+    - packaging
+    - pyyaml
     - pyzmq
     - flask-cors
     - flask-jwt-extended

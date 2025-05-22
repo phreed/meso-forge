@@ -41,7 +41,7 @@ cmd = [
   "rattler-build", "build",
   "--recipe-dir", "./pkgs/{{ pkg }}",
   "--output-dir", "./pkgs-out",
-  "--skip-existing=all",
+  "--skip-existing=local",
   "--target-platform={{ tgt_platform }}",
   "--channel", "https://prefix.dev/meso-forge",
   "--channel", "conda-forge",
@@ -122,8 +122,11 @@ cmd = [
   "--endpoint-url", "{{ url }}",
   "--force-path-style", 
   "-vvv",
-  "pkgs-out/*/{{ pkg }}*.conda",
+  "pkgs-out/*/{{ pkg }}-*-*.conda",
   "||", "true"
+]
+depends-on = [
+  { task = "build", args = ["{{ pkg }}", "linux-64"] },
 ]
 
 [tasks.publish-s3-local]

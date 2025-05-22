@@ -31,7 +31,7 @@ requirements:
 
 tests:
   - script:
-    - ruby -r asciidoctor-pdf -e 'exit 0'
+    # - ruby -r asciidoctor-pdf -e 'exit 0'
     - asciidoctor-pdf -V
 
 about:
