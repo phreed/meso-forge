@@ -33,6 +33,9 @@ requirements:
   run:
     - python >=${{ python_min }},<4.0.0
     - pbr >=1.8
+    - cryptography
+    - jinja2
+    - packaging
 
 tests:
   - python:
