@@ -81,9 +81,9 @@ class ReadmeGenerator:
             print(f"  ❌ Error processing {package_name}: {e}")
 
     def parse_existing_readme(self, content: str) -> Tuple[str, str]:
-        """Parse existing README to separate custom content from auto-generated content."""
-        start_marker = "// AUTO-GENERATED CONTENT START"
-        end_marker = "// AUTO-GENERATED CONTENT END"
+        """Parse existing README to separate custom content from generated content."""
+        start_marker = "// GENERATED CONTENT START"
+        end_marker = "// GENERATED CONTENT END"
 
         # Look for markers in the content
         start_idx = content.find(start_marker)
@@ -94,8 +94,24 @@ class ReadmeGenerator:
             custom_after = content[end_idx + len(end_marker):].lstrip()
             custom_content = custom_after.strip() if custom_after else ""
 
-            # Extract existing generated content (excluding markers)
-            generated_content = content[start_idx + len(start_marker):end_idx].strip()
+            # Extract existing generated content - need to reconstruct with title
+            lines = content.split('\n')
+            title_line = ""
+
+            # Find the title (first line should be the title)
+            if lines and lines[0].startswith('=') and not lines[0].startswith('=='):
+                title_line = lines[0]
+
+            # Get content between markers
+            generated_between_markers = content[start_idx + len(start_marker):end_idx].strip()
+
+            # Reconstruct full generated content (title + content between markers)
+            if title_line and generated_between_markers:
+                generated_content = title_line + '\n' + generated_between_markers
+            elif title_line:
+                generated_content = title_line
+            else:
+                generated_content = generated_between_markers
 
             return custom_content, generated_content
         else:
@@ -117,12 +133,29 @@ class ReadmeGenerator:
 
     def merge_readme_content(self, custom_content: str, generated_content: str) -> str:
         """Merge custom content with generated content using markers."""
+        # Split generated content to separate title from rest
+        generated_lines = generated_content.strip().split('\n')
+        title_line = ""
+        rest_content = []
+
+        # Find the title line (starts with = but not ==)
+        for i, line in enumerate(generated_lines):
+            if line.startswith('=') and not line.startswith('=='):
+                title_line = line
+                rest_content = generated_lines[i+1:]
+                break
+
         parts = []
 
-        # Add the auto-generated section with markers (includes title)
-        parts.append("// AUTO-GENERATED CONTENT START")
-        parts.append(generated_content.strip())
-        parts.append("// AUTO-GENERATED CONTENT END")
+        # Title must be first (no content before it in AsciiDoc)
+        if title_line:
+            parts.append(title_line)
+
+        # Add the rest of generated content with markers
+        parts.append("// GENERATED CONTENT START")
+        if rest_content:
+            parts.append('\n'.join(rest_content).strip())
+        parts.append("// GENERATED CONTENT END")
 
         # Add custom content after the generated content if it exists
         if custom_content:
@@ -262,7 +295,7 @@ class ReadmeGenerator:
         # Footer
         content.append("---")
         content.append("")
-        content.append(f"_This README was auto-generated from the recipe.yaml file._")
+        content.append(f"_This portion of the README was generated from the recipe.yaml file._")
         content.append("")
         content.append(f"_Last updated: {datetime.now().strftime('%Y-%m-%d')}_")
 

@@ -45,11 +45,11 @@ jobs:
       - name: Build a set of packages
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
-        run: pixi run build
+        run: pixi run build-all
 
       - name: Publish a set of packages
         # do not upload on PR
         if: github.event_name == 'push'
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
-        run: pixi run publish
+        run: pixi run publish-all
