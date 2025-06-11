@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Generate and maintain readme.adoc files for all packages based on their recipe.yaml files.
-Ensures each package has a consistent README that matches its recipe.
+Ensures each package has a consistent README that matches its recipe while preserving custom content.
 """
 
 import os
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 
 
@@ -46,31 +46,85 @@ class ReadmeGenerator:
             # Parse YAML
             recipe_data = yaml.safe_load(recipe_content)
 
-            # Generate README content
-            readme_content = self.generate_readme_content(package_name, recipe_data)
+            # Generate README content (raw, without markers)
+            generated_content = self.generate_readme_content(package_name, recipe_data)
 
             # Check if README needs updating
             if readme_file.exists():
                 with open(readme_file, 'r') as f:
                     existing_content = f.read()
 
-                if existing_content.strip() == readme_content.strip():
+                # Parse existing content to separate custom and generated sections
+                custom_content, existing_generated = self.parse_existing_readme(existing_content)
+
+                # Check if generated content has changed
+                if existing_generated.strip() == generated_content.strip():
                     print(f"  ⏭️  README is up to date")
                     self.skipped_count += 1
                     return
                 else:
-                    print(f"  📝 Updating README")
+                    # Merge custom content with new generated content
+                    final_content = self.merge_readme_content(custom_content, generated_content)
+                    print(f"  📝 Updating README (preserving custom content)")
                     self.updated_count += 1
             else:
+                # For new files, wrap with markers
+                final_content = self.merge_readme_content("", generated_content)
                 print(f"  ✨ Creating new README")
                 self.generated_count += 1
 
             # Write README file
             with open(readme_file, 'w') as f:
-                f.write(readme_content)
+                f.write(final_content)
 
         except Exception as e:
             print(f"  ❌ Error processing {package_name}: {e}")
+
+    def parse_existing_readme(self, content: str) -> Tuple[str, str]:
+        """Parse existing README to separate custom content from auto-generated content."""
+        start_marker = "// AUTO-GENERATED CONTENT START"
+        end_marker = "// AUTO-GENERATED CONTENT END"
+
+        # Look for markers in the content
+        start_idx = content.find(start_marker)
+        end_idx = content.find(end_marker)
+
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            # Extract custom content (everything outside markers)
+            custom_before = content[:start_idx].rstrip()
+            custom_after = content[end_idx + len(end_marker):].lstrip()
+
+            # Combine custom content, preserving spacing
+            custom_parts = []
+            if custom_before:
+                custom_parts.append(custom_before)
+            if custom_after:
+                custom_parts.append(custom_after)
+
+            custom_content = '\n\n'.join(custom_parts) if custom_parts else ""
+
+            # Extract existing generated content
+            generated_content = content[start_idx + len(start_marker):end_idx].strip()
+
+            return custom_content, generated_content
+        else:
+            # No markers found - treat entire content as custom
+            return content.strip(), ""
+
+    def merge_readme_content(self, custom_content: str, generated_content: str) -> str:
+        """Merge custom content with generated content using markers."""
+        parts = []
+
+        # Add custom content at the beginning if it exists
+        if custom_content:
+            parts.append(custom_content.strip())
+
+        # Add the auto-generated section with markers
+        parts.append("// AUTO-GENERATED CONTENT START")
+        parts.append(generated_content.strip())
+        parts.append("// AUTO-GENERATED CONTENT END")
+
+        return '\n\n'.join(parts) + '\n'
 
     def generate_readme_content(self, package_name: str, recipe_data: dict) -> str:
         """Generate README content based on recipe data."""
