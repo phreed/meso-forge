@@ -94,22 +94,34 @@ class ReadmeGenerator:
             custom_after = content[end_idx + len(end_marker):].lstrip()
             custom_content = custom_after.strip() if custom_after else ""
 
-            # Extract existing generated content - need to reconstruct with title
+            # Extract existing generated content - need to reconstruct with title and attributes
             lines = content.split('\n')
-            title_line = ""
+            title_and_attrs = []
 
-            # Find the title (first line should be the title)
-            if lines and lines[0].startswith('=') and not lines[0].startswith('=='):
-                title_line = lines[0]
+            # Find title and attributes at the beginning
+            for i, line in enumerate(lines):
+                if line.startswith('=') and not line.startswith('=='):
+                    # Found title
+                    title_and_attrs.append(line)
+                elif line.startswith(':') and ':' in line[1:] and len(title_and_attrs) > 0:
+                    # AsciiDoc attribute after title
+                    title_and_attrs.append(line)
+                elif line.strip() == '' and len(title_and_attrs) > 0:
+                    # Empty line after title/attributes
+                    title_and_attrs.append(line)
+                elif len(title_and_attrs) > 0:
+                    # First non-attribute line, stop collecting
+                    break
 
             # Get content between markers
             generated_between_markers = content[start_idx + len(start_marker):end_idx].strip()
 
-            # Reconstruct full generated content (title + content between markers)
-            if title_line and generated_between_markers:
-                generated_content = title_line + '\n' + generated_between_markers
-            elif title_line:
-                generated_content = title_line
+            # Reconstruct full generated content (title + attributes + content between markers)
+            title_part = '\n'.join(title_and_attrs) if title_and_attrs else ""
+            if title_part and generated_between_markers:
+                generated_content = title_part + '\n\n' + generated_between_markers
+            elif title_part:
+                generated_content = title_part
             else:
                 generated_content = generated_between_markers
 
@@ -119,13 +131,25 @@ class ReadmeGenerator:
             lines = content.split('\n')
             custom_start_idx = 0
 
-            # Find the title line and skip it
+            # Find the title line and any attributes, skip them
             for i, line in enumerate(lines):
                 if line.startswith('=') and not line.startswith('=='):  # AsciiDoc title
-                    custom_start_idx = i + 1
+                    # Skip title and any following attributes
+                    j = i + 1
+                    while j < len(lines):
+                        if lines[j].startswith(':') and ':' in lines[j][1:]:
+                            # Skip attribute line
+                            j += 1
+                        elif lines[j].strip() == '':
+                            # Skip empty line after attributes
+                            j += 1
+                        else:
+                            # First non-attribute line
+                            break
+                    custom_start_idx = j
                     break
 
-            # Everything after the title is custom content
+            # Everything after the title and attributes is custom content
             custom_lines = lines[custom_start_idx:]
             custom_content = '\n'.join(custom_lines).strip()
 
@@ -133,23 +157,37 @@ class ReadmeGenerator:
 
     def merge_readme_content(self, custom_content: str, generated_content: str) -> str:
         """Merge custom content with generated content using markers."""
-        # Split generated content to separate title from rest
+        # Split generated content to separate title and attributes from rest
         generated_lines = generated_content.strip().split('\n')
-        title_line = ""
+        title_and_attrs = []
         rest_content = []
 
-        # Find the title line (starts with = but not ==)
+        title_found = False
         for i, line in enumerate(generated_lines):
-            if line.startswith('=') and not line.startswith('=='):
-                title_line = line
-                rest_content = generated_lines[i+1:]
+            if line.startswith('=') and not line.startswith('==') and not title_found:
+                # Found title line
+                title_found = True
+                title_and_attrs.append(line)
+            elif title_found and line.startswith(':') and ':' in line[1:]:
+                # AsciiDoc attribute/variable (e.g., :version: 1.0)
+                title_and_attrs.append(line)
+            elif title_found and line.strip() == '':
+                # Empty line after title/attributes
+                title_and_attrs.append(line)
+                # Check if this is the end of title section
+                if i + 1 < len(generated_lines) and not generated_lines[i + 1].startswith(':'):
+                    rest_content = generated_lines[i+1:]
+                    break
+            elif title_found:
+                # First non-attribute line after title
+                rest_content = generated_lines[i:]
                 break
 
         parts = []
 
-        # Title must be first (no content before it in AsciiDoc)
-        if title_line:
-            parts.append(title_line)
+        # Title and attributes must be first (no content before them in AsciiDoc)
+        if title_and_attrs:
+            parts.append('\n'.join(title_and_attrs))
 
         # Add the rest of generated content with markers
         parts.append("// GENERATED CONTENT START")

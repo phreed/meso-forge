@@ -1,4 +1,57 @@
-= `bw` the Bitwarden Command Line Interface
+= bitwarden-cli
+:version: 2025.2.0
+
+
+// GENERATED CONTENT START
+
+The Bitwarden command-line interface (CLI)
+
+== Description
+
+The Bitwarden command-line interface (CLI) is a powerful, fully-featured tool for accessing and managing your vault. Most features that you find in other Bitwarden client applications (desktop, browser extension, etc.) are available from the CLI. https://contributing.bitwarden.com/getting-started/clients/cli/
+
+== Links
+
+* Homepage: https://bitwarden.com/help/cli/
+* Repository: https://github.com/bitwarden/clients/tree/main/apps/cli
+
+== Package Information
+
+* **License**: Apache-2.0
+* **Version**: 2025.2.0
+* **Architecture**: No-architecture (pure generic)
+
+== Requirements
+
+=== Host Requirements
+
+* nodejs
+* jest
+
+=== Build Requirements
+
+* yarn
+* webpack-cli
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge bitwarden-cli
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 https://bitwarden.com/help/cli/
 
@@ -25,4 +78,3 @@ Required: node ✔
 == V1 recipe format
 
 https://github.com/prefix-dev/recipe-format
-

@@ -1,4 +1,53 @@
-= `pwgen` a password generator
+= pwgen
+:version: 2.08
+
+
+// GENERATED CONTENT START
+
+Password generator
+
+== Description
+
+pwgen generates random, meaningless but pronounceable passwords. These passwords contain either only lowercase letters, or upper and lower case mixed, or digits thrown in.
+
+== Links
+
+* Homepage: https://pwgen.sourceforge.net/
+* Repository: https://sourceforge.net/projects/pwgen/
+
+== Package Information
+
+* **License**: GPL-2.0-only
+* **Version**: 2.08
+
+== Requirements
+
+=== Build Requirements
+
+* C compiler
+* autoconf
+* automake
+* make
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge pwgen
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/pwgen.rb
 

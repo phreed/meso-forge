@@ -1,6 +1,61 @@
 = flask-jwt-extended
 :version: 4.7.1
 
+
+// GENERATED CONTENT START
+
+An open source Flask extension
+
+== Description
+
+A Flask JWT extension that supports refresh tokens, blacklisting/revoking tokens, and token freshness (for accessing critical views).
+
+== Links
+
+* Homepage: https://github.com/vimalloc/flask-jwt-extended
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 4.7.1
+* **Architecture**: No-architecture (pure python)
+
+== Requirements
+
+=== Host Requirements
+
+* pip
+* python ==${{ python_min }}
+* setuptools
+* wheel
+
+=== Run Requirements
+
+* python >=${{ python_min }},<4.0.0
+* flask >=2.0,<4.0
+* pyjwt >=2.0,<3.0
+* werkzeug >=0.14
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge flask-jwt-extended
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
 An open source Flask extension
 
 == Description

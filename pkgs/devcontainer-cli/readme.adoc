@@ -1,4 +1,58 @@
-= `devcontainer-cli` a CLI tool for managing devcontainers
+= devcontainer-cli
+:version: 0.75.0
+
+
+// GENERATED CONTENT START
+
+Configure Devcontainer CLI
+
+== Description
+
+A reference implementation for the specification that can create and configure a dev container from a devcontainer.json.
+
+== Links
+
+* Homepage: https://containers.dev/
+* Repository: https://github.com/devcontainers/cli
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 0.75.0
+
+== Requirements
+
+=== Host Requirements
+
+* nodejs
+
+=== Run Requirements
+
+* nodejs
+
+=== Build Requirements
+
+* yarn
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge devcontainer-cli
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 A reference implementation for the specification
 that can create and configure a dev container from a devcontainer.json. 

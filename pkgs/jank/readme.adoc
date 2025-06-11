@@ -1,4 +1,62 @@
-= Jank
+= jank
+:version: 0.1.0
+
+
+// GENERATED CONTENT START
+
+Jank a LLVM hosted Clojure
+
+== Links
+
+* Homepage: https://jank-lang.org/
+* Repository: https://github.com/${{ group }}/jank
+
+== Package Information
+
+* **License**: MPL-2.0
+* **Version**: 0.1.0
+
+== Requirements
+
+=== Host Requirements
+
+* libboost-devel
+* fmt
+* gmp
+* libclang-cpp
+* libllvm16
+
+=== Build Requirements
+
+* C compiler
+* C++ compiler
+* binutils
+* clangdev
+* llvmdev
+* ninja
+* pkg-config
+* sbcl
+* sed
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge jank
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 https://github.com/jank-lang/jank
 

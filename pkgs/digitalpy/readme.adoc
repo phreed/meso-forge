@@ -1,6 +1,87 @@
 = digitalpy
 :version: 0.3.15
 
+
+// GENERATED CONTENT START
+
+A python implementation of the aphrodite specification
+
+== Description
+
+A python implementation of the aphrodite specification, heavily based on WCMF.
+
+== Links
+
+* Homepage: https://github.com/FreeTAKTeam/DigitalPy
+
+== Package Information
+
+* **License**: EPL-2.0
+* **Version**: 0.3.15
+* **Architecture**: No-architecture (pure python)
+
+== Requirements
+
+=== Host Requirements
+
+* pip
+* python >=${{ python_min }}
+* setuptools
+* wheel
+* poetry-core
+* flask-cors
+* flask-jwt-extended
+* lxml
+* opentelemetry-sdk
+* psutil
+* requests
+* ruamel.yaml
+* sqlalchemy
+* xmltodict
+* cryptography
+* jinja2
+* packaging
+* pyyaml
+
+=== Run Requirements
+
+* python >=${{ python_min }},<4.0.0
+* rule-engine
+* cryptography
+* packaging
+* pyyaml
+* pyzmq
+* flask-cors
+* flask-jwt-extended
+* lxml
+* opentelemetry-sdk
+* psutil
+* requests
+* ruamel.yaml
+* setuptools
+* sqlalchemy
+* xmltodict
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge digitalpy
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
 A python implementation of the aphrodite specification
 
 == Description

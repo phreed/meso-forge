@@ -1,4 +1,62 @@
-= Internxt
+= internxt-cli
+:version: 1.5.1
+
+
+// GENERATED CONTENT START
+
+A CLI tool to interact with your Internxt encrypted files
+
+== Description
+
+rotect your privacy with our open-source and post-quantum encrypted suite of secure services. Private by default, secure by design, and free as in freedom.
+
+== Links
+
+* Homepage: https://github.com/internxt/cli/blob/main/README.md
+* Repository: https://github.com/internxt/cli
+
+== Package Information
+
+* **License**: AGPL-3.0
+* **Version**: 1.5.1
+* **Architecture**: No-architecture (pure generic)
+
+== Requirements
+
+=== Host Requirements
+
+* nodejs
+* grunt
+
+=== Run Requirements
+
+* nodejs
+
+=== Build Requirements
+
+* nodejs
+* grunt
+* pnpm
+* pnpm-licenses
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge internxt-cli
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 npm install -g @internxt/cli
-

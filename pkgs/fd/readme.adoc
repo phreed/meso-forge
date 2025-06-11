@@ -1,4 +1,50 @@
-= A new version of `find`
+= fd
+:version: 10.2.0
+
+
+// GENERATED CONTENT START
+
+Simple, fast and user-friendly alternative to find
+
+== Description
+
+fd is a simple, fast and user-friendly alternative to find. While it does not seek to mirror all of find's powerful functionality, it provides sensible (opinionated) defaults for 80% of the use cases.
+
+== Links
+
+* Homepage: https://github.com/sharkdp/fd
+
+== Package Information
+
+* **License**: Apache-2.0 OR MIT
+* **Version**: 10.2.0
+
+== Requirements
+
+=== Build Requirements
+
+* rust
+* cargo-bundle-licenses
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge fd
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 https://github.com/sharkdp/fd
 

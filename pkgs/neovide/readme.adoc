@@ -1,6 +1,71 @@
-= `neovide` a simple graphical user interface for Neovim
+= neovide
+:version: 0.14.1
 
 
+// GENERATED CONTENT START
+
+Neovim is a project that seeks to aggressively refactor Vim
+
+== Description
+
+This is a simple, no-nonsense, cross-platform graphical user interface for Neovim (an aggressively refactored and updated Vim editor). Where possible there are some graphical improvements, but functionally it should act like the terminal UI.
+
+== Links
+
+* Homepage: https://neovide.dev/
+* Repository: https://github.com/neovide/neovide
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 0.14.1
+
+== Requirements
+
+=== Host Requirements
+
+* rust
+* (if linux):
+  ** expat
+  ** fontconfig
+  ** freetype
+  ** harfbuzz
+  ** icu
+  ** jpeg
+  ** libpng
+  ** xorg-libxcursor
+  ** libxkbcommon
+  ** mesa
+  ** zlib
+
+=== Run Requirements
+
+* nvim
+
+=== Build Requirements
+
+* rust
+* ninja
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge neovide
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 == V1 recipe format
 

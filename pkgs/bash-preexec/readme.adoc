@@ -1,4 +1,44 @@
-= `bash-preexec`
+= bash-preexec
+:version: 0.5.0
+
+
+// GENERATED CONTENT START
+
+Preexec and precmd functions for Bash (like Zsh)
+
+== Description
+
+bash-preexec.sh is a library that provides preexec and precmd functionality in bash that is typically found in zsh. This allows you to execute functions before every command, as well as right before the prompt is displayed.
+
+== Links
+
+* Homepage: https://github.com/rcaloras/bash-preexec
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 0.5.0
+* **Architecture**: No-architecture (pure generic)
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge bash-preexec
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
 
 Preexec and precmd functions for Bash (like Zsh)
 https://github.com/rcaloras/bash-preexec
@@ -8,4 +48,3 @@ Add the following line to your bash profile (e.g. ~/.bashrc, ~/.profile, or ~/.b
 [ -f /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh ] && . /home/linuxbrew/.linuxbrew/etc/profile.d/bash-preexec.sh
 
 https://github.com/prefix-dev/recipe-format
-
