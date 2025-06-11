@@ -81,70 +81,71 @@ depends-on = [
 ]
 
 [tasks.build-all]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
         "asciidoctor",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "asciidoctor-pdf",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "asyncio",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "bash-preexec",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "digitalpy",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "dysk",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "fd",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "flask-jwt-extended",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "testresources",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "freetakserver",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "freetakserver-ui",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "fsarchiver",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "node-red",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "node-red-worldmap",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "pwgen",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "ratatui",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
 ]
 
@@ -371,6 +372,7 @@ depends-on = [
         "systemd-pixi-generator",
     ] },
 ]
+
 
 [tasks.publish-s3-all]
 depends-on = [

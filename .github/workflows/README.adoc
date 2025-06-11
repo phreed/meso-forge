@@ -1,0 +1,147 @@
+= GitHub Workflows Documentation
+
+This directory contains the GitHub Actions workflows for building and publishing packages in the meso-forge repository.
+
+== Workflow Structure
+
+The build and publish process has been split into two separate workflows for better organization and flexibility:
+
+=== 1. Build Packages (CI) - `build-packages-ci.yml`
+
+*Purpose*: Builds all packages and creates artifacts for later publishing.
+
+*Triggers*:
+
+* Push to `packages` branch
+* Pull requests to `packages` branch
+* Manual workflow dispatch
+
+*What it does*:
+
+* Sets up the build environment with Pixi
+* Runs `pixi run build-all` to build all packages
+* Uploads built packages as GitHub artifacts
+* Provides build status summary
+
+*Artifacts Created*:
+
+* `packages-linux-64` (contains all built `.conda` files)
+
+=== 2. Publish Packages - `publish-packages.yml`
+
+*Purpose*: Downloads build artifacts and publishes packages to repositories.
+
+*Triggers*:
+
+* Automatically after successful completion of "Build Packages (CI)" workflow (only on pushes, not PRs)
+* Manual workflow dispatch (with optional run ID parameter)
+
+*What it does*:
+
+* Downloads artifacts from the build workflow
+* Sets up the publish environment with Pixi
+* Runs `pixi run publish-all` to publish packages
+* Provides publish status summary
+
+[IMPORTANT]
+====
+This workflow only runs on successful builds and *never* on pull requests.
+====
+
+== Benefits of the Split
+
+✅ *Faster Feedback*: Build issues are reported quickly without waiting for publish steps +
+✅ *Separation of Concerns*: Build and publish logic are isolated +
+✅ *Re-publish Capability*: Can re-run publishing without rebuilding packages +
+✅ *Artifact Management*: Built packages are stored as GitHub artifacts +
+✅ *PR Safety*: Pull requests build packages but never publish them +
+✅ *Resource Efficiency*: Publishing only happens when needed
+
+== Workflow Matrix
+
+Both workflows support building for multiple platforms (currently configured for `linux-64`):
+
+[source,yaml]
+----
+strategy:
+  matrix:
+    include:
+      - { target: linux-64, os: ubuntu-24.04 }
+      # Additional platforms can be uncommented as needed:
+      # - { target: win-64, os: windows-latest }
+      # - { target: osx-64, os: macos-13 }
+      # - { target: osx-arm64, os: macos-14 }
+----
+
+== Manual Triggering
+
+=== Build Workflow
+
+[source,bash]
+----
+# Trigger via GitHub UI or GitHub CLI
+gh workflow run build-packages-ci.yml
+----
+
+=== Publish Workflow
+
+[source,bash]
+----
+# Publish from latest successful build
+gh workflow run publish-packages.yml
+
+# Publish from specific build run
+gh workflow run publish-packages.yml -f run_id=1234567890
+----
+
+== Required Secrets
+
+The workflows require the following secrets to be configured in the repository:
+
+* `PREFIX_DEV_TOKEN`: Authentication token for prefix.dev publishing
+
+== Deprecated Workflow
+
+`build-packages.yml` is the original monolithic workflow that has been deprecated. It's kept for reference but should not be used. The workflow is disabled and will show a deprecation notice if manually triggered.
+
+== Troubleshooting
+
+=== Build Failures
+
+. Check the "Build Packages (CI)" workflow logs
+. Look for dependency resolution or compilation errors
+. Verify package recipes are valid
+
+=== Publish Failures
+
+. Check that the build workflow completed successfully
+. Verify artifacts were uploaded correctly
+. Check authentication tokens and repository permissions
+. Review the "Publish Packages" workflow logs
+
+=== Artifact Issues
+
+* Artifacts are retained for 30 days
+* If publishing fails, you can re-run the publish workflow with the same artifacts
+* Use the `run_id` parameter to specify which build's artifacts to use
+
+== Workflow Dependencies
+
+[source,mermaid]
+----
+graph LR
+    A[Push/PR to packages branch] --> B[Build Packages CI]
+    B --> C{Build Successful?}
+    C -->|Yes, on push| D[Publish Packages]
+    C -->|Yes, on PR| E[End - No Publish]
+    C -->|No| F[End - Build Failed]
+    D --> G[Packages Published]
+----
+
+== Best Practices
+
+. *Test in PRs*: Always test package changes in pull requests first
+. *Monitor Build Logs*: Check build output for warnings or issues
+. *Verify Artifacts*: Ensure all expected packages are built before publishing
+. *Use Manual Triggers*: For emergency re-publishing or testing specific builds
+. *Keep Workflows Updated*: Regularly update action versions and dependencies
