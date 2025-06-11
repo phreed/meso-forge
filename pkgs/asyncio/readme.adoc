@@ -1,0 +1,49 @@
+= asyncio
+:version: 3.4.3
+
+Reference implementation of PEP 3156
+
+== Description
+
+This is a proposal for asynchronous I/O in Python 3, starting at Python 3.3. Consider this the concrete proposal that is missing from PEP 3153. The proposal includes a pluggable event loop, transport and protocol abstractions similar to those in Twisted, and a higher-level scheduler based on yield from (PEP 380). The proposed package name is asyncio.
+
+== Links
+
+* Homepage: https://www.python.org/dev/peps/pep-3156/
+
+== Package Information
+
+* **License**: Apache-2.0
+* **Version**: 3.4.3
+* **Architecture**: No-architecture (pure python)
+
+== Requirements
+
+=== Host Requirements
+
+* pip
+* python >=3.11
+* setuptools
+* wheel
+
+=== Run Requirements
+
+* python >=3.11
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge asyncio
+```
+
+== Maintainers
+
+* phreed
+
+---
+
+_This README was auto-generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_

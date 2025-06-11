@@ -35,6 +35,9 @@ cmd = ["python", ".scripts/analyze_recipes.py"]
 [tasks.fix-recipe-indentation]
 cmd = ["python", ".scripts/fix_recipe_indentation.py"]
 
+[tasks.generate-readmes]
+cmd = ["python", ".scripts/generate_readmes.py"]
+
 
 [tasks.build]
 args = [
