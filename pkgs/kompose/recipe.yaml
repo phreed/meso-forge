@@ -6,8 +6,8 @@ context:
 
 package:
   version: ${{ version }}
-  name: mediamtx
-  
+  name: kompose
+
 source:
   url: https://github.com/kubernetes/kompose/archive/refs/tags/v${{ version }}.tar.gz
   sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
@@ -19,18 +19,6 @@ build:
     - cd src/kompose
     - go generate ./...
     - CGO_ENABLED=0 go build .
-    # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release" 
-    #     -o $PREFIX/bin/${{ name }}
-    # - go-licenses save . --save_path ../../library_licenses
-    #     --ignore=golang.org/x/crypto/internal/poly1305
-    #     --ignore=golang.org/x/crypto/salsa20/salsa
-    #     --ignore=golang.org/x/sys/unix
-    #     --ignore=golang.org/x/crypto/argon2
-    #     --ignore=golang.org/x/crypto/blake2b
-    #     --ignore=golang.org/x/sys/cpu
-    #     --ignore=golang.org/x/crypto/sha3
-    #     --ignore=github.com/ugorji/go/codec
-    #     --ignore=github.com/benburkert/openpgp
 
 requirements:
   build:
@@ -40,11 +28,11 @@ requirements:
     - go-licenses
 
 tests:
-  - script: | 
+  - script: |
       kompose --help 2>&1  | grep "${{ version }}"
 
 about:
-  homepage: https://kompose.io/ 
+  homepage: https://kompose.io/
   summary: Kompose is a conversion tool for Docker Compose to container orchestrators
   description: |
     Kompose is a conversion tool for Docker Compose to container orchestrators
@@ -54,7 +42,7 @@ about:
     - LICENSE
     - library_licenses
   documentation: https://kompose.io/user-guide/
-  repository: ttps://github.com/bluenviron/mediamtx
+  repository: https://github.com/kubernetes/kompose
 
 extra:
   recipe-maintainers:

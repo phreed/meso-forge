@@ -26,7 +26,7 @@ build:
     cp contrib/completion/_fd $PREFIX/share/zsh/site-functions/_fd
     mkdir -p $PREFIX/share/man/man1
     cp doc/fd.1 $PREFIX/share/man/man1/fd.1
-    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml 
+    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml
     # --previous missing-licenses.yaml --check-previous
 
 requirements:
@@ -45,7 +45,7 @@ tests:
 about:
   homepage: https://github.com/sharkdp/fd
   license: Apache-2.0 OR MIT
-  license_file: 
+  license_file:
     - LICENSE
     - thirdpartylicenses.yaml
   summary: Simple, fast and user-friendly alternative to find

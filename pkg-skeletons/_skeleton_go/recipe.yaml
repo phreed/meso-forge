@@ -1,5 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
 context:
-    version: "0.13.1"
+  version: "0.13.1"
 
 package:
   name: temporal
@@ -12,7 +15,7 @@ source:
 build:
   # The LDFLAGS are used to set the version of the `temporal` binary. This is a common practice in Go.
   # Build the `temporal` binary and store it in the `$PREFIX/bin` directory.
-  # Store the license files in a separate directory in the $SRC_DIR. 
+  # Store the license files in a separate directory in the $SRC_DIR.
   # These are embedded in the package in the `license_file` section.
   script:
     interpreter: nu
@@ -30,7 +33,7 @@ requirements:
 
 tests:
   - script:
-      - temporal --version
+    - temporal --version
 
 about:
   homepage: https://temporal.io

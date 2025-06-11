@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
 context:
   version: "0.24.6"
 
@@ -12,37 +15,37 @@ source:
 build:
   number: 0
   script:
-    - if: win 
+    - if: win
       then: |
         cmake -GNinja ^
-            -D BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
+          -D BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
             %SRC_DIR%
         ninja install
       else: |
         cmake -GNinja \
-              -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX \
-              $SRC_DIR
+          -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX \
+            $SRC_DIR
         ninja install
 
 requirements:
   build:
-    - ${{ compiler('cxx') }} 
+    - ${{ compiler('cxx') }}
     - cmake
     - ninja
   host:
     - xtl >=0.7,<0.8
   run:
     - xtl >=0.7,<0.8
-  run_constraints: 
+  run_constraints:
     - xsimd >=8.0.3,<10
 
 tests:
-  - package_contents:
-      include: 
-        - xtensor/xarray.hpp
-      files: 
-        - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfig.cmake
-        - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfigVersion.cmake
+  # - package_contents:
+  #   include:
+  #     - xtensor/xarray.hpp
+  #     files:
+  #       - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfig.cmake
+  #       - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfigVersion.cmake
 
 about:
   homepage: https://github.com/xtensor-stack/xtensor

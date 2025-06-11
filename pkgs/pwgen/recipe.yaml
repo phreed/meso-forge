@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
 context:
   version: "2.08"
 
@@ -14,11 +17,11 @@ source:
 build:
   number: 0
   script: |
-    autoreconf -i 
+    autoreconf -i
     find . -maxdepth 2
     ./configure --disable-debug --disable-dependency-tracking \
-                --prefix=$PREFIX \
-                --mandir=$PREFIX/share/man
+      --prefix=$PREFIX \
+        --mandir=$PREFIX/share/man
     make
     make install
 
@@ -32,12 +35,12 @@ requirements:
 
 tests:
   - script:
-      - pwgen --secure 20 10
+    - pwgen --secure 20 10
 
 about:
   homepage: https://pwgen.sourceforge.net/
   license: GPL-2.0-only
-  license_file: 
+  license_file:
     - debian/copyright
   summary: Password generator
   description: |
@@ -45,7 +48,7 @@ about:
     These passwords contain either only lowercase letters, or upper
     and lower case mixed, or digits thrown in.
   repository: https://sourceforge.net/projects/pwgen/
-  
+
 extra:
   recipe-maintainers:
     - phreed

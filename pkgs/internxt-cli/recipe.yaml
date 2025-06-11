@@ -11,7 +11,7 @@ package:
 source:
   - url: https://github.com/internxt/cli/archive/refs/tags/v{{ version }}.tar.gz
     sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
- 
+
 build:
   number: 0
   noarch: generic
@@ -42,15 +42,15 @@ requirements:
 
 tests:
   - script:
-      - ls
-      # - "find . -maxdepth 2" 
+    - ls
+      # - "find . -maxdepth 2"
       # - "internxt --help 2>&1"
 
 about:
   homepage: https://github.com/internxt/cli/blob/main/README.md
   summary: A CLI tool to interact with your Internxt encrypted files
   description: |
-    rotect your privacy with our open-source and post-quantum encrypted suite of secure services. 
+    rotect your privacy with our open-source and post-quantum encrypted suite of secure services.
     Private by default, secure by design, and free as in freedom.
   license: AGPL-3.0
   license_file:

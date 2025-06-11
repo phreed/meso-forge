@@ -2,8 +2,6 @@
 schema_version: 1
 
 context:
-  name: dysk
-  group: Canop
   version: 2.10.0
 
 package:

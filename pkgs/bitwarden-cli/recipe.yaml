@@ -2,9 +2,7 @@
 schema_version: 1
 
 context:
-  name: bitwarden-cli
   version: 2025.2.0
-  python_min: 3.7.0
 
 package:
   name: bitwarden-cli
@@ -38,16 +36,16 @@ requirements:
 
 tests:
   - script:
-    - bw
+      - bw
 
 about:
   homepage: https://bitwarden.com/help/cli/
   summary: The Bitwarden command-line interface (CLI)
   description: |
-    The Bitwarden command-line interface (CLI) is a powerful, 
-    fully-featured tool for accessing and managing your vault. 
-    Most features that you find in other Bitwarden client applications 
-    (desktop, browser extension, etc.) 
+    The Bitwarden command-line interface (CLI) is a powerful,
+    fully-featured tool for accessing and managing your vault.
+    Most features that you find in other Bitwarden client applications
+    (desktop, browser extension, etc.)
     are available from the CLI.
     https://contributing.bitwarden.com/getting-started/clients/cli/
   license: Apache-2.0

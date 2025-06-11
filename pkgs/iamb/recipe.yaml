@@ -24,7 +24,7 @@ requirements:
     - pkgconf
     - rust
   host:
-    - sqlite 
+    - sqlite
     - ratatui
   run:
     - if: linux
@@ -41,13 +41,13 @@ tests:
 about:
   homepage: https://iamb.chat
   license: Apache-2.0
-  license_file: 
+  license_file:
     - LICENSE
   summary: Matrix client for Vim addicts
   description: |
     iamb is a Matrix client for the terminal that uses Vim keybindings.
   repository: https://github.com/ulyssa/iamb
-  
+
 extra:
   recipe-maintainers:
     - phreed

@@ -5,7 +5,7 @@ context:
   version: "0.75.0"
 
 package:
-  name: iamb
+  name: devcontainer-cli
   version: ${{ version }}
 
 source:
@@ -29,21 +29,21 @@ requirements:
 tests:
   - script: |
       node devcontainer.js --help
-    # stderr:
-    #   contains: "Please create a configuration file"
-    # exit: 2
+      # stderr:
+      #   contains: "Please create a configuration file"
+      # exit: 2
 
 about:
   homepage: https://containers.dev/
   license: MIT
-  license_file: 
+  license_file:
     - LICENSE.txt
   summary: Configure Devcontainer CLI
   description: |
     A reference implementation for the specification that
-    can create and configure a dev container from a devcontainer.json. 
+    can create and configure a dev container from a devcontainer.json.
   repository: https://github.com/devcontainers/cli
-  
+
 extra:
   recipe-maintainers:
     - phreed

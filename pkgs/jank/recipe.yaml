@@ -1,10 +1,8 @@
 schema_version: 1
 
 context:
-  name: jank
   group: jank-lang
   version: 0.1.0
-  commit: "fe32c9deac434de4b88b9f3e25dc2ca5b1ba925f"
 
 package:
   name: jank
@@ -12,11 +10,7 @@ package:
 
 source:
   git: https://github.com/jank-lang/jank.git
-  rev: ${{ commit }}
-  # url: https://github.com/${{ group }}/${{ name }}/archive/refs/heads/main.zip
-  # sha256: ${{ sig }}
-  # patches:
-  #   - 0001-fix-includes.patch
+  rev: "fe32c9deac434de4b88b9f3e25dc2ca5b1ba925f"
 
 build:
   number: 0
@@ -52,10 +46,10 @@ tests:
 
 about:
   license: MPL-2.0
-  license_file: https://github.com/${{ group }}/${{ name }}/blob/main/LICENSE
+  license_file: https://github.com/${{ group }}/jank/blob/main/LICENSE
   summary: Jank a LLVM hosted Clojure
   homepage: https://jank-lang.org/
-  repository: https://github.com/${{ group }}/${{ name }}
+  repository: https://github.com/${{ group }}/jank
 
 extra:
   recipe-maintainers:

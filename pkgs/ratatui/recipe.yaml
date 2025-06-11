@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/ratatui/ratatui/archive/refs/tags/ratatui-v${{ version }}-alpha.2.tar.gz
-  sha256: 047398b1b54f790ac084eb3be33864110d59fde8010e06a6b5d96578e37845f6 
+  sha256: 047398b1b54f790ac084eb3be33864110d59fde8010e06a6b5d96578e37845f6
 
 build:
   number: 0
@@ -31,17 +31,17 @@ tests:
 
 about:
   homepage: https://ratatui.rs
-  license: MIT 
-  license_file: 
+  license: MIT
+  license_file:
     - LICENSE
   summary: A Rust crate for cooking TUIs
   description: |
-    Ratatui (ˌræ.təˈtu.i) is a Rust crate for cooking up terminal user interfaces (TUIs). 
-    It provides a simple and flexible way to create text-based user interfaces in the terminal, 
+    Ratatui (ˌræ.təˈtu.i) is a Rust crate for cooking up terminal user interfaces (TUIs).
+    It provides a simple and flexible way to create text-based user interfaces in the terminal,
     which can be used for command-line applications, dashboards, and other interactive console programs.
   documentation: https://docs.rs/ratatui/latest/ratatui/
   repository: https://github.com/ratatui/ratatui
-  
+
 extra:
   recipe-maintainers:
     - phreed

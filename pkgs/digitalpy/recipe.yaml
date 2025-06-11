@@ -2,7 +2,6 @@
 schema_version: 1
 
 context:
-  name: digitalpy
   version: "0.3.15"
   python_min: 3.11
 
@@ -12,7 +11,7 @@ package:
 
 source:
   url: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v${{ version }}.tar.gz
-  sha256:  75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
+  sha256: 75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
 
 build:
   noarch: python
@@ -62,13 +61,12 @@ tests:
   - python:
       imports:
         - digitalpy
-      pip_check: true
 
 about:
   homepage: https://github.com/FreeTAKTeam/DigitalPy
   summary: A python implementation of the aphrodite specification
   description: |
-    A python implementation of the aphrodite specification, 
+    A python implementation of the aphrodite specification,
     heavily based on WCMF.
   license: EPL-2.0
   license_file: LICENSE.md

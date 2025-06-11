@@ -3,15 +3,13 @@ schema_version: 1
 
 # Much of the information is available via:
 context:
-  group: mumble-voip
-  name: mumble
   version: 1.5.735
-  git_rel: github.com/${{ group }}/${{ name }}
+  nprocs: 4
 
 package:
   name: mumble-voip
   version: ${{ version }}
-  
+
 source:
   - url: https://github.com/mumble-voip/mumble/archive/refs/tags/v${{ version }}.tar.gz
     sha256: 539680318419ca6c236d129dc5b6a96878bd048957cfcfb3882d313dd16660fa
@@ -28,7 +26,7 @@ source:
     sha256: 6a5497e1029e66415c3941a5e5ee001944b0a7e46bf365c6d5a91a033acee87e
     target_directory: src/mumble/3rdparty/flag-icons/
   - url: https://github.com/microsoft/GSL/archive/refs/tags/v4.1.0.tar.gz
-    sha256: 0a227fc9c8e0bf25115f401b9a46c2a68cd28f299d24ab195284eb3f1d7794bd 
+    sha256: 0a227fc9c8e0bf25115f401b9a46c2a68cd28f299d24ab195284eb3f1d7794bd
     target_directory: src/mumble/3rdparty/gsl/
   - url: https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.tar.gz
     sha256: 0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
@@ -42,7 +40,7 @@ build:
   number: 0
   script:
     env:
-      JOB_CNT: ${{ nprocs }}   
+      JOB_CNT: ${{ nprocs }}
     interpreter: nu
     content: |
       cd src/mumble
@@ -50,7 +48,7 @@ build:
       cd build
       cmake --build . -j $env.JOB_CNT
       cmake --install .
-      
+
 requirements:
   build:
     - nushell
@@ -65,7 +63,7 @@ requirements:
     - xorg-libxext
     - libxext-devel-conda-x86_64
     - python
-    - cmake 
+    - cmake
     - py-build-cmake
     - ninja
     - if: unix
@@ -78,7 +76,7 @@ requirements:
     # - ${{ stdlib('c') }}
     # - qt
     # - qt6-main
-    # - qt6-wayland 
+    # - qt6-wayland
     - xorg-libxi
     - libboost-devel
     - libgl-devel
@@ -94,15 +92,15 @@ requirements:
     - poco
 
 tests:
-  - script: 
+  - script:
       - "mumble --help 2>&1"
 
 about:
   homepage: https://www.mumble.info/
-  summary: 'Mumble is a free, open source, low latency, high quality voice chat application.'
+  summary: "Mumble is a free, open source, low latency, high quality voice chat application."
   description: |
-     Mumble was the first VoIP application to establish true low latency voice communication over a decade ago.
-     But low latency and gaming are not the only use cases it shines in.
+    Mumble was the first VoIP application to establish true low latency voice communication over a decade ago.
+      But low latency and gaming are not the only use cases it shines in.
   license: BSD-3-Clause
   license_file:
     - LICENSE.txt

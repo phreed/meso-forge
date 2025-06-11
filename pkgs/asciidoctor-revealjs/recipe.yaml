@@ -27,21 +27,20 @@ requirements:
     - ruby
   run:
     - ${{ pin_compatible('ruby', upper_bound='x.x') }}
-    
 
 tests:
   - script: |
-      - ruby -r asciidoctor -e 'exit 0'
-      - asciidoctor-revealjs -V
+      ruby -r asciidoctor -e 'exit 0'
+      asciidoctor-revealjs -V
 
 about:
   homepage: https://github.com/asciidoctor/asciidoctor-reveal.js
   license: MIT
   license_file: LICENSE.adoc
-  summary:  A reveal.js converter for Asciidoctor and Asciidoctor.js. Write your slides in AsciiDoc! 
+  summary: A reveal.js converter for Asciidoctor and Asciidoctor.js. Write your slides in AsciiDoc!
   description: |
-    Asciidoctor reveal.js is a converter for Asciidoctor and Asciidoctor.js 
-    that transforms an AsciiDoc document into an HTML5 presentation 
+    Asciidoctor reveal.js is a converter for Asciidoctor and Asciidoctor.js
+    that transforms an AsciiDoc document into an HTML5 presentation
     designed to be executed by the reveal.js presentation framework.
   repository: https://github.com/asciidoctor/asciidoctor-reveal.js
 

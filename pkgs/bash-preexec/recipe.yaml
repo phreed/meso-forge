@@ -29,8 +29,8 @@ about:
   license_file: LICENSE.md
   summary: Preexec and precmd functions for Bash (like Zsh)
   description: |
-    bash-preexec.sh is a library that provides preexec and precmd functionality 
-    in bash that is typically found in zsh. This allows you to execute functions 
+    bash-preexec.sh is a library that provides preexec and precmd functionality
+    in bash that is typically found in zsh. This allows you to execute functions
     before every command, as well as right before the prompt is displayed.
 
 extra:

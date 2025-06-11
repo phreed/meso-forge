@@ -2,10 +2,7 @@
 schema_version: 1
 
 context:
-  name: neovide
-  group: neovide
   version: 0.14.1
-  sig: ca89ddd63b2a321ff0b7fb2afbaa33d125c207ed6b8663e5fb6d6f665329b899
 
 package:
   name: neovide
@@ -13,7 +10,7 @@ package:
 
 source:
   url: https://github.com/neovide/neovide/archive/refs/tags/${{ version }}.tar.gz
-  sha256: ${{ sig }}
+  sha256: ca89ddd63b2a321ff0b7fb2afbaa33d125c207ed6b8663e5fb6d6f665329b899
 
 build:
   number: 0
@@ -30,20 +27,19 @@ requirements:
     - rust
     - if: linux
       then:
-       - expat
-       - fontconfig
-       - freetype
-       - harfbuzz
-       - icu
-       - jpeg
-       - libpng
-       - xorg-libxcursor
-       - libxkbcommon
-       - mesa
-       - zlib
+        - expat
+        - fontconfig
+        - freetype
+        - harfbuzz
+        - icu
+        - jpeg
+        - libpng
+        - xorg-libxcursor
+        - libxkbcommon
+        - mesa
+        - zlib
   run:
     - nvim
-    
 
 tests:
   - script: |
@@ -55,11 +51,11 @@ about:
   license_file: LICENSE.txt
   summary: Neovim is a project that seeks to aggressively refactor Vim
   description: |
-    This is a simple, 
-    no-nonsense, 
-    cross-platform graphical user interface for Neovim 
-    (an aggressively refactored and updated Vim editor). 
-    Where possible there are some graphical improvements, 
+    This is a simple,
+    no-nonsense,
+    cross-platform graphical user interface for Neovim
+    (an aggressively refactored and updated Vim editor).
+    Where possible there are some graphical improvements,
     but functionally it should act like the terminal UI.
   repository: https://github.com/neovide/neovide
 

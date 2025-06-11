@@ -9,7 +9,7 @@ package:
   version: ${{ version }}
 
 source:
-  
+
   - url: https://rubygems.org/downloads/asciidoctor-pdf-${{ version }}.gem
     sha256: 034a142964d627b82fd4f08a094abedae981e632e7f1c501d3bd9c2dfbe073f9
   - path: asciidoctor-pdf.bat
@@ -40,7 +40,7 @@ about:
   license_file: asciidoctor-pdf-${{ version }}/LICENSE
   summary: An AsciiDoc to PDF processor
   description: |
-    A fast, open source text processor and publishing toolchain 
+    A fast, open source text processor and publishing toolchain
     for converting AsciiDoc content to HTML 5, DocBook 5, and other formats.
   documentation: https://www.rubydoc.info/gems/asciidoctor-pdf
   repository: https://github.com/asciidoctor/asciidoctor-pdf

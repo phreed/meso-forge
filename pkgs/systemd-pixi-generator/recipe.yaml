@@ -16,7 +16,7 @@ build:
   number: 0
   script: |
     cargo install --root $PREFIX --path .
-    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml 
+    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml
 
 requirements:
   build:
@@ -30,14 +30,14 @@ tests:
 about:
   homepage: https://github.com/babeloff/pixi-service-generator
   license: MIT
-  license_file: 
+  license_file:
     - LICENSE
   summary: A service generator for pixi global packages
   description: |
-   A service generator for pixi global packages. 
-   Generally speaking, services are just a specific type of CLI application 
-   which is long running, and does so in the background, 
-   not under the direct control of a login session.
+    A service generator for pixi global packages.
+    Generally speaking, services are just a specific type of CLI application
+    which is long running, and does so in the background,
+    not under the direct control of a login session.
 
 extra:
   recipe-maintainers:

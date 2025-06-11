@@ -9,7 +9,7 @@ context:
 package:
   version: ${{ version }}
   name: mediamtx
-  
+
 source:
   url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
   sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
@@ -21,7 +21,7 @@ build:
     - cd src/mediamtx
     - go generate ./...
     - CGO_ENABLED=0 go build .
-    # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release" 
+    # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release"
     #     -o $PREFIX/bin/${{ name }}
     # - go-licenses save . --save_path ../../library_licenses
     #     --ignore=golang.org/x/crypto/internal/poly1305
@@ -42,16 +42,16 @@ requirements:
     - go-licenses
 
 tests:
-  - script: | 
+  - script: |
       mediamtx --help 2>&1  | grep "${{ version }}"
 
 about:
   homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md
-  summary: 'MediaMTX is a live media server'
+  summary: "MediaMTX is a live media server"
   description: |
-     MediaMTX is a ready-to-use and zero-dependency real-time media server and 
-     media proxy that allows to publish, read, proxy, record and playback video and audio streams. 
-     It has been conceived as a "media router" that routes media streams from one end to the other.
+    MediaMTX is a ready-to-use and zero-dependency real-time media server and
+      media proxy that allows to publish, read, proxy, record and playback video and audio streams.
+      It has been conceived as a "media router" that routes media streams from one end to the other.
   license: Apache-2.0
   license_file:
     - LICENSE.txt

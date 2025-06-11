@@ -2,14 +2,14 @@
 schema_version: 1
 
 context:
-  version: 0.53.1
+  version: "0.11.9"
 
 package:
-  name: opendal-oli 
+  name: cargo-edit
   version: ${{ version }}
 
 source:
-  url: https://github.com/apache/opendal/archive/refs/tags/v{{ version }}.tar.gz
+  url: https://github.com/killercup/cargo-edit/archive/refs/tags/v${{ version }}.tar.gz
   sha256: 46670295e2323fc2f826750cdcfb2692fbdbea87122fe530a07c50c8dba1d3d7
 
 build:
@@ -24,20 +24,16 @@ requirements:
 
 tests:
   - script:
-      - oli --help # !(2)
+    - cargo-upgrade --help # !(2)
 
 about:
-  homepage: https://opendal.apache.org/apps/oli/ 
-  license: Apache-2.0
+  homepage: https://github.com/killercup/cargo-edit
+  license: MIT
   license_file:
     - LICENSE
     - THIRDPARTY.yml
-  summary: Apache OpenDAL™ Oli
-  description: |
-    oli stands for OpenDAL Command Line Interface
-    oli aims to provide a unified and user-friendly way 
-    to manipulate data stored in various storage service.
-  repository: https://github.com/apache/opendal/tree/main/bin/oli
+  description: "A utility for managing cargo dependencies from the command line."
+  summary: "A utility for managing cargo dependencies from the command line."
 
 extra:
   recipe-maintainers:

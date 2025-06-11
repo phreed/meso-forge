@@ -32,10 +32,10 @@ requirements:
   host:
     - if: linux
       then:
-       - libedit
-       - libxml2
-       - zlib  
-       - readline
+        - libedit
+        - libxml2
+        - zlib
+        - readline
 
 tests:
   - script: |

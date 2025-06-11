@@ -37,7 +37,7 @@ about:
   license_file: asciidoctor-${{ version }}/LICENSE
   summary: An AsciiDoc processor
   description: |
-    A fast, open source text processor and publishing toolchain 
+    A fast, open source text processor and publishing toolchain
     for converting AsciiDoc content to HTML 5, DocBook 5, and other formats.
   documentation: https://www.rubydoc.info/gems/asciidoctor
   repository: https://github.com/asciidoctor/asciidoctor

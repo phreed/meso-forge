@@ -23,7 +23,7 @@ build:
       $"building ($env.PKG_NAME)!"
       npm install -g ./bibtex-tidy-${{ version }}.tgz --prefix $env.PREFIX
       source npm-licenses.nu
-      main | save license_summary.txt 
+      main | save license_summary.txt
 
 requirements:
   build:
@@ -40,10 +40,10 @@ about:
   homepage: https://.org
   summary: bibtex summary
   description: |
-    Bibtex description 
+    Bibtex description
   license: Apache-2.0
   license_file:
-    - LICENSE 
+    - LICENSE
     - license-summary.txt
   documentation: https://.org/docs/
   repository: https://github.com/

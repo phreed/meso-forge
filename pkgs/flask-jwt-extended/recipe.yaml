@@ -2,7 +2,6 @@
 schema_version: 1
 
 context:
-  name: flask-jwt-extended
   version: 4.7.1
   python_min: 3.11
 
@@ -28,7 +27,6 @@ requirements:
     - python >=${{ python_min }},<4.0.0
     - flask >=2.0,<4.0
     - pyjwt >=2.0,<3.0
-    - python >=${{ python_min }}
     - werkzeug >=0.14
   run_exports:
     weak:
@@ -38,19 +36,17 @@ tests:
   - python:
       imports:
         - flask_jwt_extended
-      pip_check: true
   - script:
       - python -c "import flask_jwt_extended"
     requirements:
       run:
         - python ${{ python_min }}
 
-
 about:
   homepage: https://github.com/vimalloc/flask-jwt-extended
   summary: An open source Flask extension
   description: |
-    A Flask JWT extension that supports refresh tokens, 
+    A Flask JWT extension that supports refresh tokens,
     blacklisting/revoking tokens,
     and token freshness (for accessing critical views).
   license: MIT

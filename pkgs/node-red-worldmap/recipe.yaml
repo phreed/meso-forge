@@ -12,10 +12,10 @@ source:
   git: https://github.com/dceejay/RedMap.git
   rev: e5cdd1258dc62b553d0f753892adf53e2e9f577c
   target_directory: node-red-worldmap
-  # url: https://registry.npmjs.org/node-red-contrib-web-worldmap/-/${{ name }}-${{ version }}.tgz
-  # sha256: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae 
+  # url: https://registry.npmjs.org/node-red-contrib-web-worldmap/-/node-red-worldmap-${{ version }}.tgz
+  # sha256: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae
   # file_name: node-red-worldmap-${{ version }}.tgz
- 
+
 build:
   script:
     interpreter: nu
@@ -34,16 +34,16 @@ requirements:
     - nodejs
 
 tests:
-  - script: 
+  - script:
       - "echo 'not sure how to test'"
 
 about:
   homepage: https://github.com/dceejay/RedMap#readme
   summary: A Node-RED node to provide a world map web page for plotting "things" on.
   description: |
-     Plots "things" on a map.
-     By default the map will be served from {httpRoot}/worldmap,
-     but this can be changed in the configuration panel.
+    Plots "things" on a map.
+      By default the map will be served from {httpRoot}/worldmap,
+      but this can be changed in the configuration panel.
   license: Apache-2.0
   license_file:
     - node-red-worldmap/LICENSE

@@ -15,14 +15,14 @@ source:
   - path: ../../.scripts/npm-licenses.nu
     file_name: npm-licenses.nu
   - if: linux
-    then: 
+    then:
       path: systemd/node-red.service
       target_directory: systemd/node-red.service
   - if: win
-    then: 
+    then:
       path: bin/node-red.cmd
       target_directory: bin/node-red.cmd
- 
+
 build:
   script:
     interpreter: nu
@@ -30,7 +30,7 @@ build:
       $"building ($env.PKG_NAME)!"
       npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
       source npm-licenses.nu
-      main | save license_summary.txt 
+      main | save license_summary.txt
 
 requirements:
   build:
@@ -44,22 +44,22 @@ requirements:
 
 tests:
   - script:
-      - find . -maxdepth 2 
+    - find . -maxdepth 2
       - echo "node-red --help"
 
 about:
   homepage: https://nodered.org
   summary: Low-code programming for event-driven applications
   description: |
-     Node-RED's goal is to enable anyone to build applications that collect,
-     transform and visualize their data; 
-     building flows that can automate their world. 
-     Its low-code nature makes it accessible to users of any background, 
-     whether for home automation,
-     industrial control systems or anything in between.
+    Node-RED's goal is to enable anyone to build applications that collect,
+      transform and visualize their data;
+      building flows that can automate their world.
+      Its low-code nature makes it accessible to users of any background,
+      whether for home automation,
+      industrial control systems or anything in between.
   license: Apache-2.0
   license_file:
-    - LICENSE 
+    - LICENSE
     - license-summary.txt
   documentation: https://nodered.org/docs/
   repository: https://github.com/node-red/node-red

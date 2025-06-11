@@ -59,25 +59,25 @@ requirements:
 # tests:
 #   - python:
 #       imports:
-#         - freetakserver 
+#         - freetakserver
 #         # - freetakserver-ui
 
 about:
   homepage: https://github.com/FreeTAKTeam/UI
   summary: An optional UI for FreeTAKServer
   description: |
-    This FreeTAKServer UI repository hosts the web user interface for the FreeTAKServer project. 
-    It is built using Python with Flask, 
-    employing additional technologies such as SQLite for database management, 
-    Alembic for database schema migrations, 
-    and Flask_Login for session-based authentication. 
-    The UI supports various features like modular design through Flask Blueprints, 
-    forms validation, and provides a dashboard for server management. 
-    The front-end utilizes HTML, CSS, SCSS, and JavaScript, 
-    making it a comprehensive tool for administrators to manage the FreeTAKServer. 
+    This FreeTAKServer UI repository hosts the web user interface for the FreeTAKServer project.
+    It is built using Python with Flask,
+    employing additional technologies such as SQLite for database management,
+    Alembic for database schema migrations,
+    and Flask_Login for session-based authentication.
+    The UI supports various features like modular design through Flask Blueprints,
+    forms validation, and provides a dashboard for server management.
+    The front-end utilizes HTML, CSS, SCSS, and JavaScript,
+    making it a comprehensive tool for administrators to manage the FreeTAKServer.
     The project is licensed under the EPL/MIT License.
   license: MIT
-  license_file: 
+  license_file:
     - LICENSE.txt
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/UI
