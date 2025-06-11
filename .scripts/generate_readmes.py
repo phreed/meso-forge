@@ -90,39 +90,43 @@ class ReadmeGenerator:
         end_idx = content.find(end_marker)
 
         if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-            # Extract custom content (everything outside markers)
-            custom_before = content[:start_idx].rstrip()
+            # Extract custom content (everything after the generated section)
             custom_after = content[end_idx + len(end_marker):].lstrip()
+            custom_content = custom_after.strip() if custom_after else ""
 
-            # Combine custom content, preserving spacing
-            custom_parts = []
-            if custom_before:
-                custom_parts.append(custom_before)
-            if custom_after:
-                custom_parts.append(custom_after)
-
-            custom_content = '\n\n'.join(custom_parts) if custom_parts else ""
-
-            # Extract existing generated content
+            # Extract existing generated content (excluding markers)
             generated_content = content[start_idx + len(start_marker):end_idx].strip()
 
             return custom_content, generated_content
         else:
-            # No markers found - treat entire content as custom
-            return content.strip(), ""
+            # No markers found - everything after the title is custom content
+            lines = content.split('\n')
+            custom_start_idx = 0
+
+            # Find the title line and skip it
+            for i, line in enumerate(lines):
+                if line.startswith('=') and not line.startswith('=='):  # AsciiDoc title
+                    custom_start_idx = i + 1
+                    break
+
+            # Everything after the title is custom content
+            custom_lines = lines[custom_start_idx:]
+            custom_content = '\n'.join(custom_lines).strip()
+
+            return custom_content, ""
 
     def merge_readme_content(self, custom_content: str, generated_content: str) -> str:
         """Merge custom content with generated content using markers."""
         parts = []
 
-        # Add custom content at the beginning if it exists
-        if custom_content:
-            parts.append(custom_content.strip())
-
-        # Add the auto-generated section with markers
+        # Add the auto-generated section with markers (includes title)
         parts.append("// AUTO-GENERATED CONTENT START")
         parts.append(generated_content.strip())
         parts.append("// AUTO-GENERATED CONTENT END")
+
+        # Add custom content after the generated content if it exists
+        if custom_content:
+            parts.append(custom_content.strip())
 
         return '\n\n'.join(parts) + '\n'
 
