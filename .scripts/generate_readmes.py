@@ -13,8 +13,8 @@ from datetime import datetime
 
 
 class ReadmeGenerator:
-    def __init__(self, pkgs_dir: str):
-        self.pkgs_dir = Path(pkgs_dir)
+    def __init__(self, pkgs_dir: Path):
+        self.pkgs_dir = pkgs_dir
         self.generated_count = 0
         self.updated_count = 0
         self.skipped_count = 0
