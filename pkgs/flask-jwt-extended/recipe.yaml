@@ -30,7 +30,7 @@ requirements:
     - werkzeug >=0.14
   run_exports:
     weak:
-      - ${{ pin_subpackage(name, upper_bound="x.x") }}
+      - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
 
 tests:
   - python:
