@@ -29,7 +29,7 @@ requirements:
     - certifi 2024.2.2.*
     - charset-normalizer 3.3.2.*
     - click 8.1.7.*
-    - colorama 0.4.6.*
+    - colorama >= 0.4.6
     - dnspython 2.6.1.*
     - email_validator 2.1.1.*
     - eventlet 0.35.2.*
