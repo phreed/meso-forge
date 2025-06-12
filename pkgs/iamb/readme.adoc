@@ -41,9 +41,10 @@ iamb is a Matrix client for the terminal that uses Vim keybindings.
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge iamb
-```
+[source,bash]
+----
+pixi global install -c meso-forge iamb
+----
 
 == Maintainers
 

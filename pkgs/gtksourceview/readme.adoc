@@ -44,9 +44,10 @@ GtkSourceView is a text widget that extends the standard GTK text widget GtkText
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge gtksourceview5
-```
+[source,bash]
+----
+pixi global install -c meso-forge gtksourceview5
+----
 
 ---
 

@@ -37,9 +37,10 @@ The Bitwarden command-line interface (CLI) is a powerful, fully-featured tool fo
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge bitwarden-cli
-```
+[source,bash]
+----
+pixi global install -c meso-forge bitwarden-cli
+----
 
 == Maintainers
 

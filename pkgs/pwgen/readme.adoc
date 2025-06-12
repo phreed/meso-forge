@@ -33,9 +33,10 @@ pwgen generates random, meaningless but pronounceable passwords. These passwords
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge pwgen
-```
+[source,bash]
+----
+pixi global install -c meso-forge pwgen
+----
 
 == Maintainers
 

@@ -33,9 +33,10 @@ Kompose is a conversion tool for Docker Compose to container orchestrators such 
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge kompose
-```
+[source,bash]
+----
+pixi global install -c meso-forge kompose
+----
 
 == Maintainers
 

@@ -40,9 +40,10 @@ A Flask JWT extension that supports refresh tokens, blacklisting/revoking tokens
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge flask-jwt-extended
-```
+[source,bash]
+----
+pixi global install -c meso-forge flask-jwt-extended
+----
 
 == Maintainers
 
@@ -92,9 +93,10 @@ A Flask JWT extension that supports refresh tokens, blacklisting/revoking tokens
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge flask-jwt-extended
-```
+[source,bash]
+----
+pixi global install -c meso-forge flask-jwt-extended
+----
 
 == Maintainers
 

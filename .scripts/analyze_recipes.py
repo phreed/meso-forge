@@ -489,7 +489,11 @@ def main(
 
     if recipe:
         # Analyze single recipe
-        analyzer.analyze_recipe(pkgs_dir / recipe)
+        recipe_path = pkgs_dir / recipe / "recipe.yaml"
+        if not recipe_path.exists():
+            print(f"Error: Recipe file not found at {recipe_path}")
+            raise typer.Exit(1)
+        analyzer.analyze_recipe(recipe_path)
         analyzer.print_summary()
     else:
         # Analyze all recipes (default behavior)

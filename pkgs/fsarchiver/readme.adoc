@@ -47,9 +47,10 @@ FSArchiver is a system tool that allows you to save the contents of a filesystem
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge fsarchiver
-```
+[source,bash]
+----
+pixi global install -c meso-forge fsarchiver
+----
 
 == Maintainers
 

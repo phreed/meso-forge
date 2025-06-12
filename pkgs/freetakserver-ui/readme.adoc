@@ -68,9 +68,10 @@ This FreeTAKServer UI repository hosts the web user interface for the FreeTAKSer
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge freetakserver-ui
-```
+[source,bash]
+----
+pixi global install -c meso-forge freetakserver-ui
+----
 
 == Maintainers
 

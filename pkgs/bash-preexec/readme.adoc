@@ -24,9 +24,10 @@ bash-preexec.sh is a library that provides preexec and precmd functionality in b
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge bash-preexec
-```
+[source,bash]
+----
+pixi global install -c meso-forge bash-preexec
+----
 
 == Maintainers
 

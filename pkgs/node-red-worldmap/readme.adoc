@@ -40,9 +40,10 @@ Plots "things" on a map. By default the map will be served from {httpRoot}/world
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge node-red-worldmap
-```
+[source,bash]
+----
+pixi global install -c meso-forge node-red-worldmap
+----
 
 == Maintainers
 

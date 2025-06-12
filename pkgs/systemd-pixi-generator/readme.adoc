@@ -30,9 +30,10 @@ A service generator for pixi global packages. Generally speaking, services are j
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge systemd-pixi-generator
-```
+[source,bash]
+----
+pixi global install -c meso-forge systemd-pixi-generator
+----
 
 == Maintainers
 

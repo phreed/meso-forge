@@ -43,9 +43,10 @@ rotect your privacy with our open-source and post-quantum encrypted suite of sec
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge internxt-cli
-```
+[source,bash]
+----
+pixi global install -c meso-forge internxt-cli
+----
 
 == Maintainers
 

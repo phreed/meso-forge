@@ -41,9 +41,10 @@ Node-RED's goal is to enable anyone to build applications that collect, transfor
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge node-red
-```
+[source,bash]
+----
+pixi global install -c meso-forge node-red
+----
 
 == Maintainers
 

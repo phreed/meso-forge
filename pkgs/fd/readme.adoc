@@ -30,9 +30,10 @@ fd is a simple, fast and user-friendly alternative to find. While it does not se
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge fd
-```
+[source,bash]
+----
+pixi global install -c meso-forge fd
+----
 
 == Maintainers
 

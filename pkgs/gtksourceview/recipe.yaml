@@ -17,7 +17,8 @@ build:
 
 requirements:
   build:
-    - gobject-introspection
+    - "{{ compiler('c') }}"
+    - "{{ compiler('cxx') }}"
     - meson
     - ninja
     - pkgconf

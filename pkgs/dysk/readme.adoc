@@ -30,9 +30,10 @@ Linux utility to get information on filesystems, like df but better
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge dysk
-```
+[source,bash]
+----
+pixi global install -c meso-forge dysk
+----
 
 == Maintainers
 

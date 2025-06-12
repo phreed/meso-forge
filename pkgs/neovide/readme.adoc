@@ -51,9 +51,10 @@ This is a simple, no-nonsense, cross-platform graphical user interface for Neovi
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge neovide
-```
+[source,bash]
+----
+pixi global install -c meso-forge neovide
+----
 
 == Maintainers
 

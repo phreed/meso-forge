@@ -31,9 +31,10 @@ oli stands for OpenDAL Command Line Interface oli aims to provide a unified and 
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge opendal-oli
-```
+[source,bash]
+----
+pixi global install -c meso-forge opendal-oli
+----
 
 == Maintainers
 
@@ -49,7 +50,7 @@ _Last updated: 2025-06-11_
 
 https://opendal.apache.org/apps/oli/
 
-oli stands for OpenDAL Command Line Interface. 
+oli stands for OpenDAL Command Line Interface.
 It aims to provide a unified and user-friendly way to manipulate data stored in various storage service.
 
 It works with other tools like the minio-client.

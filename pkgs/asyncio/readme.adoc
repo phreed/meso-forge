@@ -37,9 +37,10 @@ This is a proposal for asynchronous I/O in Python 3, starting at Python 3.3. Con
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge asyncio
-```
+[source,bash]
+----
+pixi global install -c meso-forge asyncio
+----
 
 == Maintainers
 
@@ -86,9 +87,10 @@ This is a proposal for asynchronous I/O in Python 3, starting at Python 3.3. Con
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge asyncio
-```
+[source,bash]
+----
+pixi global install -c meso-forge asyncio
+----
 
 == Maintainers
 

@@ -35,9 +35,10 @@ Metaprogramming shell for C++ templates
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge metashell
-```
+[source,bash]
+----
+pixi global install -c meso-forge metashell
+----
 
 == Maintainers
 

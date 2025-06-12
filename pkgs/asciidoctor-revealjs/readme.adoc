@@ -33,9 +33,10 @@ Asciidoctor reveal.js is a converter for Asciidoctor and Asciidoctor.js that tra
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge asciidoctor-revealjs
-```
+[source,bash]
+----
+pixi global install -c meso-forge asciidoctor-revealjs
+----
 
 == Maintainers
 

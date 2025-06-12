@@ -34,9 +34,10 @@ A fast, open source text processor and publishing toolchain for converting Ascii
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
+[source,bash]
+----
 pixi global install -c meso-forge asciidoctor-pdf
-```
+----
 
 == Maintainers
 

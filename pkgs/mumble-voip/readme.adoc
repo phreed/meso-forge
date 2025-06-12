@@ -61,9 +61,10 @@ Mumble was the first VoIP application to establish true low latency voice commun
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge mumble-voip
-```
+[source,bash]
+----
+pixi global install -c meso-forge mumble-voip
+----
 
 == Maintainers
 

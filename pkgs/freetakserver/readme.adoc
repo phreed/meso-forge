@@ -86,9 +86,10 @@ This module provides the Free TAK Server implementation. The TAK family provides
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge freetakserver
-```
+[source,bash]
+----
+pixi global install -c meso-forge freetakserver
+----
 
 == Maintainers
 

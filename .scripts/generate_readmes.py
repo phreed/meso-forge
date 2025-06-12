@@ -315,9 +315,10 @@ class ReadmeGenerator:
         content.append("")
         content.append("This package is built using rattler-build and can be installed using mamba or conda:")
         content.append("")
-        content.append("```bash")
-        content.append(f"mamba install -c meso-forge {pkg_display_name}")
-        content.append("```")
+        content.append("[source,bash]")
+        content.append("----")
+        content.append(f"pixi global install -c meso-forge {pkg_display_name}")
+        content.append("----")
         content.append("")
 
         # Maintainers
@@ -418,7 +419,11 @@ def main(
 
     if recipe:
         # Generate a single recipe
-        generator.generate_readme(pkgs_dir / recipe / "recipe.yaml")
+        recipe_path = pkgs_dir / recipe / "recipe.yaml"
+        if not recipe_path.exists():
+            print(f"Error: Recipe file not found at {recipe_path}")
+        raise typer.Exit(1)
+        generator.generate_readme(recipe_path)
         generator.print_summary()
     else:
         # Generate all recipes (default behavior)

@@ -32,9 +32,10 @@ MediaMTX is a ready-to-use and zero-dependency real-time media server and media 
 
 This package is built using rattler-build and can be installed using mamba or conda:
 
-```bash
-mamba install -c meso-forge mediamtx
-```
+[source,bash]
+----
+pixi global install -c meso-forge mediamtx
+----
 
 == Maintainers
 

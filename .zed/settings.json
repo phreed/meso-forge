@@ -1,0 +1,52 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": [
+        {
+          "name": "pylsp",
+          "initialization_options": {
+            "settings": {
+              "pylsp": {
+                "plugins": {
+                  "pycodestyle": {
+                    "enabled": false
+                  },
+                  "pyflakes": {
+                    "enabled": true
+                  },
+                  "pylint": {
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "lsp": {
+    "pylsp": {
+      "settings": {
+        "pylsp": {
+          "plugins": {
+            "jedi": {
+              "environment": ".pixi/envs/default/bin/python"
+            }
+          }
+        }
+      }
+    }
+  },
+  "terminal": {
+    "shell": {
+      "program": "bash",
+      "args": ["-c", "cd $(pwd) && pixi shell"]
+    }
+  },
+  "python": {
+    "interpreter": {
+      "path": ".pixi/envs/default/bin/python"
+    }
+  }
+}
