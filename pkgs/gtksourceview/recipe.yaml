@@ -1,0 +1,63 @@
+context:
+  version: "5.16.0"
+
+package:
+  name: gtksourceview5
+  version: ${{ version }}
+
+source:
+  url: https://download.gnome.org/sources/gtksourceview/5.16/gtksourceview-${{ version }}.tar.xz
+  sha256: ab35d420102f3e8b055dd3b8642d3a48209f888189e6254d0ffb4b6a7e8c3566
+
+build:
+  script: |
+    meson setup build --prefix=$PREFIX -Dintrospection=enabled -Dvapi=true
+    meson compile -C build --verbose
+    meson install -C build
+
+requirements:
+  build:
+    - gobject-introspection
+    - meson
+    - ninja
+    - pkgconf
+    - vala
+  host:
+    - cairo
+    - fontconfig
+    - fribidi
+    - gdk-pixbuf
+    - glib
+    - gtk4
+    - pango
+    - pcre2
+    - if: unix
+      then: libxml2
+    - if: osx
+      then: gettext
+
+tests:
+  - script: |
+      cat << EOF > test.c
+      #include <gtksourceview/gtksource.h>
+
+      int main(int argc, char *argv[]) {
+        gchar *text = gtk_source_utils_unescape_search_text("hello world");
+        return 0;
+      }
+      EOF
+      $CC test.c -o test $(pkgconf --cflags --libs gtksourceview-5)
+      ./test
+    requirements:
+      run:
+        - pkgconf
+
+about:
+  homepage: https://projects.gnome.org/gtksourceview/
+  license: LGPL-2.1-or-later
+  summary: Text view with syntax, undo/redo, and text marks
+  description: |
+    GtkSourceView is a text widget that extends the standard GTK text widget GtkTextView.
+    It improves GtkTextView by implementing syntax highlighting and other features
+    typical of a source code editor.
+    This package provides the development files for building applications that use GtkSourceView.

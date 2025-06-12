@@ -4,11 +4,11 @@ Generate and maintain readme.adoc files for all packages based on their recipe.y
 Ensures each package has a consistent README that matches its recipe while preserving custom content.
 """
 
-import os
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+import typer
+from typing import Tuple, Optional
 from datetime import datetime
 
 
@@ -27,11 +27,11 @@ class ReadmeGenerator:
         print("=" * 60)
 
         for recipe_file in sorted(recipe_files):
-            self.process_package(recipe_file)
+            self.generate_readme(recipe_file)
 
         self.print_summary()
 
-    def process_package(self, recipe_file: Path):
+    def generate_readme(self, recipe_file: Path):
         """Process a single package to generate/update its README."""
         package_dir = recipe_file.parent
         package_name = package_dir.name
@@ -59,18 +59,18 @@ class ReadmeGenerator:
 
                 # Check if generated content has changed
                 if existing_generated.strip() == generated_content.strip():
-                    print(f"  ⏭️  README is up to date")
+                    print("  ⏭️  README is up to date")
                     self.skipped_count += 1
                     return
                 else:
                     # Merge custom content with new generated content
                     final_content = self.merge_readme_content(custom_content, generated_content)
-                    print(f"  📝 Updating README (preserving custom content)")
+                    print("  📝 Updating README (preserving custom content)")
                     self.updated_count += 1
             else:
                 # For new files, wrap with markers
                 final_content = self.merge_readme_content("", generated_content)
-                print(f"  ✨ Creating new README")
+                print("  ✨ Creating new README")
                 self.generated_count += 1
 
             # Write README file
@@ -333,7 +333,7 @@ class ReadmeGenerator:
         # Footer
         content.append("---")
         content.append("")
-        content.append(f"_This portion of the README was generated from the recipe.yaml file._")
+        content.append("_This portion of the README was generated from the recipe.yaml file._")
         content.append("")
         content.append(f"_Last updated: {datetime.now().strftime('%Y-%m-%d')}_")
 
@@ -392,19 +392,37 @@ class ReadmeGenerator:
 
         print("\nDone!")
 
+def main(
+    pkg_dir: Optional[str] = typer.Option("pkgs", "--pkg-dir",
+        help="Directory containing the recipe packages"),
+    base_dir: Optional[Path] = typer.Option(Path(__file__).parent.parent, "--base-dir",
+        help="Base directory for the project"),
+    recipe: Optional[str] = typer.Option(None, "--recipe",
+        help="Name of a single recipe to analyze")
+):
+    """
+    Construct a readme.adoc file for the recipe
+    """
 
-def main():
-    """Main function."""
-    script_dir = Path(__file__).parent.parent
-    pkgs_dir = script_dir / "pkgs"
+    pkgs_dir = base_dir / pkg_dir
+
+    if not pkgs_dir.exists():
+        print(f"Error: pkgs directory not found at {pkgs_dir}")
+        raise typer.Exit(1)
 
     if not pkgs_dir.exists():
         print(f"Error: pkgs directory not found at {pkgs_dir}")
         return
 
     generator = ReadmeGenerator(pkgs_dir)
-    generator.generate_all_readmes()
 
+    if recipe:
+        # Generate a single recipe
+        generator.generate_readme(pkgs_dir / recipe / "recipe.yaml")
+        generator.print_summary()
+    else:
+        # Generate all recipes (default behavior)
+        generator.generate_all_readmes()
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

@@ -1,0 +1,57 @@
+= gtksourceview5
+:version: 5.16.0
+
+
+// GENERATED CONTENT START
+
+Text view with syntax, undo/redo, and text marks
+
+== Description
+
+GtkSourceView is a text widget that extends the standard GTK text widget GtkTextView. It improves GtkTextView by implementing syntax highlighting and other features typical of a source code editor. This package provides the development files for building applications that use GtkSourceView.
+
+== Links
+
+* Homepage: https://projects.gnome.org/gtksourceview/
+
+== Package Information
+
+* **License**: LGPL-2.1-or-later
+* **Version**: 5.16.0
+
+== Requirements
+
+=== Host Requirements
+
+* cairo
+* fontconfig
+* fribidi
+* gdk-pixbuf
+* glib
+* gtk4
+* pango
+* pcre2
+
+=== Build Requirements
+
+* gobject-introspection
+* meson
+* ninja
+* pkgconf
+* vala
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+mamba install -c meso-forge gtksourceview5
+```
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-12_
+
+// GENERATED CONTENT END
