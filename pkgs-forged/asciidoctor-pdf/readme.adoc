@@ -1,0 +1,43 @@
+= asciidoctor-pdf
+:version: 2.3.19
+
+An AsciiDoc to PDF processor
+
+== Description
+
+A fast, open source text processor and publishing toolchain for converting AsciiDoc content to PDF.
+
+== Links
+
+* Homepage: https://asciidoctor-pdf.org
+* Repository: https://github.com/asciidoctor/asciidoctor-pdf
+* Documentation: https://www.rubydoc.info/gems/asciidoctor-pdf
+* Feedstock: https://github.com/conda-forge/rb-asciidoctor-pdf-feedstock
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 2.3.19
+* **Architecture**: No-architecture (pure generic)
+
+== Requirements
+
+=== Host Requirements
+
+* ruby
+
+=== Run Requirements
+
+* pin_compatible('ruby', upper_bound='x.x')
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+pixi global install -c meso-forge asciidoctor-pdf
+```
+
+== Maintainers
+
+* phreed

@@ -3,16 +3,16 @@
 Analyze rattler-build recipes for anomalies and inconsistencies.
 """
 
-import os
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional
 from urllib.parse import urlparse
+import typer
+from typing import Optional
 
 class RecipeAnalyzer:
-    def __init__(self, pkgs_dir: str):
-        self.pkgs_dir = Path(pkgs_dir)
+    def __init__(self, pkgs_dir: Path):
+        self.pkgs_dir = pkgs_dir
         self.anomalies = []
         self.recipes_checked = 0
 
@@ -120,7 +120,7 @@ class RecipeAnalyzer:
             # Single source
             self._check_single_source(package_name, source, content)
 
-    def _check_single_source(self, package_name: str, source: dict, content: str, index: int = None):
+    def _check_single_source(self, package_name: str, source: dict, content: str, index: int | None = None):
         """Check a single source entry for required fields."""
         source_desc = f"source[{index}]" if index is not None else "source"
 
@@ -340,7 +340,7 @@ class RecipeAnalyzer:
         except:
             return False
 
-    def add_anomaly(self, package_name: str, anomaly_type: str, description: str, line_number: int = None):
+    def add_anomaly(self, package_name: str, anomaly_type: str, description: str, line_number: int | None = None):
         """Add an anomaly to the list."""
         self.anomalies.append({
             'package': package_name,
@@ -351,7 +351,7 @@ class RecipeAnalyzer:
         line_info = f" (line {line_number})" if line_number else ""
         print(f"  ⚠️  {anomaly_type}: {description}{line_info}")
 
-    def find_field_line(self, content: str, field_name: str, section: str = None) -> int:
+    def find_field_line(self, content: str, field_name: str, section: str | None = None) -> int | None:
         """Find the line number where a field is defined."""
         lines = content.split('\n')
         in_section = section is None
@@ -369,7 +369,7 @@ class RecipeAnalyzer:
 
         return None
 
-    def find_section_line(self, content: str, section_name: str) -> int:
+    def find_section_line(self, content: str, section_name: str) -> int | None:
         """Find the line number where a section starts."""
         lines = content.split('\n')
         for i, line in enumerate(lines, 1):
@@ -386,7 +386,7 @@ class RecipeAnalyzer:
             return max(1, i - 1)
         return 1
 
-    def find_insertion_point_after_requirements(self, content: str) -> int:
+    def find_insertion_point_after_requirements(self, content: str) -> int | None:
         """Find insertion point after requirements section."""
         req_line = self.find_section_line(content, 'requirements')
         if req_line:
@@ -397,7 +397,7 @@ class RecipeAnalyzer:
                     return i + 1
         return None
 
-    def find_context_var_usage(self, content: str, var_name: str) -> int:
+    def find_context_var_usage(self, content: str, var_name: str) -> int | None:
         """Find the first line where a context variable is used."""
         lines = content.split('\n')
         pattern = f'\\$\\{{\\{{\\s*{var_name}\\s*\\}}\\}}'
@@ -406,7 +406,7 @@ class RecipeAnalyzer:
                 return i
         return None
 
-    def find_requirement_line(self, content: str, section: str, index: int) -> int:
+    def find_requirement_line(self, content: str, section: str, index: int) -> int | None:
         """Find the line number of a specific requirement in a section."""
         lines = content.split('\n')
         in_requirements = False
@@ -463,17 +463,37 @@ class RecipeAnalyzer:
 
         print("\nDone!")
 
-def main():
-    """Main function."""
-    script_dir = Path(__file__).parent.parent
-    pkgs_dir = script_dir / "pkgs"
+def main(
+    pkg_dir: Optional[str] = typer.Option(None, "--pkg-dir", help="Directory containing the recipe packages"),
+    base_dir: Optional[str] = typer.Option(None, "--base-dir", help="Base directory for the project"),
+    recipe: Optional[str] = typer.Option(None, "--recipe", help="Name of a single recipe to analyze")
+):
+    """Analyze rattler-build recipes for anomalies and inconsistencies."""
+    # Use default base directory if none provided
+    if base_dir is None:
+        script_dir = Path(__file__).parent.parent
+    else:
+        script_dir = Path(base_dir)
+
+    # Use default "pkgs" if no pkg_dir provided
+    if pkg_dir is None:
+        pkg_dir = "pkgs"
+
+    pkgs_dir = script_dir / pkg_dir
 
     if not pkgs_dir.exists():
         print(f"Error: pkgs directory not found at {pkgs_dir}")
-        return
+        raise typer.Exit(1)
 
     analyzer = RecipeAnalyzer(pkgs_dir)
-    analyzer.analyze_all_recipes()
+
+    if recipe:
+        # Analyze single recipe
+        analyzer.analyze_recipe(pkgs_dir / recipe)
+        analyzer.print_summary()
+    else:
+        # Analyze all recipes (default behavior)
+        analyzer.analyze_all_recipes()
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

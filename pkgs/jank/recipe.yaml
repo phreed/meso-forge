@@ -42,7 +42,7 @@ requirements:
 
 tests:
   - script:
-      - ${{ name }} --help
+      - jank --help
 
 about:
   license: MPL-2.0

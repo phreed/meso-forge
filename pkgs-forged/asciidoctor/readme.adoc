@@ -1,0 +1,43 @@
+= asciidoctor
+:version: 2.0.23
+
+An AsciiDoc processor.
+
+== Description
+
+A fast, open source text processor and publishing toolchain for converting AsciiDoc content to HTML 5, DocBook 5, and other formats.
+
+== Links
+
+* Homepage: https://asciidoctor.org
+* Repository: https://github.com/asciidoctor/asciidoctor
+* Documentation: https://www.rubydoc.info/gems/asciidoctor
+* Feedstock: https://github.com/conda-forge/asciidoctor-feedstock
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 2.0.23
+* **Architecture**: No-architecture (pure generic)
+
+== Requirements
+
+=== Host Requirements
+
+* ruby
+
+=== Run Requirements
+
+* pin_compatible('ruby', upper_bound='x.x')
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+```bash
+pixi global install -c meso-forge asciidoctor
+```
+
+== Maintainers
+
+* phreed

@@ -18,6 +18,8 @@ preview = ["pixi-build"]
 rattler-build = ">=0.40.0,<0.41"
 rattler-index = ">=0.22.4,<0.23"
 nushell = ">=0.103.0,<0.104"
+typer = ">=0.16.0,<0.17"
+pyyaml = ">=6.0.2,<7"
 
 [tasks.clean]
 args = [
@@ -285,7 +287,7 @@ depends-on = [
     ] },
 ]
 
-[tasks.publish-all]
+[tasks.publish-forged]
 depends-on = [
     { task = "publish-s3", args = [
         "asciidoctor",
@@ -293,6 +295,10 @@ depends-on = [
     { task = "publish-s3", args = [
         "asciidoctor-pdf",
     ] },
+]
+
+[tasks.publish-all]
+depends-on = [
     { task = "publish-s3", args = [
         "asciidoctor-revealjs",
     ] },
@@ -376,12 +382,6 @@ depends-on = [
 
 [tasks.publish-s3-all]
 depends-on = [
-    { task = "publish-s3", args = [
-        "asciidoctor",
-    ] },
-    { task = "publish-s3", args = [
-        "asciidoctor-pdf",
-    ] },
     { task = "publish-s3", args = [
         "asciidoctor-revealjs",
     ] },
