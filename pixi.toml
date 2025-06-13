@@ -357,7 +357,7 @@ depends-on = [
         "freetakserver-ui",
     ] },
     { task = "publish-pd", args = [
-        "gtksourceview",
+        "gtksourceview5",
     ] },
     { task = "publish-s3", args = [
         "fsarchiver",

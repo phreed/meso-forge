@@ -1,4 +1,4 @@
-name: Publish packages
+name: Publish packages (CI)
 
 # this is important for trusted publishing
 permissions:
