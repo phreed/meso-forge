@@ -114,6 +114,69 @@ cmd = [
 [tasks.test-status]
 cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
 
+[tasks.publish-status]
+cmd = ["nu", "-c", "use .scripts/publish_package.nu *; publish-status"]
+
+[tasks.publish-all-pd]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.publish-all-s3]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method s3 --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.publish-pd-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=pd",
+    "--target-platform={{ tgt_platform }}",
+    "--dry-run",
+]
+
+[tasks.publish-s3-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=s3",
+    "--target-platform={{ tgt_platform }}",
+    "--dry-run",
+]
+
+[tasks.publish-all-pd-dry]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error --dry-run",
+]
+
+[tasks.publish-all-s3-dry]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method s3 --platform {{ tgt_platform }} --continue-on-error --dry-run",
+]
+
 [tasks.build-skeletons]
 depends-on = [
     { task = "build", args = [
@@ -259,25 +322,25 @@ args = [
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    "-c",
-    "use .scripts/manifest_utils.nu *; let conda_file = (get-package-path {{ pkg }} --platform {{ tgt_platform }}); if not ($conda_file | is-empty) { ^rattler-build upload prefix --skip-existing -vvv --channel meso-forge $conda_file } else { print 'Package {{ pkg }} not found in manifest for platform {{ tgt_platform }}' }",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=pd",
+    "--target-platform={{ tgt_platform }}",
 ]
-depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
 [tasks.publish-s3]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
-    { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
-    { arg = "channel", default = "s3://pixi/meso-forge" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    "-c",
-    "use .scripts/manifest_utils.nu *; let conda_file = (get-package-path {{ pkg }} --platform {{ tgt_platform }}); if not ($conda_file | is-empty) { ^rattler-build upload s3 --channel '{{ channel }}' --region auto --endpoint-url '{{ url }}' --force-path-style -vvv $conda_file } else { print 'Package {{ pkg }} not found in manifest for platform {{ tgt_platform }}' }",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=s3",
+    "--target-platform={{ tgt_platform }}",
 ]
-depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
 [tasks.publish-s3-local]
 args = [
@@ -381,55 +444,11 @@ depends-on = [
 
 
 [tasks.publish-all]
-depends-on = [
-    { task = "publish-pd", args = [
-        "asyncio",
-    ] },
-    { task = "publish-pd", args = [
-        "bash-preexec",
-    ] },
-    { task = "publish-pd", args = [
-        "digitalpy",
-    ] },
-    { task = "publish-s3", args = [
-        "dysk",
-    ] },
-    { task = "publish-s3", args = [
-        "fd",
-    ] },
-    { task = "publish-pd", args = [
-        "flask-jwt-extended",
-    ] },
-    { task = "publish-pd", args = [
-        "gtksourceview5",
-    ] },
-    { task = "publish-pd", args = [
-        "freetakserver",
-    ] },
-    { task = "publish-pd", args = [
-        "freetakserver-ui",
-    ] },
-    { task = "publish-s3", args = [
-        "fsarchiver",
-    ] },
-    { task = "publish-pd", args = [
-        "gtksourceview5",
-    ] },
-    { task = "publish-pd", args = [
-        "node-red",
-    ] },
-    { task = "publish-pd", args = [
-        "node-red-worldmap",
-    ] },
-    { task = "publish-s3", args = [
-        "pwgen",
-    ] },
-    { task = "publish-pd", args = [
-        "ratatui",
-    ] },
-    { task = "publish-s3", args = [
-        "testresources",
-    ] },
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error",
 ]
 
 
