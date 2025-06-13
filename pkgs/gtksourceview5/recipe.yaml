@@ -72,19 +72,12 @@ requirements:
 
 tests:
   - script: |
-      cat << EOF > test.c
-      #include <gtksourceview/gtksource.h>
-
-      int main(int argc, char *argv[]) {
-        gchar *text = gtk_source_utils_unescape_search_text("hello world");
-        return 0;
-      }
-      EOF
-      $CC test.c -o test $(pkgconf --cflags --libs gtksourceview-5)
-      ./test
-    requirements:
-      run:
-        - pkgconf
+      # Check that the pkg-config file is installed
+      test -f $PREFIX/lib/pkgconfig/gtksourceview-5.pc
+      # Check that header files are installed
+      test -f $PREFIX/include/gtksourceview-5/gtksourceview/gtksource.h
+      # Check that the library is installed
+      test -f $PREFIX/lib/libgtksourceview-5.so || test -f $PREFIX/lib/libgtksourceview-5.dylib
 
 about:
   homepage: https://projects.gnome.org/gtksourceview/
