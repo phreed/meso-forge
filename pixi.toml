@@ -133,71 +133,6 @@ depends-on = [
     ] },
 ]
 
-[tasks.build-all]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-depends-on = [
-    { task = "build", args = [
-        "asyncio",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "bash-preexec",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "digitalpy",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "dysk",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "fd",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "flask-jwt-extended",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "gtksourceview5",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "freetakserver",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "freetakserver-ui",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "fsarchiver",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "node-red",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "node-red-worldmap",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "pwgen",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "ratatui",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "testresources",
-        "{{ tgt_platform }}",
-    ] },
-]
-
 [tasks.build-wip]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
@@ -247,6 +182,71 @@ depends-on = [
     ] },
     { task = "build", args = [
         "systemd-pixi-generator",
+        "{{ tgt_platform }}",
+    ] },
+]
+
+[tasks.build-all]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+depends-on = [
+    { task = "build", args = [
+        "asyncio",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "bash-preexec",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "digitalpy",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "dysk",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "fd",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "flask-jwt-extended",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "freetakserver",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "freetakserver-ui",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "fsarchiver",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "gtksourceview5",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "node-red",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "node-red-worldmap",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "pwgen",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "ratatui",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "testresources",
         "{{ tgt_platform }}",
     ] },
 ]
@@ -339,16 +339,10 @@ depends-on = [
     ] },
 ]
 
-[tasks.publish-all]
+[tasks.publish-wip]
 depends-on = [
     { task = "publish-s3", args = [
         "asciidoctor-revealjs",
-    ] },
-    { task = "publish-pd", args = [
-        "asyncio",
-    ] },
-    { task = "publish-pd", args = [
-        "bash-preexec",
     ] },
     { task = "publish-s3", args = [
         "bitwarden-cli",
@@ -356,38 +350,11 @@ depends-on = [
     { task = "publish-s3", args = [
         "devcontainer-cli",
     ] },
-    { task = "publish-pd", args = [
-        "digitalpy",
-    ] },
-    { task = "publish-s3", args = [
-        "dysk",
-    ] },
-    { task = "publish-s3", args = [
-        "fd",
-    ] },
-    { task = "publish-pd", args = [
-        "flask-jwt-extended",
-    ] },
-    { task = "publish-pd", args = [
-        "testresources",
-    ] },
-    { task = "publish-pd", args = [
-        "freetakserver",
-    ] },
-    { task = "publish-pd", args = [
-        "freetakserver-ui",
-    ] },
-    { task = "publish-pd", args = [
-        "gtksourceview5",
-    ] },
-    { task = "publish-s3", args = [
-        "fsarchiver",
-    ] },
     { task = "publish-s3", args = [
         "iamb",
     ] },
     { task = "publish-s3", args = [
-        "internxt",
+        "internxt-cli",
     ] },
     { task = "publish-s3", args = [
         "jank",
@@ -402,10 +369,51 @@ depends-on = [
         "metashell",
     ] },
     { task = "publish-s3", args = [
-        "mumble",
+        "mumble-voip",
     ] },
     { task = "publish-s3", args = [
         "neovide",
+    ] },
+    { task = "publish-s3", args = [
+        "systemd-pixi-generator",
+    ] },
+]
+
+
+[tasks.publish-all]
+depends-on = [
+    { task = "publish-pd", args = [
+        "asyncio",
+    ] },
+    { task = "publish-pd", args = [
+        "bash-preexec",
+    ] },
+    { task = "publish-pd", args = [
+        "digitalpy",
+    ] },
+    { task = "publish-s3", args = [
+        "dysk",
+    ] },
+    { task = "publish-s3", args = [
+        "fd",
+    ] },
+    { task = "publish-pd", args = [
+        "flask-jwt-extended",
+    ] },
+    { task = "publish-pd", args = [
+        "gtksourceview5",
+    ] },
+    { task = "publish-pd", args = [
+        "freetakserver",
+    ] },
+    { task = "publish-pd", args = [
+        "freetakserver-ui",
+    ] },
+    { task = "publish-s3", args = [
+        "fsarchiver",
+    ] },
+    { task = "publish-pd", args = [
+        "gtksourceview5",
     ] },
     { task = "publish-pd", args = [
         "node-red",
@@ -420,7 +428,7 @@ depends-on = [
         "ratatui",
     ] },
     { task = "publish-s3", args = [
-        "systemd-pixi-generator",
+        "testresources",
     ] },
 ]
 
