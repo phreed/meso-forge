@@ -82,23 +82,37 @@ cmd = ["python", ".scripts/generate_readmes.py"]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
-    { arg = "pkg_dir", default = "./pkgs" },
 ]
 cmd = [
-    "rattler-build",
-    "build",
-    "--recipe-dir",
-    "./{{ pkg_dir }}/{{ pkg }}",
-    "--output-dir",
-    "./pkgs-out",
-    "--skip-existing=local",
+    "nu",
+    ".scripts/build_and_track.nu",
+    "{{ pkg }}",
     "--target-platform={{ tgt_platform }}",
-    "--channel",
-    "https://prefix.dev/meso-forge",
-    "--channel",
-    "conda-forge",
-    "-vvv",
+    "--no-test",
 ]
+
+[tasks.test]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/test_package.nu",
+    "{{ pkg }}",
+    "--target-platform={{ tgt_platform }}",
+]
+
+[tasks.test-all]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/test_package.nu *; test-all --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.test-status]
+cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
 
 [tasks.build-skeletons]
 depends-on = [
@@ -246,7 +260,7 @@ args = [
 cmd = [
     "nu",
     "-c",
-    "use .scripts/manage_conda_file.nu *; let conda_file = (find-conda-file {{ pkg }} {{ tgt_platform }} --quiet); if not ($conda_file | is-empty) { ^rattler-build upload prefix --skip-existing -vvv --channel meso-forge $conda_file } else { print 'No conda file found' }",
+    "use .scripts/manifest_utils.nu *; let conda_file = (get-package-path {{ pkg }} --platform {{ tgt_platform }}); if not ($conda_file | is-empty) { ^rattler-build upload prefix --skip-existing -vvv --channel meso-forge $conda_file } else { print 'Package {{ pkg }} not found in manifest for platform {{ tgt_platform }}' }",
 ]
 depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
@@ -261,7 +275,7 @@ args = [
 cmd = [
     "nu",
     "-c",
-    "use .scripts/manage_conda_file.nu *; let conda_file = (find-conda-file {{ pkg }} {{ tgt_platform }} --quiet); if not ($conda_file | is-empty) { ^rattler-build upload s3 --channel '{{ channel }}' --region auto --endpoint-url '{{ url }}' --force-path-style -vvv $conda_file } else { print 'No conda file found' }",
+    "use .scripts/manifest_utils.nu *; let conda_file = (get-package-path {{ pkg }} --platform {{ tgt_platform }}); if not ($conda_file | is-empty) { ^rattler-build upload s3 --channel '{{ channel }}' --region auto --endpoint-url '{{ url }}' --force-path-style -vvv $conda_file } else { print 'Package {{ pkg }} not found in manifest for platform {{ tgt_platform }}' }",
 ]
 depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
@@ -280,6 +294,13 @@ depends-on = [
         "s3://pixi-local/meso-forge",
     ] },
 ]
+
+
+[tasks.list-manifest]
+cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-summary"]
+
+[tasks.clean-manifest]
+cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-cleanup"]
 
 
 [tasks.index]
