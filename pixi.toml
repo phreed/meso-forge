@@ -30,7 +30,11 @@ args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
-cmd = ["rm", "pkgs-out/*/{{ pkg }}*.conda"]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/manage_conda_file.nu *; if (conda-file-exists {{ pkg }} {{ tgt_platform }}) { remove-conda-file {{ pkg }} {{ tgt_platform }} } else { print 'No conda file found for {{ pkg }} on {{ tgt_platform }}' }",
+]
 
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out"]
@@ -119,14 +123,6 @@ depends-on = [
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
-        "asciidoctor",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "asciidoctor-pdf",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "asyncio",
         "{{ tgt_platform }}",
     ] },
@@ -151,7 +147,7 @@ depends-on = [
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
-        "testresources",
+        "gtksourceview5",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
@@ -182,57 +178,62 @@ depends-on = [
         "ratatui",
         "{{ tgt_platform }}",
     ] },
+    { task = "build", args = [
+        "testresources",
+        "{{ tgt_platform }}",
+    ] },
 ]
 
 [tasks.build-wip]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
         "asciidoctor-revealjs",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "bitwarden-cli",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "devcontainer-cli",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "iamb",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "internxt-cli",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "jank",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "kombose",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "mediamtx",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "metashell",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "mumble-voip",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "neovide",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "systemd-pixi-generator",
-        "linux-64",
+        "{{ tgt_platform }}",
     ] },
 ]
 
@@ -243,51 +244,38 @@ args = [
 ]
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
-    "rattler-build",
-    "upload",
-    "prefix",
-    "--skip-existing",
-    "-vvv",
-    "--channel",
-    "meso-forge",
-    "pkgs-out/*/{{ pkg }}*.conda",
-    "||",
-    "true",
+    "nu",
+    "-c",
+    "use .scripts/manage_conda_file.nu *; let conda_file = (find-conda-file {{ pkg }} {{ tgt_platform }} --quiet); if not ($conda_file | is-empty) { ^rattler-build upload prefix --skip-existing -vvv --channel meso-forge $conda_file } else { print 'No conda file found' }",
 ]
-# depends-on = [
-#   { task = "build", args = ['{{ pkg }}', "linux-64"] },
-# ]
+depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
 [tasks.publish-s3]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
     { arg = "channel", default = "s3://pixi/meso-forge" },
+    { arg = "tgt_platform", default = "linux-64" },
 ]
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
-    "rattler-build",
-    "upload",
-    "s3",
-    "--channel",
-    "{{ channel }}",
-    "--region",
-    "auto",
-    "--endpoint-url",
-    "{{ url }}",
-    "--force-path-style",
-    "-vvv",
-    "pkgs-out/*/{{ pkg }}-*-*.conda",
-    "||",
-    "true",
+    "nu",
+    "-c",
+    "use .scripts/manage_conda_file.nu *; let conda_file = (find-conda-file {{ pkg }} {{ tgt_platform }} --quiet); if not ($conda_file | is-empty) { ^rattler-build upload s3 --channel '{{ channel }}' --region auto --endpoint-url '{{ url }}' --force-path-style -vvv $conda_file } else { print 'No conda file found' }",
 ]
-depends-on = [{ task = "build", args = ["{{ pkg }}", "linux-64"] }]
+depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
 [tasks.publish-s3-local]
-args = [{ arg = "pkg", default = "_skeleton_python" }]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
 depends-on = [
-    { task = "index", args = [
+    { task = "build", args = [
         "{{ pkg }}",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "index", args = [
         "http://127.0.0.1",
         "s3://pixi-local/meso-forge",
     ] },
@@ -367,6 +355,9 @@ depends-on = [
     ] },
     { task = "publish-pd", args = [
         "freetakserver-ui",
+    ] },
+    { task = "publish-pd", args = [
+        "gtksourceview",
     ] },
     { task = "publish-s3", args = [
         "fsarchiver",

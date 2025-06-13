@@ -34,9 +34,6 @@ requirements:
     - zlib
     - expat
     - fontconfig
-    - zlib
-    - expat
-    - fontconfig
     - xorg-xproto
     - xorg-kbproto
     - xorg-xextproto
