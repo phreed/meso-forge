@@ -1,39 +1,77 @@
-name: Build and Publish Packages (Deprecated)
+name: Build packages (CI)
 
-# ⚠️  DEPRECATED WORKFLOW ⚠️
-#
-# This workflow has been split into two separate workflows for better organization:
-# 1. build-packages-ci.yml - Builds packages and creates artifacts
-# 2. publish-packages.yml - Downloads artifacts and publishes packages
-#
-# This file is kept for reference but is no longer active.
-# Please use the new workflows instead.
+# this is important for trusted publishing
+permissions:
+  id-token: write
 
 on:
-  # Disabled - remove the 'on' triggers to prevent this workflow from running
+  push:
+    branches:
+      - packages
   workflow_dispatch:
-    inputs:
-      deprecated_notice:
-        description: "This workflow is deprecated. Use build-packages-ci.yml and publish-packages.yml instead."
-        required: false
-        default: "acknowledged"
+  pull_request:
+    branches:
+      - packages
 
 jobs:
-  deprecated-notice:
-    name: Deprecated Workflow Notice
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - { target: linux-64, os: ubuntu-24.04 }
+          # - { target: win-64, os: windows-latest }
+          # - { target: osx-64, os: macos-13 }
+          # - { target: osx-arm64, os: macos-14 }
+      fail-fast: false
+
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Show deprecation notice
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          pixi-version: v0.47.0
+          cache: true
+          # cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+          log-level: vvv
+          run-install: true
+          # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
+          auth-host: prefix.dev
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+
+      - name: Build all packages
+        env:
+          TARGET_PLATFORM: ${{ matrix.target }}
+        run: pixi run build-all $TARGET_PLATFORM
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.target }}
+          path: pkgs-out/
+          retention-days: 30
+          include-hidden-files: false
+          if-no-files-found: error
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - name: Check build results
         run: |
-          echo "🚨 This workflow is deprecated!"
-          echo ""
-          echo "Please use the new split workflows:"
-          echo "1. .github/workflows/build-packages-ci.yml - For building packages"
-          echo "2. .github/workflows/publish-packages.yml - For publishing packages"
-          echo ""
-          echo "The new workflows provide:"
-          echo "- Better separation of build and publish steps"
-          echo "- Artifact-based workflow communication"
-          echo "- No publishing on pull requests"
-          echo "- Ability to re-publish without rebuilding"
-          exit 1
+          echo "Build jobs completed with the following results:"
+          echo "Build job status: ${{ needs.build.result }}"
+
+          if [[ "${{ needs.build.result }}" == "failure" ]]; then
+            echo "❌ Some builds failed"
+            exit 1
+          elif [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ All builds completed successfully"
+          else
+            echo "⚠️ Build completed with status: ${{ needs.build.result }}"
+          fi
