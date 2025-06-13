@@ -20,6 +20,10 @@ rattler-index = ">=0.22.4,<0.23"
 nushell = ">=0.103.0,<0.104"
 typer = ">=0.16.0,<0.17"
 pyyaml = ">=6.0.2,<7"
+glib = ">=2.84.0,<3.0"
+glib-tools = ">=2.84.0,<3.0"
+libzlib = ">=1.3.0,<2.0"
+
 
 [tasks.clean]
 args = [
@@ -30,6 +34,35 @@ cmd = ["rm", "pkgs-out/*/{{ pkg }}*.conda"]
 
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out"]
+
+[tasks.clean-cache-pkgs]
+description = "Clean downloaded conda packages cache (~14GB)"
+cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/pkgs"]
+
+[tasks.clean-cache-envs]
+description = "Clean cached environments and build tool environments (~530MB)"
+cmd = [
+    "rm",
+    "-rf",
+    "$HOME/.cache/rattler/cache/cached-envs-v0",
+    "$HOME/.cache/rattler/cache/cached-build-tool-envs-v0",
+]
+
+[tasks.clean-cache-repodata]
+description = "Clean repository metadata cache (~472MB)"
+cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/repodata"]
+
+[tasks.clean-cache-all]
+description = "Clean all rattler system caches (~16GB)"
+cmd = ["rm", "-rf", "$HOME/.cache/rattler"]
+
+[tasks.clean-cache-source-builds]
+description = "Clean built packages from source cache (~1MB)"
+cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/source-builds-v0"]
+
+[tasks.clean-everything]
+description = "Clean all project outputs and system caches"
+depends-on = ["clean-all", "clean-cache-all"]
 
 [tasks.analyze-recipes]
 cmd = ["python", ".scripts/analyze_recipes.py"]

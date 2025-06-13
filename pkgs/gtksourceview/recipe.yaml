@@ -11,31 +11,34 @@ source:
 
 build:
   script: |
-    meson setup build --prefix=$PREFIX -Dintrospection=enabled -Dvapi=true
+    meson setup build --prefix=$PREFIX \
+      -Dintrospection=disabled \
+      -Dvapi=false \
+      -Dsysprof=false \
+      --wrap-mode=nofallback
     meson compile -C build --verbose
     meson install -C build
 
 requirements:
   build:
-    - "{{ compiler('c') }}"
-    - "{{ compiler('cxx') }}"
+    - c-compiler
+    - cxx-compiler
     - meson
     - ninja
     - pkgconf
-    - vala
+    - pkg-config
   host:
     - cairo
     - fontconfig
     - fribidi
     - gdk-pixbuf
     - glib
+    - libglib
+    - glib-tools
     - gtk4
     - pango
     - pcre2
-    - if: unix
-      then: libxml2
-    - if: osx
-      then: gettext
+    - libxml2
 
 tests:
   - script: |

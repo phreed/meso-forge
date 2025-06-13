@@ -13,6 +13,7 @@ GtkSourceView is a text widget that extends the standard GTK text widget GtkText
 == Links
 
 * Homepage: https://projects.gnome.org/gtksourceview/
+* Homebrew: https://formulae.brew.sh/formula/gtksourceview5
 
 == Package Information
 
