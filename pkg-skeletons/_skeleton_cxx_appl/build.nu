@@ -5,9 +5,6 @@
 #   build:
 #     script: build.nu
 
-# Enable strict error handling
-$env.config.shell.errors.external_command = 'halt'
-
 # Build configuration
 let config = {
     # Determine platform-specific settings
@@ -52,15 +49,15 @@ def "log info" [message: string] {
 }
 
 def "log warning" [message: string] {
-    print $"[($env.PKG_NAME)] WARNING: ($message)" | echo -e $"\e[33m($in)\e[0m"
+    print $"[(ansi yellow)($env.PKG_NAME)] WARNING: ($message)(ansi reset)"
 }
 
 def "log error" [message: string] {
-    print $"[($env.PKG_NAME)] ERROR: ($message)" | echo -e $"\e[31m($in)\e[0m"
+    print $"[(ansi red)($env.PKG_NAME)] ERROR: ($message)(ansi reset)"
 }
 
 def "log success" [message: string] {
-    print $"[($env.PKG_NAME)] SUCCESS: ($message)" | echo -e $"\e[32m($in)\e[0m"
+    print $"[(ansi green)($env.PKG_NAME)] SUCCESS: ($message)(ansi reset)"
 }
 
 # Function to detect build system
@@ -105,17 +102,17 @@ def build-cmake [] {
     if $config.is_windows {
         if (which cl | length) > 0 {
             # MSVC detected
-            $cmake_args = ($cmake_args | prepend "-G" | prepend "Visual Studio 17 2022")
+            $cmake_args = (["cmake", "-G", "Visual Studio 17 2022"] | append $cmake_args)
         } else {
             # MinGW or other
-            $cmake_args = ($cmake_args | prepend "-GNinja")
+            $cmake_args = (["cmake", "-GNinja"] | append $cmake_args)
         }
     } else {
         # Unix-like systems prefer Ninja if available
         if (which ninja | length) > 0 {
-            $cmake_args = ($cmake_args | prepend "-GNinja")
+            $cmake_args = (["cmake", "-GNinja"] | append $cmake_args)
         } else {
-            $cmake_args = ($cmake_args | prepend "-G" | prepend "Unix Makefiles")
+            $cmake_args = (["cmake", "-G", "Unix Makefiles"] | append $cmake_args)
         }
     }
 
@@ -145,7 +142,7 @@ def build-cmake [] {
 
     # Platform-specific options
     if $config.is_macos {
-        if ($env.MACOSX_DEPLOYMENT_TARGET? | is-not-empty) {
+        if ($env.MACOSX_DEPLOYMENT_TARGET? != null) {
             $cmake_args = ($cmake_args | append $"-DCMAKE_OSX_DEPLOYMENT_TARGET=($env.MACOSX_DEPLOYMENT_TARGET)")
         }
     } else if $config.is_linux {
@@ -155,32 +152,35 @@ def build-cmake [] {
     }
 
     # Add any extra CMAKE_ARGS from environment
-    if ($env.CMAKE_ARGS? | is-not-empty) {
-        $cmake_args = ($cmake_args | append ($env.CMAKE_ARGS | split row " "))
+    if ($env.CMAKE_ARGS? != null) and (($env.CMAKE_ARGS? | str trim | str length) > 0) {
+        $cmake_args = ($cmake_args | append ($env.CMAKE_ARGS | split row " " | where {|x| ($x | str trim | str length) > 0}))
     }
 
+    # Add source directory
+    $cmake_args = ($cmake_args | append $env.SRC_DIR)
+
     # Configure
-    log info $"Configuring with: cmake ($cmake_args | str join ' ')"
-    run-external cmake ...$cmake_args $env.SRC_DIR
+    log info $"Configuring with: ($cmake_args | str join ' ')"
+    run-external ...$cmake_args
 
     # Build
     log info $"Building with ($config.job_count) parallel jobs..."
-    run-external cmake --build . --parallel $config.job_count
+    run-external cmake "--build" "." "--parallel" ($config.job_count | into string)
 
     # Run tests if enabled
     if $config.build_tests {
         log info "Running tests..."
-        run-external ctest --output-on-failure --parallel $config.job_count
+        run-external ctest "--output-on-failure" "--parallel" ($config.job_count | into string)
     }
 
     # Install
     log info "Installing..."
-    run-external cmake --install .
+    run-external cmake "--install" "."
 
     # Install strip if in Release mode
     if $config.build_type == "Release" and not $config.is_windows {
         log info "Stripping binaries..."
-        run-external cmake --install . --strip
+        run-external cmake "--install" "." "--strip"
     }
 
     cd ..
@@ -219,21 +219,21 @@ def build-meson [] {
 
     # Build
     log info $"Building with ($config.job_count) parallel jobs..."
-    run-external meson compile -C builddir -j $config.job_count
+    run-external meson "compile" "-C" "builddir" "-j" ($config.job_count | into string)
 
     # Test if enabled
     if $config.build_tests {
         log info "Running tests..."
-        run-external meson test -C builddir
+        run-external meson "test" "-C" "builddir"
     }
 
     # Install
     log info "Installing..."
-    run-external meson install -C builddir
+    run-external meson "install" "-C" "builddir"
 
     # Strip binaries if in release mode
     if $config.build_type == "release" and not $config.is_windows {
-        run-external meson install -C builddir --strip
+        run-external meson "install" "-C" "builddir" "--strip"
     }
 }
 
@@ -244,7 +244,7 @@ def build-autotools [] {
     # Run autoreconf if configure doesn't exist
     if not ("configure" | path exists) and ("configure.ac" | path exists) {
         log info "Running autoreconf..."
-        run-external autoreconf -fiv
+        run-external autoreconf "-fiv"
     }
 
     # Configure arguments
@@ -272,25 +272,25 @@ def build-autotools [] {
 
     # Configure
     log info $"Configuring with: ./configure ($configure_args | str join ' ')"
-    run-external ./configure ...$configure_args
+    run-external sh "-c" $"./configure ($configure_args | str join ' ')"
 
     # Build
     log info $"Building with ($config.job_count) parallel jobs..."
-    run-external make -j $config.job_count
+    run-external make "-j" ($config.job_count | into string)
 
     # Test if enabled
-    if $config.build_tests and ("Makefile" | open | str contains "check:") {
+    if $config.build_tests and (open Makefile | str contains "check:") {
         log info "Running tests..."
-        run-external make check
+        run-external make "check"
     }
 
     # Install
     log info "Installing..."
-    run-external make install
+    run-external make "install"
 
     # Strip if in release mode
     if $config.build_type == "Release" and not $config.is_windows {
-        run-external make install-strip
+        run-external make "install-strip"
     }
 }
 
@@ -307,7 +307,7 @@ def build-make [] {
     # Prepare make arguments
     mut make_args = [
         $"PREFIX=($config.install_prefix)"
-        $"DESTDIR="
+        "DESTDIR="
         $"-j($config.job_count)"
     ]
 
@@ -323,7 +323,7 @@ def build-make [] {
 
     # Install
     log info "Installing..."
-    run-external make install ...$make_args
+    run-external make "install" $"PREFIX=($config.install_prefix)" "DESTDIR="
 }
 
 # Validate installation
@@ -333,7 +333,7 @@ def validate-installation [] {
     # Check for executables
     if ($config.bin_dir | path exists) {
         let executables = if $config.is_windows {
-            ls $config.bin_dir | where name =~ '\.exe$'
+            ls $config.bin_dir | where type == "file" | where name =~ '\.exe$'
         } else {
             ls $config.bin_dir | where type == "file"
         }
@@ -354,7 +354,7 @@ def validate-installation [] {
                             log warning $"Missing libraries for ($exe.name | path basename)"
                         }
                     } else if (which otool | length) > 0 and $config.is_macos {
-                        let otool_output = (run-external otool -L $exe_path | complete)
+                        let otool_output = (run-external otool "-L" $exe_path | complete)
                         if ($otool_output.exit_code != 0) {
                             log warning $"Failed to check libraries for ($exe.name | path basename)"
                         }
@@ -367,11 +367,11 @@ def validate-installation [] {
     # Check for libraries
     if ($config.lib_dir | path exists) {
         let libraries = if $config.is_windows {
-            ls $config.lib_dir | where name =~ '\.(dll|lib)$'
+            ls $config.lib_dir | where type == "file" | where name =~ '\.(dll|lib)$'
         } else if $config.is_macos {
-            ls $config.lib_dir | where name =~ '\.(dylib|a)$'
+            ls $config.lib_dir | where type == "file" | where name =~ '\.(dylib|a)$'
         } else {
-            ls $config.lib_dir | where name =~ '\.(so|a)$'
+            ls $config.lib_dir | where type == "file" | where name =~ '\.(so|a)$'
         }
 
         if ($libraries | length) > 0 {
@@ -385,7 +385,7 @@ def validate-installation [] {
 
     for dir in [$pc_dir, $pc_dir_alt] {
         if ($dir | path exists) {
-            let pc_files = (ls $dir | where name =~ '\.pc$')
+            let pc_files = (ls $dir | where type == "file" | where name =~ '\.pc$')
             if ($pc_files | length) > 0 {
                 log success $"Found ($pc_files | length) pkg-config files"
             }
@@ -393,8 +393,12 @@ def validate-installation [] {
     }
 
     # Check total installation size
-    let total_size = (ls $config.install_prefix -r | where type == "file" | get size | math sum)
-    log info $"Total installation size: ((($total_size / 1MB) * 100 | math round) / 100) MB"
+    let all_files = (ls $config.install_prefix --all | where type == "file")
+    if ($all_files | length) > 0 {
+        let total_size = ($all_files | get size | math sum)
+        let size_mb = (($total_size / 1048576) | math round --precision 2)
+        log info $"Total installation size: ($size_mb) MB"
+    }
 }
 
 # Post-installation fixes
@@ -407,7 +411,7 @@ def post-install-fixes [] {
         let binaries = (ls $config.bin_dir | where type == "file")
 
         for bin in $binaries {
-            run-external patchelf --set-rpath '$ORIGIN/../lib' $bin.name
+            run-external patchelf "--set-rpath" "$ORIGIN/../lib" $bin.name
         }
     }
 
