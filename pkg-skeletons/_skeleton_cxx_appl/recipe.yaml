@@ -12,7 +12,7 @@ package:
 source:
   # TODO: Replace with actual source URL
   url: https://github.com/example/${{ name }}/archive/v${{ version }}.tar.gz
-  sha256: 0000000000000000000000000000000000000000000000000000000000000000 # TODO: Update hash
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000" # TODO: Update hash
 
 build:
   number: 0
@@ -186,10 +186,9 @@ tests:
   # Test 3: Check for required files
   - package_contents:
       files:
-        exists:
-          # Executables location differs on Windows
-          - ${{ "Library/" if win }}bin/${{ name }}${{ ".exe" if win }}
-          # TODO: Add any other executables or support files
+        # Executables location differs on Windows
+        - ${{ "Library/" if win }}bin/${{ name }}${{ ".exe" if win }}
+        # TODO: Add any other executables or support files
 
 about:
   homepage: https://github.com/example/${{ name }} # TODO: Update URL
@@ -207,5 +206,4 @@ about:
 
 extra:
   recipe-maintainers:
-    - github-username # TODO: Ad
-d actual maintainer GitHub usernames
+    - github-username # TODO: Add actual maintainer GitHub usernames

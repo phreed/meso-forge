@@ -12,7 +12,7 @@ package:
 source:
   # TODO: Replace with actual source URL
   url: https://github.com/example/${{ name }}/archive/v${{ version }}.tar.gz
-  sha256: 0000000000000000000000000000000000000000000000000000000000000000 # TODO: Update hash
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000" # TODO: Update hash
 
 build:
   number: 0
@@ -111,14 +111,14 @@ build:
           let pc_file = ($pkgconfig_dir | path join $"($env.PKG_NAME).pc")
           if not ($pc_file | path exists) {
               $"prefix=($install_prefix)
-exec_prefix=$\{prefix}
-includedir=$\{prefix}/include
+                exec_prefix=$\{prefix}
+                includedir=$\{prefix}/include
 
-Name: ($env.PKG_NAME)
-Description: ($env.PKG_NAME) header-only library
-Version: ($env.PKG_VERSION)
-Cflags: -I$\{includedir}
-" | save -f $pc_file
+                Name: ($env.PKG_NAME)
+                Description: ($env.PKG_NAME) header-only library
+                Version: ($env.PKG_VERSION)
+                Cflags: -I$\{includedir}
+                " | str trim | save -f $pc_file
           }
       }
 
@@ -158,10 +158,9 @@ tests:
   # Test 2: Check that CMake config files are installed
   - package_contents:
       files:
-        exists:
-          # CMake config files location differs on Windows
-          - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}Config.cmake
-          - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}ConfigVersion.cmake
+        # CMake config files location differs on Windows
+        - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}Config.cmake
+        - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}ConfigVersion.cmake
 
   # Test 3: Compile a simple test program using nushell
   - script:
@@ -170,13 +169,15 @@ tests:
         print "Testing header-only library compilation..."
 
         # Create a minimal test program
-        let test_content = $"#include <($env.PKG_NAME)/core.hpp>
+        let test_content = $"
+        #include <($env.PKG_NAME)/core.hpp>
 
-int main() {
-    // TODO: Add minimal usage example
-    return 0;
-}
-"
+        int main() {
+            // TODO: Add minimal usage example
+            return 0;
+        }
+        " | str trim
+
         $test_content | save test.cpp
 
         # Determine include path
