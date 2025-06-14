@@ -149,19 +149,24 @@ cmd = [
 [tasks.build-skeletons]
 depends-on = [
     { task = "build", args = [
+        "_skeleton_go",
+        "linux-64",
+        "--pkg-dir=./pkg-skeletons",
+    ] },
+    { task = "build", args = [
         "_skeleton_js",
         "linux-64",
-        "pkg_skeleton",
+        "--pkg-dir=./pkg-skeletons",
     ] },
     { task = "build", args = [
         "_skeleton_python",
         "linux-64",
-        "pkg_skeleton",
+        "--pkg-dir=./pkg-skeletons",
     ] },
     { task = "build", args = [
         "_skeleton_rust",
         "linux-64",
-        "pkg_skeleton",
+        "--pkg-dir=./pkg-skeletons",
     ] },
 ]
 

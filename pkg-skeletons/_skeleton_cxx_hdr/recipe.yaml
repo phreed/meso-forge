@@ -2,60 +2,226 @@
 schema_version: 1
 
 context:
-  version: "0.24.6"
+  name: "my-header-library" # TODO: Replace with actual library name
+  version: "1.0.0" # TODO: Replace with actual version
 
 package:
-  name: xtensor
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/xtensor-stack/xtensor/archive/${{ version }}.tar.gz
-  sha256: f87259b51aabafdd1183947747edfff4cff75d55375334f2e81cee6dc68ef655
+  # TODO: Replace with actual source URL
+  url: https://github.com/example/${{ name }}/archive/v${{ version }}.tar.gz
+  sha256: 0000000000000000000000000000000000000000000000000000000000000000 # TODO: Update hash
 
 build:
   number: 0
+  # Using nushell for cross-platform builds
   script:
-    - if: win
-      then: |
-        cmake -GNinja ^
-          -D BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
-            %SRC_DIR%
-        ninja install
-      else: |
-        cmake -GNinja \
-          -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX \
-            $SRC_DIR
-        ninja install
+    interpreter: nu
+    env:
+      CMAKE_ARGS: ${{ CMAKE_ARGS }}
+    content: |
+      # Header-only libraries typically don't need compilation, just installation
+      print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Determine the correct install prefix based on platform
+      let install_prefix = if ($nu.os-info.name == "windows") {
+          $env.LIBRARY_PREFIX
+      } else {
+          $env.PREFIX
+      }
+
+      # Check if we have a CMake project
+      if ("CMakeLists.txt" | path exists) {
+          print "Building with CMake..."
+
+          # Create build directory
+          mkdir build
+          cd build
+
+          # Configure CMake
+          let cmake_args = if ($nu.os-info.name == "windows") {
+              [
+                  "-G", "Ninja",
+                  "-DBUILD_TESTS=OFF",
+                  "-DBUILD_EXAMPLES=OFF",
+                  $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+                  $env.SRC_DIR
+              ]
+          } else {
+              [
+                  "-GNinja",
+                  "-DBUILD_TESTS=OFF",
+                  "-DBUILD_EXAMPLES=OFF",
+                  $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+                  $env.SRC_DIR
+              ]
+          }
+
+          # Add any additional CMAKE_ARGS from environment
+          let cmake_cmd = if (($env.CMAKE_ARGS? | is-empty) == false) {
+              cmake ...$cmake_args ...($env.CMAKE_ARGS | split row " ")
+          } else {
+              cmake ...$cmake_args
+          }
+
+          # Install (no build needed for header-only)
+          run-external ninja install
+
+      } else if ("meson.build" | path exists) {
+          print "Building with Meson..."
+
+          # Configure with meson
+          meson setup builddir `
+              $"--prefix=($install_prefix)" `
+              --buildtype=release `
+              -Dtests=false `
+              -Dexamples=false
+
+          # Install
+          meson install -C builddir
+
+      } else {
+          print "No build system detected, performing manual installation..."
+
+          # Create necessary directories
+          let include_dir = ($install_prefix | path join "include")
+          let cmake_dir = ($install_prefix | path join "share" "cmake" $env.PKG_NAME)
+          let pkgconfig_dir = ($install_prefix | path join "share" "pkgconfig")
+
+          mkdir $include_dir
+          mkdir $cmake_dir
+          mkdir $pkgconfig_dir
+
+          # Copy headers
+          # TODO: Adjust these paths based on your library structure
+          if ("include" | path exists) {
+              cp -r include/* $include_dir
+          } else if ("src" | path exists) {
+              let lib_include_dir = ($include_dir | path join $env.PKG_NAME)
+              mkdir $lib_include_dir
+              # Copy all header files
+              ls src | where name =~ '\.(h|hpp|hxx)$' | each { |file|
+                  cp $file.name $lib_include_dir
+              }
+          }
+
+          # Generate a basic pkg-config file if none exists
+          let pc_file = ($pkgconfig_dir | path join $"($env.PKG_NAME).pc")
+          if not ($pc_file | path exists) {
+              $"prefix=($install_prefix)
+exec_prefix=$\{prefix}
+includedir=$\{prefix}/include
+
+Name: ($env.PKG_NAME)
+Description: ($env.PKG_NAME) header-only library
+Version: ($env.PKG_VERSION)
+Cflags: -I$\{includedir}
+" | save -f $pc_file
+          }
+      }
+
+      # Validate installation
+      print "Validating installation..."
+      let headers_found = (ls ($install_prefix | path join "include") -r | where name =~ '\.(h|hpp|hxx)$' | length)
+      print $"Found ($headers_found) header files"
+
+      if $headers_found == 0 {
+          error make {msg: "No headers were installed!"}
+      }
 
 requirements:
   build:
-    - ${{ compiler('cxx') }}
+    - nushell
+    - ${{ compiler('cxx') }} # Often needed for cmake configure checks
     - cmake
     - ninja
   host:
-    - xtl >=0.7,<0.8
+    # TODO: Add any header-only dependencies
+    # Example: - eigen
   run:
-    - xtl >=0.7,<0.8
+    # Header-only libraries typically need the same dependencies at runtime
+    # TODO: Add runtime dependencies (usually same as host for header-only)
   run_constraints:
-    - xsimd >=8.0.3,<10
+    # TODO: Add optional dependencies that should be version-constrained if present
+    # Example: - boost-cpp >=1.70
 
 tests:
-  # - package_contents:
-  #   include:
-  #     - xtensor/xarray.hpp
-  #     files:
-  #       - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfig.cmake
-  #       - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfigVersion.cmake
+  # Test 1: Check that key header files are installed
+  - package_contents:
+      include:
+        # TODO: Update with actual header paths
+        - ${{ name }}/core.hpp
+        - ${{ name }}/version.hpp
+
+  # Test 2: Check that CMake config files are installed
+  - package_contents:
+      files:
+        exists:
+          # CMake config files location differs on Windows
+          - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}Config.cmake
+          - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}ConfigVersion.cmake
+
+  # Test 3: Compile a simple test program using nushell
+  - script:
+      interpreter: nu
+      content: |
+        print "Testing header-only library compilation..."
+
+        # Create a minimal test program
+        let test_content = $"#include <($env.PKG_NAME)/core.hpp>
+
+int main() {
+    // TODO: Add minimal usage example
+    return 0;
+}
+"
+        $test_content | save test.cpp
+
+        # Determine include path
+        let include_path = if ($nu.os-info.name == "windows") {
+            ($env.LIBRARY_PREFIX | path join "include")
+        } else {
+            ($env.PREFIX | path join "include")
+        }
+
+        # Compile test
+        print $"Compiling with include path: ($include_path)"
+
+        if ($nu.os-info.name == "windows") {
+            # Windows compilation
+            run-external $env.CXX /std:c++14 $"/I($include_path)" test.cpp /Fe:test.exe
+            run-external test.exe
+        } else {
+            # Unix compilation
+            run-external $env.CXX -std=c++14 $"-I($include_path)" test.cpp -o test
+            run-external ./test
+        }
+
+        print "Test compilation successful!"
+
+  # Test 4: Verify pkg-config (Unix only)
+  - if: unix
+    then:
+      script:
+        - pkg-config --exists ${{ name }}
+        - pkg-config --modversion ${{ name }}
 
 about:
-  homepage: https://github.com/xtensor-stack/xtensor
-  license: BSD-3-Clause
-  license_file: LICENSE
-  summary: The C++ tensor algebra library
-  description: Multi dimensional arrays with broadcasting and lazy computing
-  documentation: https://xtensor.readthedocs.io
-  repository: https://github.com/xtensor-stack/xtensor
+  homepage: https://github.com/example/${{ name }} # TODO: Update URL
+  license: MIT # TODO: Update license
+  license_file: LICENSE # TODO: Verify license file name
+  summary: Short description of the header-only library # TODO: Update
+  description: |
+    A longer description of what this header-only C++ library does.
+    It can span multiple lines and should explain the key features
+    and use cases of the library.
+
+    TODO: Replace with actual description
+  documentation: https://example.github.io/${{ name }}/ # TODO: Update URL
+  repository: https://github.com/example/${{ name }} # TODO: Update URL
 
 extra:
   recipe-maintainers:
-    - some-maintainer
+    - github-username # TODO: Add actual maintainer GitHub usernames

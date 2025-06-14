@@ -1,0 +1,542 @@
+= C++ Application Skeleton
+:toc:
+:toc-placement!:
+
+This skeleton provides a template for packaging C++ applications using https://rattler.build[rattler-build] with https://www.nushell.sh[nushell] for cross-platform builds.
+
+toc::[]
+
+== Overview
+
+C++ applications are compiled programs that produce executable binaries. Unlike header-only libraries, they require:
+
+* Compilation of source files into object files
+* Linking against libraries (static or dynamic)
+* Installation of executables, libraries, and support files
+* Runtime dependencies for shared libraries
+
+This skeleton uses nushell as the build interpreter to ensure consistent behavior across Windows, macOS, and Linux platforms.
+
+== Quick Start
+
+. Copy this skeleton directory to your package location
+. Rename the directory from `_skeleton_cxx_appl` to your package name
+. Update the `recipe.yaml` file with your application's information
+. Replace all `TODO` comments with actual values
+
+== Recipe Structure
+
+=== Context Variables
+
+[source,yaml]
+----
+context:
+  name: "my-cpp-app"  # Replace with actual application name
+  version: "1.0.0"    # Replace with actual version
+----
+
+Using context variables allows easy reuse throughout the recipe.
+
+=== Source Section
+
+[source,yaml]
+----
+source:
+  url: https://github.com/example/${name}/archive/v${version}.tar.gz
+  sha256: <actual-sha256-hash>
+----
+
+Common source patterns:
+- GitHub releases: `https://github.com/owner/repo/archive/v${version}.tar.gz`
+- Official tarballs: `https://example.org/releases/${name}-${version}.tar.xz`
+- GitLab releases: `https://gitlab.com/owner/repo/-/archive/v${version}/${name}-v${version}.tar.gz`
+
+=== Build Section
+
+The build section uses nushell for cross-platform consistency:
+
+[source,yaml]
+----
+build:
+  number: 0
+  script:
+    interpreter: nu
+    env:
+      CMAKE_ARGS: ${{ CMAKE_ARGS }}
+      CPU_COUNT: ${{ nprocs }}
+    content: |
+      # Your nushell build script here
+----
+
+Key features:
+- Automatic detection of build systems (CMake, Make, Meson)
+- Platform-specific path handling
+- Parallel build support
+- Build validation
+
+==== Platform-Specific Paths
+
+[source,nu]
+----
+# Install prefix differs between platforms
+let install_prefix = if ($nu.os-info.name == "windows") {
+    $env.LIBRARY_PREFIX  # %LIBRARY_PREFIX% on Windows
+} else {
+    $env.PREFIX         # $PREFIX on Unix
+}
+
+# Binary directory
+let bin_dir = if ($nu.os-info.name == "windows") {
+    ($env.LIBRARY_PREFIX | path join "bin")
+} else {
+    ($env.PREFIX | path join "bin")
+}
+----
+
+=== Requirements
+
+==== Build Requirements
+
+Essential tools for building C++ applications:
+
+[source,yaml]
+----
+requirements:
+  build:
+    - nushell              # Build interpreter
+    - ${{ compiler('c') }} # C compiler
+    - ${{ compiler('cxx') }} # C++ compiler
+    - cmake                # Build system
+    - ninja                # Build tool
+    - pkg-config          # Library discovery
+----
+
+==== Host Requirements
+
+Libraries that your application links against:
+
+[source,yaml]
+----
+requirements:
+  host:
+    - libcurl    # Network operations
+    - openssl    # Cryptography
+    - boost-cpp  # C++ utilities
+    - zlib       # Compression
+----
+
+==== Run Requirements
+
+Usually populated automatically via `run_exports` from host dependencies. Only add explicit run dependencies for:
+- Runtime-only tools
+- Optional features
+- Plugin systems
+
+=== Testing
+
+Comprehensive testing ensures the application works correctly:
+
+[source,yaml]
+----
+tests:
+  # Basic execution test
+  - script:
+      - myapp --version
+      - myapp --help
+
+  # Functionality test with nushell
+  - script:
+      interpreter: nu
+      content: |
+        # Create test input
+        "test data" | save input.txt
+
+        # Run application
+        run-external myapp process input.txt -o output.txt
+
+        # Verify output
+        let result = (open output.txt)
+        if $result != "expected output" {
+            error make {msg: "Test failed"}
+        }
+
+  # File existence test
+  - package_contents:
+      files:
+        exists:
+          - ${{ "Library/" if win }}bin/myapp${{ ".exe" if win }}
+----
+
+== Build System Examples
+
+=== CMake Projects
+
+Most modern C++ projects use CMake:
+
+[source,nu]
+----
+# Configure
+mut cmake_args = [
+    "-GNinja",
+    "-DCMAKE_BUILD_TYPE=Release",
+    $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+    "-DBUILD_TESTING=OFF",
+    "-DENABLE_FEATURE_X=ON",
+]
+
+# Add environment CMAKE_ARGS
+if (($env.CMAKE_ARGS? | is-empty) == false) {
+    $cmake_args = ($cmake_args | append ($env.CMAKE_ARGS | split row " "))
+}
+
+# Configure, build, install
+run-external cmake ...$cmake_args $env.SRC_DIR
+run-external cmake --build . --parallel $env.CPU_COUNT
+run-external cmake --install .
+----
+
+=== Make Projects
+
+Traditional Make-based projects:
+
+[source,nu]
+----
+# Configure if needed
+if ("configure" | path exists) {
+    run-external ./configure --prefix=$install_prefix
+}
+
+# Build and install
+run-external make -j $env.CPU_COUNT
+run-external make install PREFIX=$install_prefix
+----
+
+=== Meson Projects
+
+Modern Meson build system:
+
+[source,nu]
+----
+# Configure
+meson setup builddir `
+    $"--prefix=($install_prefix)" `
+    --buildtype=release `
+    -Dfeature_x=enabled
+
+# Build and install
+meson compile -C builddir -j $env.CPU_COUNT
+meson install -C builddir
+----
+
+== Common Patterns
+
+=== GUI Applications
+
+For applications with graphical interfaces:
+
+[source,yaml]
+----
+requirements:
+  host:
+    # Qt applications
+    - qt-main
+    - qt-svg
+    - qt-multimedia
+
+    # GTK applications
+    - gtk3
+    - glib
+    - pango
+
+    # General graphics
+    - mesa  # OpenGL
+    - xorg-libx11  # X11 (Linux)
+----
+
+=== Console Applications
+
+For command-line tools:
+
+[source,yaml]
+----
+requirements:
+  host:
+    - ncurses  # Terminal UI
+    - readline # Command line editing
+----
+
+=== Network Applications
+
+For networked applications:
+
+[source,yaml]
+----
+requirements:
+  host:
+    - libcurl
+    - openssl
+    - libssh2
+    - c-ares  # Async DNS
+----
+
+=== Database Applications
+
+For database connectivity:
+
+[source,yaml]
+----
+requirements:
+  host:
+    - sqlite
+    - postgresql
+    - libpq
+    - mariadb-connector-c
+----
+
+== Debugging Build Issues
+
+=== Verbose Output
+
+Enable verbose output for debugging:
+
+[source,nu]
+----
+# CMake verbose
+cmake --build . --verbose
+
+# Make verbose
+make V=1
+
+# Ninja verbose
+ninja -v
+----
+
+=== Finding Dependencies
+
+Debug missing dependencies:
+
+[source,nu]
+----
+# List pkg-config packages
+pkg-config --list-all
+
+# Check specific package
+pkg-config --exists libcurl
+pkg-config --modversion libcurl
+pkg-config --cflags --libs libcurl
+
+# CMake package discovery
+cmake --find-package -DNAME=Boost -DCOMPILER_ID=GNU -DLANGUAGE=CXX -DMODE=EXIST
+----
+
+=== Library Paths
+
+Check library paths:
+
+[source,nu]
+----
+# Print library search paths
+if ($nu.os-info.name == "linux") {
+    print $"LD_LIBRARY_PATH: ($env.LD_LIBRARY_PATH?)"
+} else if ($nu.os-info.name == "macos") {
+    print $"DYLD_LIBRARY_PATH: ($env.DYLD_LIBRARY_PATH?)"
+} else if ($nu.os-info.name == "windows") {
+    print $"PATH: ($env.PATH)"
+}
+
+# List installed libraries
+ls ($install_prefix | path join "lib") | where name =~ '\.(so|dylib|a|dll)$'
+----
+
+== Platform-Specific Considerations
+
+=== Windows
+
+Special considerations for Windows builds:
+
+[source,nu]
+----
+# Use LIBRARY_PREFIX for installations
+let prefix = $env.LIBRARY_PREFIX
+
+# Handle Visual Studio generator
+if (which cl | length) > 0 {
+    # MSVC compiler detected
+    cmake -G "Visual Studio 17 2022" ...
+} else {
+    # MinGW or other
+    cmake -G "Ninja" ...
+}
+
+# Windows-specific defines
+"-DWIN32_LEAN_AND_MEAN"
+"-DNOMINMAX"
+----
+
+=== macOS
+
+Special considerations for macOS:
+
+[source,nu]
+----
+# Handle SDK paths
+if ($nu.os-info.name == "macos") {
+    # Add SDK path if needed
+    $cmake_args = ($cmake_args | append "-DCMAKE_OSX_SYSROOT=/path/to/sdk")
+
+    # Set deployment target
+    $cmake_args = ($cmake_args | append "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15")
+}
+
+# Framework dependencies
+requirements:
+  host:
+    - darwin-framework-corefoundation  # macOS only
+----
+
+=== Linux
+
+Special considerations for Linux:
+
+[source,nu]
+----
+# RPATH handling
+"-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON"
+"-DCMAKE_BUILD_RPATH_USE_ORIGIN=ON"
+
+# System libraries
+requirements:
+  host:
+    - xorg-libx11
+    - xorg-libxext
+    - libxcb
+----
+
+== Real-World Examples
+
+=== Example 1: CLI Tool with Subcommands
+
+[source,yaml]
+----
+tests:
+  - script:
+      interpreter: nu
+      content: |
+        # Test main command
+        run-external mytool --version | lines | first | str contains $env.PKG_VERSION
+
+        # Test subcommands
+        run-external mytool list --format json | from json | length | $in > 0
+        run-external mytool process input.txt --verbose
+
+        # Test error handling
+        let result = (run-external mytool invalid-command | complete)
+        if $result.exit_code == 0 {
+            error make {msg: "Should have failed on invalid command"}
+        }
+----
+
+=== Example 2: Server Application
+
+[source,nu]
+----
+# Install systemd service file (Linux)
+if ($nu.os-info.name == "linux") {
+    let service_dir = ($install_prefix | path join "lib" "systemd" "system")
+    mkdir $service_dir
+    cp $"($env.SRC_DIR)/contrib/myapp.service" $service_dir
+}
+
+# Install configuration
+let config_dir = ($install_prefix | path join "etc" $env.PKG_NAME)
+mkdir $config_dir
+cp $"($env.SRC_DIR)/config/default.conf" $config_dir
+----
+
+=== Example 3: Plugin-Based Application
+
+[source,nu]
+----
+# Install plugin directory
+let plugin_dir = ($install_prefix | path join "lib" $env.PKG_NAME "plugins")
+mkdir $plugin_dir
+
+# Build and install plugins
+for plugin in (ls $"($env.SRC_DIR)/plugins" | where type == "dir") {
+    cd $plugin.name
+    cmake -B build -DCMAKE_INSTALL_PREFIX=$install_prefix
+    cmake --build build
+    cmake --install build
+    cd ..
+}
+----
+
+== Troubleshooting
+
+=== Missing Headers
+
+[source,nu]
+----
+# Debug include paths
+cmake -LAH . | grep -i include
+
+# Check installed headers
+ls ($install_prefix | path join "include") -r
+----
+
+=== Linking Errors
+
+[source,nu]
+----
+# Check library dependencies (Linux/macOS)
+if (which ldd | length) > 0 {
+    ldd ($bin_dir | path join "myapp")
+} else if (which otool | length) > 0 {
+    otool -L ($bin_dir | path join "myapp")
+}
+
+# Windows
+if (which dumpbin | length) > 0 {
+    dumpbin /dependents ($bin_dir | path join "myapp.exe")
+}
+----
+
+=== Runtime Errors
+
+[source,nu]
+----
+# Set library path for testing
+if ($nu.os-info.name == "linux") {
+    with-env [LD_LIBRARY_PATH $"($install_prefix | path join 'lib'):($env.LD_LIBRARY_PATH?)"] {
+        run-external ./myapp
+    }
+}
+----
+
+== Best Practices
+
+. **Use CMAKE_ARGS**: Always append to CMAKE_ARGS rather than replacing it
+. **Parallel Builds**: Use `${{ nprocs }}` for optimal build speed
+. **Static Analysis**: Enable warnings and static analysis in debug builds
+. **License Files**: Always include and reference license files
+. **Documentation**: Build and install man pages or HTML docs if available
+. **Strip Binaries**: Consider stripping debug symbols for smaller packages
+. **RPATH**: Handle RPATH correctly for Linux builds
+
+== References
+
+- https://rattler.build/latest/[Rattler Build Documentation]
+- https://www.nushell.sh/book/[Nushell Book]
+- https://cmake.org/cmake/help/latest/[CMake Documentation]
+- https://mesonbuild.com/[Meson Build Documentation]
+- https://github.com/mamba-org/rattler-build/tree/main/examples[Rattler Build Examples]
+
+== Contributing
+
+When improving this skeleton:
+
+. Test with real C++ applications of varying complexity
+. Ensure cross-platform compatibility
+. Add helpful error messages and validation
+. Document any non-obvious patterns
+. Keep the nushell scripts readable and well-commented

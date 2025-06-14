@@ -1,0 +1,498 @@
+= Example: Packaging ccache with the C++ Application Skeleton
+:toc:
+:toc-placement!:
+
+This example demonstrates how to use the C++ application skeleton to package https://ccache.dev[ccache], a fast C/C++ compiler cache.
+
+toc::[]
+
+== Overview
+
+ccache is a compiler cache that speeds up recompilation by caching previous compilations. It's an excellent example because it:
+
+* Is a pure C++ application
+* Uses CMake as its build system
+* Has runtime dependencies (zlib, zstd)
+* Includes comprehensive tests
+* Produces command-line executables
+* Has good documentation
+
+== Step 1: Copy the Skeleton
+
+[source,bash]
+----
+cp -r meso-forge/pkg-skeletons/_skeleton_cxx_appl meso-forge/pkgs/ccache
+cd meso-forge/pkgs/ccache
+----
+
+== Step 2: Update recipe.yaml
+
+Here's the complete recipe.yaml for ccache:
+
+[source,yaml]
+----
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  name: "ccache"
+  version: "4.9.1"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ccache/ccache/releases/download/v${{ version }}/ccache-${{ version }}.tar.gz
+  sha256: 4c03bc840699127d16c3f0e6112e3f40ce6a230d5873daa78c60a59c7ef59d25
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    env:
+      CMAKE_ARGS: ${{ CMAKE_ARGS }}
+      CPU_COUNT: ${{ nprocs }}
+    content: |
+      print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Determine the correct install prefix based on platform
+      let install_prefix = if ($nu.os-info.name == "windows") {
+          $env.LIBRARY_PREFIX
+      } else {
+          $env.PREFIX
+      }
+
+      # Platform-specific binary directory
+      let bin_dir = if ($nu.os-info.name == "windows") {
+          ($env.LIBRARY_PREFIX | path join "bin")
+      } else {
+          ($env.PREFIX | path join "bin")
+      }
+
+      print "Building ccache with CMake..."
+
+      # Create build directory
+      mkdir build
+      cd build
+
+      # CMake configuration for ccache
+      mut cmake_args = [
+          "-GNinja",
+          "-DCMAKE_BUILD_TYPE=Release",
+          $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+          $"-DCMAKE_PREFIX_PATH=($install_prefix)",
+          # ccache-specific options
+          "-DENABLE_TESTING=OFF",  # Disable tests during build
+          "-DENABLE_DOCUMENTATION=OFF",  # Skip docs for now
+          "-DZSTD_FROM_INTERNET=OFF",  # Use system zstd
+          "-DREDIS_STORAGE_BACKEND=OFF",  # Disable Redis support
+      ]
+
+      # Add any additional CMAKE_ARGS from environment
+      if (($env.CMAKE_ARGS? | is-empty) == false) {
+          $cmake_args = ($cmake_args | append ($env.CMAKE_ARGS | split row " "))
+      }
+
+      # Configure
+      print "Configuring ccache..."
+      run-external cmake ...$cmake_args $env.SRC_DIR
+
+      # Build
+      print $"Building with ($env.CPU_COUNT) parallel jobs..."
+      run-external cmake --build . --parallel $env.CPU_COUNT
+
+      # Install
+      print "Installing..."
+      run-external cmake --install .
+
+      # Create symlinks for compiler names (Unix only)
+      if ($nu.os-info.name != "windows") {
+          print "Creating compiler symlinks..."
+          cd $bin_dir
+
+          let compilers = ["gcc", "g++", "cc", "c++", "clang", "clang++"]
+          for compiler in $compilers {
+              if not ($compiler | path exists) {
+                  run-external ln -s ccache $compiler
+              }
+          }
+      }
+
+      # Validate installation
+      print "Validating installation..."
+
+      let ccache_exe = if ($nu.os-info.name == "windows") {
+          ($bin_dir | path join "ccache.exe")
+      } else {
+          ($bin_dir | path join "ccache")
+      }
+
+      if not ($ccache_exe | path exists) {
+          error make {msg: "ccache executable was not installed!"}
+      }
+
+      # Test basic functionality
+      run-external $ccache_exe --version
+
+      print "Build completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+    - pkg-config
+  host:
+    - zlib
+    - zstd
+    - hiredis  # Optional: for Redis support
+  run:
+    # These are typically added automatically via run_exports
+
+tests:
+  # Test 1: Basic version and help commands
+  - script:
+      - ccache --version
+      - ccache --help
+      - ccache --show-config
+
+  # Test 2: Compiler wrapper functionality
+  - script:
+      interpreter: nu
+      content: |
+        print "Testing ccache functionality..."
+
+        # Create a simple C file
+        let test_content = '#include <stdio.h>
+int main() {
+    printf("Hello from ccache test!\\n");
+    return 0;
+}
+'
+        $test_content | save test.c
+
+        # Test compilation with ccache
+        if ($nu.os-info.name == "windows") {
+            # Windows test
+            run-external ccache cl /Fe:test.exe test.c
+            run-external test.exe
+        } else {
+            # Unix test
+            run-external ccache gcc -o test test.c
+            run-external ./test
+        }
+
+        # Check cache statistics
+        run-external ccache --show-stats
+
+        print "ccache test successful!"
+
+  # Test 3: Configuration test
+  - script:
+      interpreter: nu
+      content: |
+        # Test configuration
+        run-external ccache --set-config max_size=1G
+        let config = (run-external ccache --get-config max_size | str trim)
+        if $config != "1.0G" {
+            error make {msg: "Configuration test failed"}
+        }
+
+  # Test 4: Package contents verification
+  - package_contents:
+      files:
+        exists:
+          - ${{ "Library/" if win }}bin/ccache${{ ".exe" if win }}
+          # Man pages on Unix
+          - if: unix
+            then: share/man/man1/ccache.1
+
+about:
+  homepage: https://ccache.dev/
+  license: GPL-3.0-or-later
+  license_file: GPL-3.0.txt
+  summary: Fast C/C++ compiler cache
+  description: |
+    ccache is a compiler cache. It speeds up recompilation by caching
+    previous compilations and detecting when the same compilation is
+    being done again. Supported languages are C, C++, Objective-C and
+    Objective-C++.
+
+    Features:
+    - Supports GCC, Clang and MSVC
+    - Works with distributed compilation tools
+    - Automatic cache size management
+    - Compression with zstd
+    - Optional Redis storage backend
+
+  documentation: https://ccache.dev/documentation.html
+  repository: https://github.com/ccache/ccache
+
+extra:
+  recipe-maintainers:
+    - your-github-username
+----
+
+== Step 3: Build and Test
+
+Build the package:
+
+[source,bash]
+----
+# In the recipe directory
+rattler-build build --recipe recipe.yaml
+----
+
+== Common Customizations
+
+=== Feature Flags
+
+ccache has several optional features that can be enabled:
+
+[source,nu]
+----
+# Enable Redis support
+"-DREDIS_STORAGE_BACKEND=ON"
+
+# Enable documentation building
+"-DENABLE_DOCUMENTATION=ON"
+
+# Enable developer mode (more warnings)
+"-DDEV_MODE=ON"
+----
+
+=== Compiler Wrappers
+
+Different projects may need different compiler wrappers:
+
+[source,nu]
+----
+# Extended compiler list
+let compilers = [
+    "gcc", "g++", "cc", "c++",
+    "clang", "clang++",
+    "gcc-11", "g++-11",
+    "gcc-12", "g++-12",
+    "clang-15", "clang++-15",
+    "nvcc",  # CUDA compiler
+]
+----
+
+=== Platform-Specific Builds
+
+[source,nu]
+----
+# macOS-specific settings
+if $config.is_macos {
+    $cmake_args = ($cmake_args | append "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15")
+}
+
+# Windows-specific settings
+if $config.is_windows {
+    # Use static runtime on Windows
+    $cmake_args = ($cmake_args | append "-DSTATIC_LINK=ON")
+}
+----
+
+== Alternative Example: Building CMake Itself
+
+Here's how you would package CMake using the skeleton:
+
+[source,yaml]
+----
+context:
+  name: "cmake"
+  version: "3.28.1"
+
+source:
+  url: https://github.com/Kitware/CMake/releases/download/v${{ version }}/cmake-${{ version }}.tar.gz
+  sha256: <actual-hash>
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # Bootstrap CMake
+      if ($nu.os-info.name == "windows") {
+          run-external bootstrap.bat
+      } else {
+          run-external ./bootstrap --prefix=$env.PREFIX --parallel=$env.CPU_COUNT
+      }
+
+      # Build and install
+      run-external make -j $env.CPU_COUNT
+      run-external make install
+
+requirements:
+  build:
+    - nushell
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - make
+  host:
+    - libcurl
+    - expat
+    - zlib
+    - bzip2
+    - xz
+    - zstd
+    - libarchive
+    - libuv
+    - rhash
+----
+
+== Troubleshooting
+
+=== Issue: Missing Dependencies
+
+If the build fails due to missing dependencies:
+
+[source,nu]
+----
+# Check what CMake found
+cmake -LAH . | grep -i "found"
+
+# List all CMake variables
+cmake -LAH . > cmake_vars.txt
+open cmake_vars.txt | lines | where $it =~ "^--"
+----
+
+=== Issue: Linking Errors
+
+For linking issues:
+
+[source,nu]
+----
+# Check library dependencies
+if ($nu.os-info.name == "linux") {
+    ldd ($bin_dir | path join "ccache") | lines | where $it =~ "not found"
+} else if ($nu.os-info.name == "macos") {
+    otool -L ($bin_dir | path join "ccache")
+}
+
+# Check pkg-config
+pkg-config --libs zstd
+pkg-config --cflags zstd
+----
+
+=== Issue: Test Failures
+
+Debug test failures:
+
+[source,nu]
+----
+# Run with verbose output
+run-external ccache --verbose --version
+
+# Check environment
+print $"PATH: ($env.PATH)"
+print $"CC: ($env.CC?)"
+print $"CXX: ($env.CXX?)"
+
+# Test with specific compiler
+with-env [CC "gcc"] {
+    run-external ccache gcc --version
+}
+----
+
+=== Issue: Performance
+
+Optimize build performance:
+
+[source,nu]
+----
+# Use ccache for the build itself
+with-env [CC "ccache gcc", CXX "ccache g++"] {
+    cmake ...$cmake_args $env.SRC_DIR
+}
+
+# Enable unity builds for faster compilation
+"-DCMAKE_UNITY_BUILD=ON"
+
+# Use precompiled headers
+"-DCMAKE_PCH=ON"
+----
+
+== Advanced Patterns
+
+=== Multi-Output Packages
+
+For applications that produce libraries too:
+
+[source,yaml]
+----
+outputs:
+  - name: ccache
+    files:
+      - bin/ccache*
+      - share/man/man1/ccache.1
+
+  - name: libccache
+    files:
+      - lib/libccache*
+      - include/ccache/*.h
+      - share/cmake/ccache
+----
+
+=== Post-Install Scripts
+
+For complex setup requirements:
+
+[source,nu]
+----
+# Create default configuration
+let config_dir = ($install_prefix | path join "etc" "ccache")
+mkdir $config_dir
+
+let default_config = "max_size = 5G
+compression = true
+compression_level = 1
+"
+$default_config | save ($config_dir | path join "ccache.conf")
+
+# Create cache directory
+let cache_dir = ($install_prefix | path join "var" "cache" "ccache")
+mkdir $cache_dir
+----
+
+=== Integration Tests
+
+More comprehensive testing:
+
+[source,nu]
+----
+# Test with different compilers
+for compiler in ["gcc", "clang"] {
+    if (which $compiler | length) > 0 {
+        print $"Testing with ($compiler)..."
+
+        with-env [CC $"ccache ($compiler)"] {
+            # Compile test program twice
+            run-external $env.CC -c test.c -o test1.o
+            run-external $env.CC -c test.c -o test2.o
+
+            # Check cache hit
+            let stats = (run-external ccache --show-stats | parse -r 'Hits:\s+(\d+)')
+            if ($stats | length) > 0 and ($stats.0.captures.0 | into int) > 0 {
+                print $"  ✓ Cache hit with ($compiler)"
+            }
+        }
+    }
+}
+----
+
+== Summary
+
+This example demonstrates:
+
+1. ✅ Complete recipe structure for C++ applications
+2. ✅ Platform-specific build handling
+3. ✅ Dependency management
+4. ✅ Comprehensive testing
+5. ✅ Post-installation setup
+6. ✅ Troubleshooting techniques
+
+The skeleton provides a solid foundation for packaging any C++ application while allowing flexibility for project-specific requirements.

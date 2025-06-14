@@ -1,0 +1,390 @@
+= Example: Packaging nlohmann/json with the C++ Header-Only Skeleton
+:toc:
+:toc-placement!:
+
+This example demonstrates how to use the C++ header-only skeleton to package the popular https://github.com/nlohmann/json[nlohmann/json] library.
+
+toc::[]
+
+== Overview
+
+The nlohmann/json library is a modern C++ JSON parser that is:
+
+* Header-only (single include file option)
+* No dependencies beyond C++11
+* Extensive test suite
+* CMake integration
+* Well-documented
+
+This makes it an ideal example for demonstrating the skeleton.
+
+== Step 1: Copy the Skeleton
+
+[source,bash]
+----
+cp -r meso-forge/pkg-skeletons/_skeleton_cxx_hdr meso-forge/pkgs/nlohmann-json
+cd meso-forge/pkgs/nlohmann-json
+----
+
+== Step 2: Update recipe.yaml
+
+Here's the complete recipe.yaml for nlohmann/json:
+
+[source,yaml]
+----
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  name: "nlohmann-json"
+  version: "3.11.3"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/nlohmann/json/archive/v${{ version }}.tar.gz
+  sha256: a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    env:
+      CMAKE_ARGS: ${{ CMAKE_ARGS }}
+    content: |
+      print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Determine the correct install prefix based on platform
+      let install_prefix = if ($nu.os-info.name == "windows") {
+          $env.LIBRARY_PREFIX
+      } else {
+          $env.PREFIX
+      }
+
+      print "Building with CMake..."
+
+      # Create build directory
+      mkdir build
+      cd build
+
+      # Configure CMake - nlohmann/json specific options
+      let cmake_args = if ($nu.os-info.name == "windows") {
+          [
+              "-G", "Ninja",
+              "-DJSON_BuildTests=OFF",
+              "-DJSON_Install=ON",
+              "-DJSON_MultipleHeaders=ON",  # Install multi-file version too
+              $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+              $env.SRC_DIR
+          ]
+      } else {
+          [
+              "-GNinja",
+              "-DJSON_BuildTests=OFF",
+              "-DJSON_Install=ON",
+              "-DJSON_MultipleHeaders=ON",
+              $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+              $env.SRC_DIR
+          ]
+      }
+
+      # Add any additional CMAKE_ARGS from environment
+      let cmake_cmd = if (($env.CMAKE_ARGS? | is-empty) == false) {
+          cmake ...$cmake_args ...($env.CMAKE_ARGS | split row " ")
+      } else {
+          cmake ...$cmake_args
+      }
+
+      # Install (no build needed for header-only)
+      run-external ninja install
+
+      # Validate installation
+      print "Validating installation..."
+      let single_header = ($install_prefix | path join "include" "nlohmann" "json.hpp")
+      let multi_headers = (ls ($install_prefix | path join "include" "nlohmann") -r | where name =~ 'json.*\.hpp$' | length)
+
+      if not ($single_header | path exists) {
+          error make {msg: "Single header json.hpp was not installed!"}
+      }
+
+      print $"Found single header at ($single_header)"
+      print $"Found ($multi_headers) total header files installed"
+
+requirements:
+  build:
+    - nushell
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+  # nlohmann/json has no dependencies
+
+tests:
+  # Test 1: Check that the main header file is installed
+  - package_contents:
+      include:
+        - nlohmann/json.hpp
+        - nlohmann/json_fwd.hpp
+
+  # Test 2: Check that CMake config files are installed
+  - package_contents:
+      files:
+        exists:
+          - ${{ "Library/" if win }}share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake
+          - ${{ "Library/" if win }}share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake
+          - ${{ "Library/" if win }}share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake
+
+  # Test 3: Compile a simple test program
+  - script:
+      interpreter: nu
+      content: |
+        print "Testing nlohmann/json compilation..."
+
+        # Create a test program
+        let test_content = '#include <nlohmann/json.hpp>
+#include <iostream>
+
+using json = nlohmann::json;
+
+int main() {
+    // Create a JSON object
+    json j = {
+        {"name", "test"},
+        {"version", 1},
+        {"valid", true}
+    };
+
+    // Verify it works
+    if (j["name"] == "test") {
+        std::cout << "JSON library working!" << std::endl;
+        return 0;
+    }
+    return 1;
+}
+'
+        $test_content | save test.cpp
+
+        # Determine include path
+        let include_path = if ($nu.os-info.name == "windows") {
+            ($env.LIBRARY_PREFIX | path join "include")
+        } else {
+            ($env.PREFIX | path join "include")
+        }
+
+        # Compile and run test
+        print $"Compiling with include path: ($include_path)"
+
+        if ($nu.os-info.name == "windows") {
+            run-external $env.CXX /std:c++11 $"/I($include_path)" test.cpp /Fe:test.exe
+            run-external test.exe
+        } else {
+            run-external $env.CXX -std=c++11 $"-I($include_path)" test.cpp -o test
+            run-external ./test
+        }
+
+        print "Test compilation successful!"
+
+  # Test 4: Verify pkg-config (Unix only)
+  - if: unix
+    then:
+      script:
+        - pkg-config --exists nlohmann_json
+        - pkg-config --modversion nlohmann_json
+
+  # Test 5: Test CMake integration
+  - script:
+      interpreter: nu
+      content: |
+        print "Testing CMake integration..."
+
+        # Create a test CMakeLists.txt
+        let cmake_content = 'cmake_minimum_required(VERSION 3.1)
+project(test_json)
+
+find_package(nlohmann_json REQUIRED)
+
+add_executable(test_cmake test.cpp)
+target_link_libraries(test_cmake nlohmann_json::nlohmann_json)
+'
+        $cmake_content | save CMakeLists.txt
+
+        # Create simple test file
+        let test_content = '#include <nlohmann/json.hpp>
+int main() {
+    nlohmann::json j = "test";
+    return 0;
+}
+'
+        $test_content | save test.cpp
+
+        # Configure with CMake
+        let install_prefix = if ($nu.os-info.name == "windows") {
+            $env.LIBRARY_PREFIX
+        } else {
+            $env.PREFIX
+        }
+
+        mkdir cmake_test
+        cd cmake_test
+        cmake .. $"-DCMAKE_PREFIX_PATH=($install_prefix)"
+
+        print "CMake integration test successful!"
+
+about:
+  homepage: https://json.nlohmann.me/
+  license: MIT
+  license_file: LICENSE.MIT
+  summary: JSON for Modern C++
+  description: |
+    JSON for Modern C++ is a header-only library that provides a simple
+    and intuitive syntax for working with JSON in C++. It features:
+
+    - Intuitive syntax
+    - Trivial integration (single header)
+    - Serious testing with 100% code coverage
+    - Memory efficiency
+    - Speed comparable to rapidjson
+    - Unicode support
+    - Convenience functions for common use cases
+    - Wide compiler support (C++11 and later)
+
+  documentation: https://json.nlohmann.me/
+  repository: https://github.com/nlohmann/json
+
+extra:
+  recipe-maintainers:
+    - your-github-username
+----
+
+== Step 3: Build and Test
+
+Build the package:
+
+[source,bash]
+----
+# In the recipe directory
+rattler-build build --recipe recipe.yaml
+----
+
+== Common Customizations
+
+=== Single Header vs Multi-File
+
+Some libraries offer both options. For nlohmann/json:
+
+[source,nu]
+----
+# Install only single header
+"-DJSON_MultipleHeaders=OFF"
+
+# Install both versions (default)
+"-DJSON_MultipleHeaders=ON"
+----
+
+=== Optional Features
+
+Libraries may have optional features to enable/disable:
+
+[source,nu]
+----
+# Example: Enable implicit conversions (not recommended)
+"-DJSON_ImplicitConversions=ON"
+
+# Example: Disable diagnostics
+"-DJSON_Diagnostics=OFF"
+----
+
+=== Custom Installation Layout
+
+Some libraries need custom installation paths:
+
+[source,nu]
+----
+# Install to a subdirectory
+let target_include = ($install_prefix | path join "include" "vendor" $env.PKG_NAME)
+cmake $"-DCMAKE_INSTALL_INCLUDEDIR=($target_include)" ...
+----
+
+== Troubleshooting
+
+=== Issue: Headers in Wrong Location
+
+If headers are installed to the wrong location:
+
+[source,nu]
+----
+# Debug: List what was installed
+ls ($install_prefix | path join "include") -r | select name type
+
+# Fix: Manually move if needed
+let wrong_path = ($install_prefix | path join "include" "include")
+if ($wrong_path | path exists) {
+    cp -r ($wrong_path | path join "*") ($install_prefix | path join "include")
+    rm -r $wrong_path
+}
+----
+
+=== Issue: Missing CMake Files
+
+Some libraries need help generating CMake configs:
+
+[source,nu]
+----
+# Check if CMake files were generated
+let cmake_dir = ($install_prefix | path join "share" "cmake" $env.PKG_NAME)
+if not ($cmake_dir | path exists) {
+    # Use the generate-cmake-config function from build.nu
+    generate-cmake-config $install_prefix $env.PKG_NAME $env.PKG_VERSION
+}
+----
+
+=== Issue: Compiler Version Requirements
+
+For libraries requiring specific C++ standards:
+
+[source,nu]
+----
+# Add to CMake args
+"-DCMAKE_CXX_STANDARD=17"
+"-DCMAKE_CXX_STANDARD_REQUIRED=ON"
+
+# Or check in build script
+if ($env.CXX_STANDARD? | default "11" | into int) < 14 {
+    error make {msg: "This library requires C++14 or later"}
+}
+----
+
+== Alternative Example: Header-Only Boost Libraries
+
+For Boost header-only libraries:
+
+[source,yaml]
+----
+context:
+  name: "boost-beast"  # Header-only HTTP/WebSocket library
+  version: "1.84.0"
+
+source:
+  url: https://github.com/boostorg/beast/archive/boost-${{ version }}.tar.gz
+  sha256: <hash>
+
+requirements:
+  host:
+    - boost-cpp  # For core boost headers
+  run:
+    - boost-cpp
+----
+
+== Summary
+
+This example demonstrates:
+
+1. ✅ Basic skeleton usage
+2. ✅ Platform-specific handling with nushell
+3. ✅ CMake integration
+4. ✅ Comprehensive testing
+5. ✅ Common customization points
+6. ✅ Troubleshooting techniques
+
+The skeleton handles most common cases automatically while providing flexibility for library-specific requirements.

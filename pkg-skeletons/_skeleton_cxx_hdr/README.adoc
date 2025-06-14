@@ -1,0 +1,427 @@
+= C++ Header-Only Library Skeleton
+:toc:
+:toc-placement!:
+
+This skeleton provides a template for packaging C++ header-only libraries using https://rattler.build[rattler-build] with https://www.nushell.sh[nushell] for cross-platform builds.
+
+toc::[]
+
+== Overview
+
+Header-only libraries are C++ libraries that consist entirely of header files (`.h`, `.hpp`, `.hxx`). They don't require compilation into object files or linking, making them easier to distribute but requiring all dependencies to be available at compile time for users.
+
+This skeleton uses nushell as the build interpreter to ensure consistent behavior across Windows, macOS, and Linux platforms.
+
+== Quick Start
+
+. Copy this skeleton directory to your package location
+. Rename the directory from `_skeleton_cxx_hdr` to your package name
+. Update the `recipe.yaml` file with your library's information
+. Replace all `TODO` comments with actual values
+
+== Recipe Structure
+
+=== Context Variables
+
+[source,yaml]
+----
+context:
+  name: "my-header-library"  # Replace with actual library name
+  version: "1.0.0"          # Replace with actual version
+----
+
+Using context variables allows easy reuse throughout the recipe.
+
+=== Source Section
+
+[source,yaml]
+----
+source:
+  url: https://github.com/example/${name}/archive/v${version}.tar.gz
+  sha256: <actual-sha256-hash>
+----
+
+For GitHub releases, common URL patterns include:
+- `https://github.com/owner/repo/archive/v${version}.tar.gz`
+- `https://github.com/owner/repo/archive/refs/tags/v${version}.tar.gz`
+- `https://github.com/owner/repo/releases/download/v${version}/${name}-${version}.tar.gz`
+
+=== Build Section
+
+The build section uses nushell for cross-platform consistency:
+
+[source,yaml]
+----
+build:
+  script:
+    interpreter: nu
+    env:
+      CMAKE_ARGS: ${{ CMAKE_ARGS }}
+    content: |
+      # Your nushell build script here
+----
+
+Key features of the nushell approach:
+- Single script works on all platforms (Windows, macOS, Linux)
+- Modern shell with structured data handling
+- Built-in cross-platform path handling
+- Clear error messages and debugging
+
+==== Platform Detection
+
+[source,nu]
+----
+# Determine the correct install prefix based on platform
+let install_prefix = if ($nu.os-info.name == "windows") {
+    $env.LIBRARY_PREFIX
+} else {
+    $env.PREFIX
+}
+----
+
+==== Build System Detection
+
+The skeleton automatically detects and handles different build systems:
+
+[source,nu]
+----
+if ("CMakeLists.txt" | path exists) {
+    print "Building with CMake..."
+    # CMake build logic
+} else if ("meson.build" | path exists) {
+    print "Building with Meson..."
+    # Meson build logic
+} else {
+    print "Manual installation..."
+    # Direct file copying
+}
+----
+
+=== Requirements
+
+==== Build Requirements
+
+[source,yaml]
+----
+requirements:
+  build:
+    - nushell              # Build interpreter
+    - ${compiler('cxx')}   # C++ compiler for configure checks
+    - cmake
+    - ninja
+----
+
+==== Host and Run Requirements
+
+For header-only libraries, dependencies needed at build time are usually also needed at runtime:
+
+[source,yaml]
+----
+requirements:
+  host:
+    - eigen
+    - boost-cpp
+  run:
+    - eigen
+    - boost-cpp
+----
+
+==== Run Constraints
+
+Use `run_constraints` for optional dependencies that should be version-locked if present:
+
+[source,yaml]
+----
+requirements:
+  run_constraints:
+    - boost-cpp >=1.70
+----
+
+=== Testing
+
+Include comprehensive tests to verify correct installation:
+
+[source,yaml]
+----
+tests:
+  # Check header files exist
+  - package_contents:
+      include:
+        - mylib/core.hpp
+        - mylib/version.hpp
+
+  # Check CMake config files
+  - package_contents:
+      files:
+        exists:
+          - ${{"Library/" if win}}share/cmake/mylib/mylibConfig.cmake
+
+  # Compile test with nushell
+  - script:
+      interpreter: nu
+      content: |
+        # Create and compile test program
+        let test_code = "#include <mylib/core.hpp>
+        int main() { return 0; }"
+
+        $test_code | save test.cpp
+
+        # Compile based on platform
+        if ($nu.os-info.name == "windows") {
+            run-external $env.CXX /std:c++14 test.cpp
+        } else {
+            run-external $env.CXX -std=c++14 test.cpp -o test
+        }
+----
+
+== Nushell Build Script Examples
+
+=== CMake Build
+
+[source,nu]
+----
+# Configure CMake
+let cmake_args = [
+    "-GNinja",
+    "-DBUILD_TESTS=OFF",
+    "-DBUILD_EXAMPLES=OFF",
+    $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+    $env.SRC_DIR
+]
+
+# Add any additional CMAKE_ARGS from environment
+if (($env.CMAKE_ARGS? | is-empty) == false) {
+    cmake ...$cmake_args ...($env.CMAKE_ARGS | split row " ")
+} else {
+    cmake ...$cmake_args
+}
+
+# Install
+run-external ninja install
+----
+
+=== Manual Installation
+
+[source,nu]
+----
+# Create directory structure
+let include_dir = ($install_prefix | path join "include")
+mkdir $include_dir
+
+# Copy headers with pattern matching
+ls src | where name =~ '\.(h|hpp|hxx)$' | each { |file|
+    cp $file.name $include_dir
+}
+
+# Generate pkg-config file
+$"prefix=($install_prefix)
+includedir=$\{prefix}/include
+
+Name: ($env.PKG_NAME)
+Version: ($env.PKG_VERSION)
+Cflags: -I$\{includedir}
+" | save -f ($pkgconfig_dir | path join $"($env.PKG_NAME).pc")
+----
+
+=== Error Handling
+
+[source,nu]
+----
+# Validate installation
+let headers_found = (
+    ls ($install_prefix | path join "include") -r
+    | where name =~ '\.(h|hpp|hxx)$'
+    | length
+)
+
+if $headers_found == 0 {
+    error make {msg: "No headers were installed!"}
+}
+----
+
+== Common Patterns
+
+=== Working with Paths
+
+Nushell provides excellent cross-platform path handling:
+
+[source,nu]
+----
+# Join paths safely
+let include_path = ($env.PREFIX | path join "include" $env.PKG_NAME)
+
+# Check existence
+if ($include_path | path exists) {
+    print $"Headers found at ($include_path)"
+}
+
+# Get directory listing
+ls $include_path | where type == "file"
+----
+
+=== Environment Variables
+
+[source,nu]
+----
+# Access environment variables
+print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)"
+
+# Set variables for subprocess
+with-env [CUSTOM_VAR "value"] {
+    run-external some-command
+}
+----
+
+=== Running External Commands
+
+[source,nu]
+----
+# Simple command
+run-external cmake --version
+
+# Command with arguments
+run-external cmake -S . -B build
+
+# Capture output
+let version = (run-external cmake --version | lines | first)
+----
+
+== Best Practices
+
+. **Use Structured Data**: Leverage nushell's tables and records for complex data
++
+[source,nu]
+----
+let build_configs = [
+    {name: "Release", flags: "-O3"}
+    {name: "Debug", flags: "-g -O0"}
+]
+----
+
+. **Path Safety**: Always use path join for cross-platform compatibility
++
+[source,nu]
+----
+# Good
+let file = ($dir | path join "subdir" "file.txt")
+
+# Avoid
+let file = $"($dir)/subdir/file.txt"
+----
+
+. **Error Messages**: Provide clear, actionable error messages
++
+[source,nu]
+----
+if not ("CMakeLists.txt" | path exists) {
+    error make {
+        msg: "No CMakeLists.txt found"
+        label: {
+            text: "Add CMake configuration"
+            span: (metadata $nothing).span
+        }
+    }
+}
+----
+
+. **Logging**: Use print statements for build progress
++
+[source,nu]
+----
+print $"[($env.PKG_NAME)] Configuring with CMake..."
+print $"[($env.PKG_NAME)] Installing to ($install_prefix)..."
+----
+
+== Troubleshooting
+
+=== Headers Not Found
+
+Check installation paths using nushell:
+
+[source,nu]
+----
+# List all installed headers
+ls ($env.PREFIX | path join "include") -r | where name =~ '\.hp{1,2}$'
+
+# Check specific directory
+ls ($env.LIBRARY_PREFIX | path join "include" $env.PKG_NAME)
+----
+
+=== Build Script Debugging
+
+Add debug output to your build script:
+
+[source,nu]
+----
+# Print environment info
+print $"OS: ($nu.os-info.name)"
+print $"Arch: ($nu.os-info.arch)"
+print $"PREFIX: ($env.PREFIX?)"
+print $"LIBRARY_PREFIX: ($env.LIBRARY_PREFIX?)"
+
+# List directory contents
+print "Source directory contents:"
+ls $env.SRC_DIR | select name type size
+----
+
+=== CMake Variables
+
+Debug CMake variables:
+
+[source,nu]
+----
+# Create a debug CMakeLists.txt
+"message(STATUS \"Install prefix: \${CMAKE_INSTALL_PREFIX}\")
+message(STATUS \"Source dir: \${CMAKE_SOURCE_DIR}\")
+" | save debug.cmake
+
+cmake -P debug.cmake
+----
+
+== Examples from meso-forge
+
+While meso-forge primarily contains application packages, here are relevant patterns:
+
+=== From `mumble-voip`
+
+[source,yaml]
+----
+build:
+  script:
+    interpreter: nu
+    content: |
+      cd src/mumble
+      cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      cd build
+      cmake --build . -j $env.JOB_CNT
+      cmake --install .
+----
+
+=== From `node-red`
+
+[source,yaml]
+----
+build:
+  script:
+    interpreter: nu
+    content: |
+      $"building ($env.PKG_NAME)!"
+      npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
+----
+
+== References
+
+- https://rattler.build/latest/[Rattler Build Documentation]
+- https://www.nushell.sh/book/[Nushell Book]
+- https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html[CMake Packages Documentation]
+- https://github.com/prefix-dev/rattler-build/tree/main/examples[Rattler Build Examples]
+
+== Contributing
+
+When improving this skeleton:
+
+. Test with real header-only libraries
+. Ensure cross-platform compatibility
+. Add helpful error messages
+. Document any non-obvious patterns
+. Keep the nushell scripts readable and well-commented

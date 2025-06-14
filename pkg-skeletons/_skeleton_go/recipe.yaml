@@ -2,50 +2,118 @@
 schema_version: 1
 
 context:
-  version: "0.13.1"
+  # TODO: Update these variables for your package
+  name: example-go-package
+  version: "1.0.0"
+  # GitHub organization or user
+  github_org: example-org
+  # GitHub repository name (often same as package name)
+  github_repo: example-repo
+  # Main package path relative to repo root (often ./cmd/[name] or just .)
+  main_package: ./cmd/example
+  # Binary name (what users will type to run the program)
+  binary_name: example
 
 package:
-  name: temporal
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/temporalio/cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74
+  # TODO: Update the URL and sha256 for your package
+  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: 0000000000000000000000000000000000000000000000000000000000000000
+  # Uncomment if the archive extracts to a non-standard directory
+  # target_directory: src/${{ github_repo }}
 
 build:
-  # The LDFLAGS are used to set the version of the `temporal` binary. This is a common practice in Go.
-  # Build the `temporal` binary and store it in the `$PREFIX/bin` directory.
-  # Store the license files in a separate directory in the $SRC_DIR.
-  # These are embedded in the package in the `license_file` section.
+  number: 0
   script:
     interpreter: nu
     content: |
-      echo "building sheleton_go!"
-      $env.LDFLAGS = ($env.LDFLAGS? | default "" | append $" -s -w -X github.com/temporalio/cli/temporalcli.Version=($env.PKG_VERSION)")
-      go build -ldflags $"($env.LDFLAGS)" -o $"($env.PREFIX)/bin/temporal" ./cmd/temporal
-      (go-licenses save ./cmd/temporal --save_path=($env.SRC_DIR)/license-files/ | complete | ignore)
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Change to source directory if using target_directory
+      # cd src/${{ github_repo }}
+
+      # Run go generate if the project uses it
+      # go generate ./...
+
+      # Set up LDFLAGS for optimized binary
+      mut ldflags = ["-s" "-w"]
+
+      # TODO: Add version injection if the program supports it
+      # Common patterns:
+      # $ldflags = ($ldflags | append $"-X main.version=($env.PKG_VERSION)")
+      # $ldflags = ($ldflags | append $"-X github.com/(${{ github_org }})/(${{ github_repo }})/internal/version.Version=($env.PKG_VERSION)")
+      # $ldflags = ($ldflags | append $"-X github.com/(${{ github_org }})/(${{ github_repo }})/cmd/(${{ binary_name }})/version.Version=($env.PKG_VERSION)")
+
+      let ldflags_str = ($ldflags | str join " ")
+
+      # Build the binary
+      # Use CGO_ENABLED=0 for static binaries without C dependencies
+      $env.CGO_ENABLED = "0"
+      go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/(${{ binary_name }})" ${{ main_package }}
+
+      # Collect licenses from all dependencies
+      print "Collecting dependency licenses..."
+      let license_dir = $"($env.SRC_DIR)/license-files"
+      mkdir $license_dir
+
+      # Save licenses, ignoring common problematic packages
+      (go-licenses save ${{ main_package }}
+        --save_path=$license_dir
+        --ignore=golang.org/x/sys/unix
+        --ignore=golang.org/x/crypto/internal/poly1305
+        | complete | ignore)
 
 requirements:
   build:
     - nushell
+    # Choose the appropriate Go compiler:
+    # For static binaries without C dependencies (recommended):
     - ${{ compiler('go-nocgo') }}
+    # For binaries that need to link against C libraries:
+    # - ${{ compiler('go-cgo') }}
+    # - ${{ compiler('c') }}  # Only needed with go-cgo
+
+    # Tool for collecting dependency licenses
     - go-licenses
+
+    # TODO: Add other build dependencies if needed
+    # - make
+    # - cmake
 
 tests:
   - script:
-    - temporal --version
+      # TODO: Update these tests for your specific binary
+      # Basic version check
+      - ${{ binary_name }} --version
+      # Or if version outputs to stderr:
+      # - ${{ binary_name }} --version 2>&1 | grep "${{ version }}"
+
+      # Basic help check
+      - ${{ binary_name }} --help
+
+      # TODO: Add more specific functionality tests
+      # - ${{ binary_name }} subcommand --flag
 
 about:
-  homepage: https://temporal.io
-  repository: https://github.com/temporalio/cli
-  documentation: https://docs.temporal.io/cli
-  summary: Temporal CLI
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://github.com/${{ github_org }}/${{ github_repo }}/blob/main/README.md
+  summary: Brief one-line description of the package
   description: |
-    Command-line interface for running Temporal Server and interacting with
-    Workflows, Activities, Namespaces, and other parts of Temporal.
+    A longer, multi-line description of what this package does.
+    Include key features, use cases, and any important notes.
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
   license: MIT
   license_file:
     - LICENSE
-    # These license files are generated at build time in the `build.sh` script
-    # from all the dependencies of `temporal.io`.
+    # Include collected dependency licenses
     - license-files/
+
+extra:
+  recipe-maintainers:
+    # TODO: Add your GitHub username
+    - github-username

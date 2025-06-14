@@ -1,0 +1,193 @@
+= Go Package Skeleton
+:toc:
+:toc-placement!:
+
+This is a template for creating conda packages from Go programs using https://rattler.build[rattler-build].
+
+toc::[]
+
+== Quick Start
+
+. Copy this directory to create your new package:
++
+[source,bash]
+----
+cp -r pkg-skeletons/_skeleton_go pkgs/my-go-package
+----
+
+. Edit `recipe.yaml` and update all the `TODO` sections:
+   * Set the correct package name, version, and GitHub information
+   * Update the source URL and calculate the correct sha256
+   * Adjust the build script for your specific Go project
+   * Update tests and metadata
+
+== Key Configuration Points
+
+=== Context Variables
+
+The template uses context variables to avoid repetition:
+
+[source,yaml]
+----
+context:
+  name: my-package
+  version: "1.0.0"
+  github_org: my-org
+  github_repo: my-repo
+  main_package: ./cmd/mytool
+  binary_name: mytool
+----
+
+=== Go Compiler Selection
+
+Choose between two Go compilers based on your needs:
+
+. *go-nocgo* (recommended): Creates static binaries without libc dependencies
++
+[source,yaml]
+----
+- ${{ compiler('go-nocgo') }}
+----
+
+. *go-cgo*: Use when you need to link against C libraries
++
+[source,yaml]
+----
+- ${{ compiler('go-cgo') }}
+- ${{ compiler('c') }}
+----
+
+=== Version Injection
+
+Many Go programs support version injection via LDFLAGS. Common patterns:
+
+[source,nu]
+----
+# Pattern 1: Simple main.version
+$ldflags = ($ldflags | append $"-X main.version=($env.PKG_VERSION)")
+
+# Pattern 2: Package path version
+$ldflags = ($ldflags | append $"-X github.com/org/repo/internal/version.Version=($env.PKG_VERSION)")
+
+# Pattern 3: Command-specific version
+$ldflags = ($ldflags | append $"-X github.com/org/repo/cmd/tool/version.Version=($env.PKG_VERSION)")
+----
+
+=== License Collection
+
+The template uses `go-licenses` to collect licenses from all Go dependencies:
+
+[source,nu]
+----
+go-licenses save ${{ main_package }} --save_path=$license_dir
+----
+
+You may need to add `--ignore` flags for problematic packages:
+
+* `golang.org/x/sys/unix`
+* `golang.org/x/crypto/internal/poly1305`
+* `golang.org/x/crypto/salsa20/salsa`
+
+== Common Patterns
+
+=== Projects with Multiple Binaries
+
+If your project builds multiple binaries:
+
+[source,nu]
+----
+# Build multiple binaries
+go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/tool1" ./cmd/tool1
+go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/tool2" ./cmd/tool2
+----
+
+=== Projects Using Makefiles
+
+If the project has a Makefile:
+
+[source,yaml]
+----
+requirements:
+  build:
+    - make
+    - ${{ compiler('go-nocgo') }}
+    - go-licenses
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      make PREFIX=$env.PREFIX install
+      # Still collect licenses
+      go-licenses save . --save_path=$"($env.SRC_DIR)/license-files"
+----
+
+=== Projects with go generate
+
+Some projects require `go generate` before building:
+
+[source,nu]
+----
+# Run code generation
+go generate ./...
+
+# Then build as normal
+go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/(${{ binary_name }})" ${{ main_package }}
+----
+
+== Testing
+
+Update the tests section for your specific binary:
+
+[source,yaml]
+----
+tests:
+  - script:
+      # Version check (adjust based on how your program outputs version)
+      - mytool --version
+      - mytool version | grep "${{ version }}"
+
+      # Functionality tests
+      - mytool --help
+      - mytool subcommand --test-flag
+----
+
+== Troubleshooting
+
+=== SHA256 Calculation
+
+To get the sha256 for your source archive:
+
+[source,bash]
+----
+curl -sL https://github.com/org/repo/archive/refs/tags/v1.0.0.tar.gz | sha256sum
+----
+
+=== Finding Version Injection Points
+
+Look for version variables in the Go source:
+
+[source,bash]
+----
+grep -r "var.*[Vv]ersion" --include="*.go"
+grep -r "Version.*=" --include="*.go"
+----
+
+=== License Issues
+
+If `go-licenses` fails on certain packages, add them to the ignore list:
+
+[source,nu]
+----
+go-licenses save ${{ main_package }} \
+  --save_path=$license_dir \
+  --ignore=problematic/package/path
+----
+
+== Examples
+
+See these packages for real-world examples:
+
+* `kompose`: Kubernetes conversion tool
+* `mediamtx`: Media server (uses go generate)
+* `temporal`: CLI tool (from rattler-build docs)
