@@ -33,18 +33,19 @@ args = [
 cmd = [
     "nu",
     "-c",
-    "use .scripts/manage_conda_file.nu *; if (conda-file-exists {{ pkg }} {{ tgt_platform }}) { remove-conda-file {{ pkg }} {{ tgt_platform }} } else { print 'No conda file found for {{ pkg }} on {{ tgt_platform }}' }",
+    "use .scripts/manifest_utils.nu *; if (conda-file-exists {{ pkg }} {{ tgt_platform }}) { remove-conda-file {{ pkg }} {{ tgt_platform }} } else { print 'No conda file found for {{ pkg }} on {{ tgt_platform }}' }",
 ]
+# interpreter = "nu"
 
 [tasks.clean-all]
 cmd = ["rm", "-rf", "pkgs-out"]
 
 [tasks.clean-cache-pkgs]
-description = "Clean downloaded conda packages cache (~14GB)"
+description = "Clean downloaded conda packages cache"
 cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/pkgs"]
 
 [tasks.clean-cache-envs]
-description = "Clean cached environments and build tool environments (~530MB)"
+description = "Clean cached environments and build tool environments"
 cmd = [
     "rm",
     "-rf",
@@ -53,15 +54,15 @@ cmd = [
 ]
 
 [tasks.clean-cache-repodata]
-description = "Clean repository metadata cache (~472MB)"
+description = "Clean repository metadata cache"
 cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/repodata"]
 
 [tasks.clean-cache-all]
-description = "Clean all rattler system caches (~16GB)"
+description = "Clean all rattler system caches"
 cmd = ["rm", "-rf", "$HOME/.cache/rattler"]
 
 [tasks.clean-cache-source-builds]
-description = "Clean built packages from source cache (~1MB)"
+description = "Clean built packages from source cache"
 cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/source-builds-v0"]
 
 [tasks.clean-everything]
@@ -85,96 +86,64 @@ args = [
 ]
 cmd = [
     "nu",
-    ".scripts/build_and_track.nu",
+    ".scripts/build.nu",
     "{{ pkg }}",
     "--target-platform={{ tgt_platform }}",
     "--no-test",
 ]
 
-[tasks.test]
+[tasks.smart-build]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
 cmd = [
     "nu",
-    ".scripts/test_package.nu",
+    ".scripts/build.nu",
     "{{ pkg }}",
     "--target-platform={{ tgt_platform }}",
+    "--no-test",
+    "--check-remote",
 ]
 
-[tasks.test-all]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/test_package.nu *; test-all --platform {{ tgt_platform }} --continue-on-error",
-]
-
-[tasks.test-status]
-cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
-
-[tasks.publish-status]
-cmd = ["nu", "-c", "use .scripts/publish_package.nu *; publish-status"]
-
-[tasks.publish-all-pd]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error",
-]
-
-[tasks.publish-all-s3]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/publish_package.nu *; publish-all --method s3 --platform {{ tgt_platform }} --continue-on-error",
-]
-
-[tasks.publish-pd-dry]
+[tasks.check-package]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/check_package_exists.nu",
     "{{ pkg }}",
-    "--method=pd",
-    "--target-platform={{ tgt_platform }}",
-    "--dry-run",
+    "--platform={{ tgt_platform }}",
+    "--check_all",
+    "--check_local",
 ]
 
-[tasks.publish-s3-dry]
+[tasks.smart-build-all]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/build.nu *; build-all --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.list-manifest]
+cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-summary"]
+
+[tasks.clean-manifest]
+cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-cleanup"]
+
+
+[tasks.package-status]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
-    "{{ pkg }}",
-    "--method=s3",
-    "--target-platform={{ tgt_platform }}",
-    "--dry-run",
-]
-
-[tasks.publish-all-pd-dry]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
     "-c",
-    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error --dry-run",
-]
-
-[tasks.publish-all-s3-dry]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/publish_package.nu *; publish-all --method s3 --platform {{ tgt_platform }} --continue-on-error --dry-run",
+    "use .scripts/build.nu *; package-status {{ pkg }} --platform {{ tgt_platform }}",
 ]
 
 [tasks.build-skeletons]
@@ -314,6 +283,30 @@ depends-on = [
     ] },
 ]
 
+[tasks.test]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/test_package.nu",
+    "{{ pkg }}",
+    "--target-platform={{ tgt_platform }}",
+]
+
+[tasks.test-all]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/test_package.nu *; test-all --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.test-status]
+cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
+
+
 [tasks.publish-pd]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
@@ -339,7 +332,16 @@ cmd = [
     ".scripts/publish_package.nu",
     "{{ pkg }}",
     "--method=s3",
+    "--channel=s3://pixi/meso-forge",
+    "--url=https://minio.isis.vanderbilt.edu",
     "--target-platform={{ tgt_platform }}",
+]
+depends-on = [
+    { task = "build", args = [
+        "{{ pkg }}",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "index-s3" },
 ]
 
 [tasks.publish-s3-local]
@@ -347,26 +349,89 @@ args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
 ]
+# the upload expects the RATTLER_AUTH_FILE variable to be set
+cmd = [
+    "nu",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=s3",
+    "--channel=s3://pixi-local/meso-forge",
+    "--url=http://127.0.0.1",
+    "--target-platform={{ tgt_platform }}",
+]
 depends-on = [
     { task = "build", args = [
         "{{ pkg }}",
         "{{ tgt_platform }}",
     ] },
-    { task = "index", args = [
-        "http://127.0.0.1",
-        "s3://pixi-local/meso-forge",
-    ] },
+    { task = "index-s3-local" },
+]
+
+[tasks.publish-status]
+cmd = ["nu", "-c", "use .scripts/publish_package.nu *; publish-status"]
+
+[tasks.publish-all-pd]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.publish-all-s3]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error",
+]
+
+[tasks.publish-pd-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=pd",
+    "--target-platform={{ tgt_platform }}",
+    "--dry-run",
+]
+
+[tasks.publish-s3-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/publish_package.nu",
+    "{{ pkg }}",
+    "--method=s3",
+    "--target-platform={{ tgt_platform }}",
+    "--dry-run",
+]
+
+[tasks.publish-all-pd-dry]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error --dry-run",
+]
+
+[tasks.publish-all-s3-dry]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+cmd = [
+    "nu",
+    "-c",
+    "use .scripts/publish_package.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error --dry-run",
 ]
 
 
-[tasks.list-manifest]
-cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-summary"]
-
-[tasks.clean-manifest]
-cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-cleanup"]
-
-
-[tasks.index]
+[tasks.index-s3]
 args = [
     { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
     { arg = "channel", default = "s3://pixi/meso-forge" },
@@ -384,153 +449,11 @@ cmd = [
     "true",
 ]
 
-[tasks.index-local]
+[tasks.index-s3-local]
 depends-on = [
-    { task = "index", args = [
+    { task = "index-s3", args = [
         "http://127.0.0.1",
         "s3://pixi-local/meso-forge",
-    ] },
-]
-
-[tasks.publish-forged]
-depends-on = [
-    { task = "publish-s3", args = [
-        "asciidoctor",
-    ] },
-    { task = "publish-s3", args = [
-        "asciidoctor-pdf",
-    ] },
-]
-
-[tasks.publish-wip]
-depends-on = [
-    { task = "publish-s3", args = [
-        "asciidoctor-revealjs",
-    ] },
-    { task = "publish-s3", args = [
-        "bitwarden-cli",
-    ] },
-    { task = "publish-s3", args = [
-        "devcontainer-cli",
-    ] },
-    { task = "publish-s3", args = [
-        "iamb",
-    ] },
-    { task = "publish-s3", args = [
-        "internxt-cli",
-    ] },
-    { task = "publish-s3", args = [
-        "jank",
-    ] },
-    { task = "publish-s3", args = [
-        "kombose",
-    ] },
-    { task = "publish-s3", args = [
-        "mediamtx",
-    ] },
-    { task = "publish-s3", args = [
-        "metashell",
-    ] },
-    { task = "publish-s3", args = [
-        "mumble-voip",
-    ] },
-    { task = "publish-s3", args = [
-        "neovide",
-    ] },
-    { task = "publish-s3", args = [
-        "systemd-pixi-generator",
-    ] },
-]
-
-
-[tasks.publish-all]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/publish_package.nu *; publish-all --method pd --platform {{ tgt_platform }} --continue-on-error",
-]
-
-
-[tasks.publish-s3-all]
-depends-on = [
-    { task = "publish-s3", args = [
-        "asciidoctor-revealjs",
-    ] },
-    { task = "publish-s3", args = [
-        "asyncio",
-    ] },
-    { task = "publish-s3", args = [
-        "bash-preexec",
-    ] },
-    { task = "publish-s3", args = [
-        "bitwarden-cli",
-    ] },
-    { task = "publish-s3", args = [
-        "devcontainer-cli",
-    ] },
-    { task = "publish-s3", args = [
-        "digitalpy",
-    ] },
-    { task = "publish-s3", args = [
-        "dysk",
-    ] },
-    { task = "publish-s3", args = [
-        "fd",
-    ] },
-    { task = "publish-s3", args = [
-        "flask-jwt-extended",
-    ] },
-    { task = "publish-s3", args = [
-        "testresources",
-    ] },
-    { task = "publish-s3", args = [
-        "freetakserver",
-    ] },
-    { task = "publish-s3", args = [
-        "freetakserver-ui",
-    ] },
-    { task = "publish-s3", args = [
-        "fsarchiver",
-    ] },
-    { task = "publish-s3", args = [
-        "iamb",
-    ] },
-    { task = "publish-s3", args = [
-        "internxt",
-    ] },
-    { task = "publish-s3", args = [
-        "jank",
-    ] },
-    { task = "publish-s3", args = [
-        "kombose",
-    ] },
-    { task = "publish-s3", args = [
-        "mediamtx",
-    ] },
-    { task = "publish-s3", args = [
-        "metashell",
-    ] },
-    { task = "publish-s3", args = [
-        "mumble",
-    ] },
-    { task = "publish-s3", args = [
-        "neovide",
-    ] },
-    { task = "publish-s3", args = [
-        "node-red",
-    ] },
-    { task = "publish-s3", args = [
-        "node-red-worldmap",
-    ] },
-    { task = "publish-s3", args = [
-        "pwgen",
-    ] },
-    { task = "publish-s3", args = [
-        "ratatui",
-    ] },
-    { task = "publish-s3", args = [
-        "systemd-pixi-generator",
     ] },
 ]
 
@@ -542,7 +465,7 @@ pyyaml = ">=6.0.2,<7"
 semver = ">=3.0.2,<4"
 
 [feature.update-ver.tasks.update-ver]
-cmd = ["python", ".scripts/update-versions.py"]
+cmd = ["python", ".scripts/update_versions.py"]
 
 [environments.update]
 features = ["update-ver"]

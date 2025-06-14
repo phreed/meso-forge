@@ -22,7 +22,7 @@ def get_github_latest_commit(group: str, repo: str, package_name: str):
 
         if tag_name.startswith(package_name):
             tag_name = tag_name[len(package_name)+1:]
-    
+
         return tag_name
     return None
 
@@ -50,11 +50,11 @@ def get_github_latest_release(group: str, repo: str, package_name: str):
                 tag_name = tag_name[len(package_name)+1:]
             if tag_name.startswith('v'):
                 tag_name = tag_name[1:]
-        
+
             return tag_name
         case 404:
             print(f"({package_name}) Could not fetch {api_url} ")
-        case _:    
+        case _:
             print(f"({package_name}) Could not fetch {response.status_code} ")
 
     return None
@@ -65,7 +65,7 @@ def get_github_latest_tag(group: str, repo: str, package_name: str):
     Get latest tagged version from GitHub.
     https://docs.github.com/en/rest/git/tags?apiVersion=2022-11-28#about-git-tags
     """
-    print(f"Releasable tags:")
+    print("Releasable tags:")
     api_url = f"https://api.github.com/repos/{group}/{repo}/tags"
 
     # Use GitHub token if available
@@ -102,14 +102,14 @@ def get_github_latest_tag(group: str, repo: str, package_name: str):
                             case -1:
                                 pass
                     except:
-                        pass                  
-                    
+                        pass
+
             return tag_name
         case 404:
             print(f"({package_name}) Could not fetch {api_url} ")
-        case 403:    
+        case 403:
             print(f"({package_name}) Could not fetch {api_url} because {response.status_code} ")
-        case _:    
+        case _:
             print(f"({package_name}) Could not fetch {api_url} because {response.status_code} ")
 
     return None
@@ -163,7 +163,7 @@ def update_recipe_release(recipe_path, recipe, current_version, package_name, re
     print(f"({package_name}) Current version: {current_version}, Latest version: {new_version}")
     # Update URL and calculate new hash
     if new_version is None:
-        print(f"no new version is supplied, it seems to be None")
+        print("no new version is supplied, it seems to be None")
         new_url = None
     else:
         new_url = release_url.replace("${{ version }}", new_version)
@@ -270,7 +270,7 @@ def update_recipe(recipe_path):
         return None
 
 def main():
-    recipe_dir = Path('./packages')
+    recipe_dir = Path('./pkgs')
 
     # take first arg from cli and use as recipe_dir
     if len(sys.argv) > 1:

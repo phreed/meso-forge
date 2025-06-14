@@ -12,8 +12,8 @@ source:
   - url: https://github.com/node-red/node-red/archive/refs/tags/${{ version }}.tar.gz
     sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
     file_name: node-red-${{ version }}.tgz
-  - path: ../../.scripts/npm-licenses.nu
-    file_name: npm-licenses.nu
+  - path: ../../.scripts/npm_licenses.nu
+    file_name: npm_licenses.nu
   - if: linux
     then:
       path: systemd/node-red.service
@@ -29,7 +29,7 @@ build:
     content: |
       $"building ($env.PKG_NAME)!"
       npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
-      source npm-licenses.nu
+      source npm_licenses.nu
       main | save license_summary.txt
 
 requirements:
@@ -44,8 +44,8 @@ requirements:
 
 tests:
   - script:
-    - find . -maxdepth 2
-      - echo "node-red --help"
+      - find . -maxdepth 2
+        - echo "node-red --help"
 
 about:
   homepage: https://nodered.org

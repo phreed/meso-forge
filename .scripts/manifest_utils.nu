@@ -1,6 +1,7 @@
 #!/usr/bin/env nu
 
-# Utilities for working with the conda build manifest
+# Comprehensive utilities for working with the conda build manifest
+# Combines functionality from manage_conda_file.nu and manifest_utils.nu
 
 # Default manifest path
 const DEFAULT_MANIFEST = "./pkgs-out/conda-manifest.json"
@@ -10,7 +11,6 @@ export def read-manifest [
     --manifest: string = $DEFAULT_MANIFEST  # Path to manifest file
 ] {
     if not ($manifest | path exists) {
-        print -e $"Manifest file not found: ($manifest)"
         return {}
     }
     open $manifest
@@ -44,6 +44,35 @@ export def get-package-path [
     } else {
         ""
     }
+}
+
+# Find the most recent conda file for a given package and platform
+# (Alias for get-package-path for backward compatibility)
+export def find-conda-file [
+    package_name: string,                    # Name of the package to find
+    platform: string = "linux-64",           # Target platform (default: linux-64)
+    output_dir: string = "./pkgs-out",       # Output directory (default: ./pkgs-out)
+    --quiet (-q)                             # Suppress error messages
+] {
+    let manifest_path = $output_dir | path join "conda-manifest.json"
+    let conda_path = get-package-path $package_name --platform $platform --manifest $manifest_path
+
+    if ($conda_path | is-empty) {
+        if not $quiet {
+            print -e $"No conda file found for package '($package_name)' on platform '($platform)'"
+        }
+        return ""
+    }
+
+    # Verify file still exists
+    if not ($conda_path | path exists) {
+        if not $quiet {
+            print -e $"Conda file in manifest no longer exists: ($conda_path)"
+        }
+        return ""
+    }
+
+    return $conda_path
 }
 
 # List all packages in the manifest
@@ -97,6 +126,48 @@ export def list-packages [
     }
 }
 
+# List all conda files for a given package across all platforms
+export def list-all-conda-files [
+    package_name: string,                    # Name of the package to find
+    platform: string = "",                   # Target platform (empty for all)
+    output_dir: string = "./pkgs-out"        # Output directory (default: ./pkgs-out)
+] {
+    let manifest_path = $output_dir | path join "conda-manifest.json"
+    let data = read-manifest --manifest $manifest_path
+
+    if ($data | is-empty) {
+        return []
+    }
+
+    mut files = []
+
+    if ($platform | is-empty) {
+        # Check all platforms
+        for plat in ($data | columns) {
+            let platform_data = $data | get $plat
+            if $package_name in $platform_data {
+                let info = $platform_data | get $package_name
+                if ($info.path | path exists) {
+                    $files = ($files | append $info.path)
+                }
+            }
+        }
+    } else {
+        # Check specific platform
+        if $platform in $data {
+            let platform_data = $data | get $platform
+            if $package_name in $platform_data {
+                let info = $platform_data | get $package_name
+                if ($info.path | path exists) {
+                    $files = ($files | append $info.path)
+                }
+            }
+        }
+    }
+
+    $files
+}
+
 # Get packages that were actually built (not skipped)
 export def get-built-packages [
     --platform: string = "",                 # Filter by platform (empty for all)
@@ -121,6 +192,108 @@ export def package-exists [
 ] {
     let info = get-package-info $package --platform $platform --manifest $manifest
     $info != null
+}
+
+# Check if a conda file exists for the given package
+# (Wrapper around package-exists for backward compatibility)
+export def conda-file-exists [
+    package_name: string,                    # Name of the package to check
+    platform: string = "linux-64",           # Target platform (default: linux-64)
+    output_dir: string = "./pkgs-out"        # Output directory (default: ./pkgs-out)
+] {
+    let manifest_path = $output_dir | path join "conda-manifest.json"
+    package-exists $package_name --platform $platform --manifest $manifest_path
+}
+
+# Get conda file info (path, size, modification time)
+export def conda-file-info [
+    package_name: string,                    # Name of the package to get info for
+    platform: string = "linux-64",           # Target platform (default: linux-64)
+    output_dir: string = "./pkgs-out"        # Output directory (default: ./pkgs-out)
+] {
+    let manifest_path = $output_dir | path join "conda-manifest.json"
+    let package_info = get-package-info $package_name --platform $platform --manifest $manifest_path
+
+    if $package_info == null {
+        return null
+    }
+
+    # Verify file still exists
+    if not ($package_info.path | path exists) {
+        return null
+    }
+
+    # Return info in expected format
+    {
+        path: $package_info.path,
+        name: $package_info.filename,
+        size: $package_info.size,
+        modified: $package_info.modified,
+        type: "file"
+    }
+}
+
+# Remove conda file for the given package
+export def remove-conda-file [
+    package_name: string,                    # Name of the package to remove
+    platform: string = "linux-64",           # Target platform (default: linux-64)
+    output_dir: string = "./pkgs-out",       # Output directory (default: ./pkgs-out)
+    --quiet (-q)                             # Suppress messages
+] {
+    let manifest_path = $output_dir | path join "conda-manifest.json"
+    let file = find-conda-file $package_name $platform $output_dir --quiet
+
+    if ($file | is-empty) {
+        if not $quiet {
+            print $"No conda file found for ($package_name) on ($platform)"
+        }
+        return false
+    }
+
+    try {
+        # Remove the file
+        rm $file
+        if not $quiet {
+            print $"Removed: ($file | path basename)"
+        }
+
+        # Update the manifest
+        if ($manifest_path | path exists) {
+            let manifest = open $manifest_path
+
+            # Remove entry from manifest if it exists
+            if ($platform in $manifest) {
+                let platform_data = $manifest | get $platform
+                if ($package_name in $platform_data) {
+                    # Remove the package entry
+                    let updated_platform = $platform_data | reject $package_name
+
+                    # Update or remove platform based on whether it has any packages left
+                    let updated_manifest = if ($updated_platform | columns | is-empty) {
+                        # Remove empty platform
+                        $manifest | reject $platform
+                    } else {
+                        # Update platform with remaining packages
+                        $manifest | update $platform $updated_platform
+                    }
+
+                    # Save updated manifest
+                    $updated_manifest | to json --indent 2 | save -f $manifest_path
+
+                    if not $quiet {
+                        print "Updated manifest"
+                    }
+                }
+            }
+        }
+
+        return true
+    } catch { |err|
+        if not $quiet {
+            print -e $"Failed to remove ($file): ($err.msg)"
+        }
+        return false
+    }
 }
 
 # Get publish command for a package using the manifest
@@ -153,7 +326,7 @@ export def publish-from-manifest [
     channel: string,                         # Channel to publish to (pd or s3)
     --platform: string = "linux-64",         # Target platform
     --manifest: string = $DEFAULT_MANIFEST,  # Path to manifest file
-    --dry-run                               # Just print the command, don't execute
+    --dry-run                                # Just print the command, don't execute
 ] {
     let cmd = get-publish-command $package $channel --platform $platform --manifest $manifest
 
@@ -208,7 +381,7 @@ export def manifest-summary [
 # Clean up manifest entries for packages that no longer exist
 export def manifest-cleanup [
     --manifest: string = $DEFAULT_MANIFEST,  # Path to manifest file
-    --dry-run                               # Just show what would be removed
+    --dry-run                                # Just show what would be removed
 ] {
     let data = read-manifest --manifest $manifest
     mut new_data = {}
@@ -251,21 +424,79 @@ export def manifest-help [] {
     print "=== Manifest Utilities Help ==="
     print ""
     print "Available commands:"
-    print "  read-manifest              - Read the manifest file"
-    print "  get-package-info <pkg>     - Get info for a specific package"
-    print "  get-package-path <pkg>     - Get conda file path for a package"
-    print "  list-packages              - List all packages"
-    print "  get-built-packages         - List only built packages"
-    print "  get-skipped-packages       - List only skipped packages"
-    print "  package-exists <pkg>       - Check if package is in manifest"
-    print "  get-publish-command <pkg> <channel> - Get publish command"
+    print "  read-manifest                        - Read the manifest file"
+    print "  get-package-info <pkg>               - Get info for a specific package"
+    print "  get-package-path <pkg>               - Get conda file path for a package"
+    print "  find-conda-file <pkg>                - Find conda file (alias for get-package-path)"
+    print "  list-packages                        - List all packages"
+    print "  list-all-conda-files <pkg>           - List all conda files for a package"
+    print "  get-built-packages                   - List only built packages"
+    print "  get-skipped-packages                 - List only skipped packages"
+    print "  package-exists <pkg>                 - Check if package is in manifest"
+    print "  conda-file-exists <pkg>              - Check if conda file exists (backward compat)"
+    print "  conda-file-info <pkg>                - Get detailed file info"
+    print "  remove-conda-file <pkg>              - Remove conda file and update manifest"
+    print "  get-publish-command <pkg> <channel>  - Get publish command"
     print "  publish-from-manifest <pkg> <channel> - Publish using manifest"
-    print "  manifest-summary           - Show summary of all packages"
-    print "  manifest-cleanup           - Remove entries for missing files"
+    print "  manifest-summary                     - Show summary of all packages"
+    print "  manifest-cleanup                     - Remove entries for missing files"
     print ""
     print "Example usage:"
     print "  use .scripts/manifest_utils.nu *"
     print "  manifest-summary"
     print "  get-package-path pwgen"
+    print "  find-conda-file pwgen linux-64"
+    print "  conda-file-info pwgen"
     print "  publish-from-manifest pwgen pd --dry-run"
+    print "  remove-conda-file old-package"
+}
+
+# Main command-line interface (for standalone usage)
+export def main [
+    package_name: string,                    # Name of the package to find
+    platform: string = "linux-64",           # Target platform (default: linux-64)
+    --output-dir: string = "./pkgs-out",     # Output directory (default: ./pkgs-out)
+    --list-all                               # List all matching files instead of just the latest
+    --quiet (-q)                             # Suppress stderr output
+    --info                                   # Show file info instead of just path
+    --exists                                 # Check if file exists (exit code 0/1)
+] {
+    if $exists {
+        if (conda-file-exists $package_name $platform $output_dir) {
+            exit 0
+        } else {
+            exit 1
+        }
+    }
+
+    if $list_all {
+        let files = list-all-conda-files $package_name $platform $output_dir
+        if ($files | is-empty) {
+            if not $quiet {
+                print -e $"No conda files found for package '($package_name)'"
+            }
+            exit 1
+        }
+        $files | each { |f| print $f }
+        return
+    }
+
+    if $info {
+        let file_info = conda-file-info $package_name $platform $output_dir
+        if ($file_info == null) {
+            if not $quiet {
+                print -e $"No conda file found for package '($package_name)'"
+            }
+            exit 1
+        }
+        print ($file_info | to json)
+        return
+    }
+
+    let file = find-conda-file $package_name $platform $output_dir --quiet=$quiet
+    if ($file | is-empty) {
+        exit 1
+    }
+
+    print $file
 }
