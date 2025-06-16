@@ -1,0 +1,395 @@
+= JVM Package Skeleton Examples
+
+This document provides concrete examples of how to customize the JVM skeleton for different types of projects.
+
+== Example 1: Java CLI Application with Maven
+
+**Use case**: A command-line tool written in Java, built with Maven, that processes text files.
+
+=== Configuration Changes
+
+[source,yaml]
+----
+context:
+  name: text-processor              # ← Change from example-jvm-package
+  version: "2.1.4"                 # ← Update to actual version
+  github_org: apache               # ← Your GitHub org
+  github_repo: text-processor      # ← Your repository name
+  main_class: org.apache.textproc.Main  # ← Your main class
+  binary_name: textproc            # ← Command users will type
+  language: java                   # ← Keep as java
+  build_system: maven              # ← Keep as maven
+  package_type: application        # ← Keep as application
+  java_version: 17                 # ← Java version requirement
+
+source:
+  url: https://github.com/apache/text-processor/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890  # ← Real hash
+
+requirements:
+  build:
+    - nushell
+    - openjdk=17
+    - maven
+  host:
+    - openjdk=17
+  run:
+    - openjdk=17
+
+tests:
+  - script:
+      - textproc --version
+      - textproc --help
+      - echo "test content" | textproc process --format json
+
+about:
+  homepage: https://apache.org/text-processor
+  repository: https://github.com/apache/text-processor
+  summary: A powerful text processing command-line tool
+  description: |
+    Text Processor is a versatile command-line tool for processing and transforming
+    text files. It supports multiple input formats, various transformation operations,
+    and can output results in JSON, XML, or plain text formats.
+
+    Features:
+    - Multiple text transformation algorithms
+    - Support for large files with streaming processing
+    - Extensible plugin architecture
+    - Cross-platform compatibility
+  license: Apache-2.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - apache-team
+----
+
+== Example 2: Kotlin Web Application with Gradle
+
+**Use case**: A Kotlin-based web service using Spring Boot, built with Gradle.
+
+=== Configuration Changes
+
+[source,yaml]
+----
+context:
+  name: kotlin-api-server           # ← Service name
+  version: "1.0.3"                 # ← Version
+  github_org: mycompany            # ← Your org
+  github_repo: kotlin-api-server   # ← Repository
+  main_class: com.mycompany.api.Application  # ← Spring Boot main class
+  binary_name: api-server          # ← Command name
+  language: kotlin                 # ← Change to kotlin
+  build_system: gradle             # ← Change to gradle
+  package_type: application        # ← Application type
+  java_version: 17                 # ← Java 17 for Spring Boot 3.x
+
+requirements:
+  build:
+    - nushell
+    - openjdk=17
+    - kotlin                       # ← Add Kotlin compiler
+    # Note: Using Gradle wrapper, so no need to add gradle dependency
+  host:
+    - openjdk=17
+  run:
+    - openjdk=17
+
+# Custom build script modifications needed:
+build:
+  script:
+    interpreter: nu
+    content: |
+      # ... (standard build script, but with this Spring Boot specific build command)
+
+      # For Gradle with Spring Boot, use:
+      run-external $gradle_cmd bootJar --no-daemon
+
+      # The bootJar creates a fat JAR with all dependencies included
+      let jar_files = (ls build/libs | where name =~ '\.jar$' | where name !~ '-plain\.jar$')
+
+tests:
+  - script:
+      - api-server --help
+      # Test that it starts (but doesn't run indefinitely)
+      - timeout 10s api-server --server.port=8888 --logging.level.root=WARN || true
+
+about:
+  summary: RESTful API server built with Kotlin and Spring Boot
+  description: |
+    A modern RESTful API server built with Kotlin and Spring Boot. Provides
+    high-performance web services with built-in monitoring, security, and
+    database integration.
+
+    This package includes:
+    - RESTful API endpoints
+    - Database connectivity
+    - Authentication and authorization
+    - Health monitoring endpoints
+    - Production-ready configuration
+  license: MIT
+----
+
+== Example 3: Scala Data Processing Library with sbt
+
+**Use case**: A Scala library for data processing, not an executable application.
+
+=== Configuration Changes
+
+[source,yaml]
+----
+context:
+  name: scala-data-utils           # ← Library name
+  version: "2.13.1"               # ← Version (matches Scala version pattern)
+  github_org: data-team           # ← Your org
+  github_repo: scala-data-utils   # ← Repository
+  # main_class: (not needed for libraries)
+  # binary_name: (not needed for libraries)
+  language: scala                 # ← Change to scala
+  build_system: sbt               # ← Change to sbt
+  package_type: library           # ← Change to library
+  java_version: 11                # ← Java 11 is common for Scala
+
+requirements:
+  build:
+    - nushell
+    - openjdk=11
+    - sbt                         # ← Add sbt
+    - scala                       # ← Add Scala compiler
+  host:
+    - openjdk=11
+  run:
+    - openjdk=11
+
+# Different tests for libraries
+tests:
+  - script:
+      interpreter: nu
+      content: |
+        # For libraries, test by trying to use them with scala
+        print "Testing Scala library..."
+
+        # Verify JAR exists and contains expected classes
+        let jar_file = (ls $env.PREFIX/lib | where name =~ 'scala-data-utils.*\.jar$' | first)
+
+        if ($jar_file | is-empty) {
+            error make {msg: "Library JAR not found"}
+        }
+
+        # Test that classes can be loaded (basic smoke test)
+        java -cp $jar_file.name -XshowSettings:vm -version
+
+        print "Library tests passed!"
+
+  - package_contents:
+      files:
+        - lib/scala-data-utils*.jar  # Library JAR (no specific name match needed)
+
+about:
+  summary: Scala utilities for data processing and transformation
+  description: |
+    A comprehensive Scala library for data processing, transformation, and analysis.
+    Provides functional programming utilities optimized for big data workflows.
+
+    Key features:
+    - Functional data transformation pipelines
+    - Integration with Apache Spark
+    - Type-safe configuration handling
+    - Performance-optimized algorithms
+    - Comprehensive test coverage
+  license: Apache-2.0
+----
+
+== Example 4: Java Application with Custom JVM Arguments
+
+**Use case**: A memory-intensive Java application that needs specific JVM tuning.
+
+=== Custom Build Script Modifications
+
+[source,yaml]
+----
+context:
+  name: memory-intensive-app
+  # ... other standard config
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # ... (standard build process)
+
+      # Custom wrapper with JVM tuning
+      let wrapper_content = if ($nu.os-info.name == "windows") {
+          $'@echo off
+rem Memory-intensive application with custom JVM settings
+java -Xms2g -Xmx8g -XX:+UseG1GC -XX:+UseStringDeduplication ^
+     -XX:MaxGCPauseMillis=200 -server ^
+     -jar "%~dp0\..\lib\(${{ binary_name }}).jar" %*'
+      } else {
+          $'#!/bin/bash
+# Memory-intensive application with custom JVM settings
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+exec java -Xms2g -Xmx8g -XX:+UseG1GC -XX:+UseStringDeduplication \
+          -XX:MaxGCPauseMillis=200 -server \
+          -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
+      }
+
+      # ... rest of build script
+
+tests:
+  - script:
+      interpreter: nu
+      content: |
+        # Test that the app starts with the custom JVM args
+        print "Testing JVM argument configuration..."
+
+        # This should not fail due to memory settings
+        timeout 15s memory-intensive-app --dry-run --verbose 2>&1 |
+        if ($in | str contains "UseG1GC") {
+            print "JVM arguments applied correctly"
+        } else {
+            print "Warning: Could not verify JVM arguments"
+        }
+----
+
+== Example 5: Multi-Module Maven Project
+
+**Use case**: A complex Maven project with multiple modules, where you only want to package one module.
+
+=== Build Script Customization
+
+[source,yaml]
+----
+context:
+  name: enterprise-cli
+  # ... other config
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # ... (standard setup)
+
+      if ($build_file | str contains "pom.xml") {
+          print "Building multi-module Maven project..."
+
+          # Build only the CLI module and its dependencies
+          mvn clean package -DskipTests=true -pl :cli-module -am
+
+          # The JAR will be in the cli-module subdirectory
+          let jar_files = (ls cli-module/target | where name =~ '\.jar$' | where name !~ '-sources\.jar$')
+
+          if ($jar_files | length) == 0 {
+              error make {msg: "No JAR file found in cli-module/target directory"}
+          }
+
+          let main_jar = ($jar_files | first).name
+
+          # ... rest of build process
+----
+
+== Example 6: Application with Native Dependencies
+
+**Use case**: A Java application that uses JNI and has native library dependencies.
+
+=== Configuration for Native Dependencies
+
+[source,yaml]
+----
+requirements:
+  build:
+    - nushell
+    - openjdk=17
+    - maven
+    - {{ compiler('c') }}          # ← Add C compiler for native code
+    - make                         # ← Build tools for native libs
+  host:
+    - openjdk=17
+    - libffi                       # ← Example native library
+    - zlib                         # ← Another example
+  run:
+    - openjdk=17
+    - libffi                       # ← Runtime native dependencies
+    - zlib
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # ... standard build, but may need to set library paths
+
+      # Set native library path for JNI
+      $env.LD_LIBRARY_PATH = if ($env.LD_LIBRARY_PATH? != null) {
+          $"($env.LD_LIBRARY_PATH):($env.PREFIX)/lib"
+      } else {
+          $"($env.PREFIX)/lib"
+      }
+
+      # Build with native library support
+      mvn clean package -DskipTests=true -Djava.library.path=$env.PREFIX/lib
+
+      # ... rest of build
+----
+
+== Example 7: Spring Boot Application with Profile-Based Configuration
+
+**Use case**: A Spring Boot application that should run with a specific profile in production.
+
+=== Wrapper Script Customization
+
+[source,yaml]
+----
+build:
+  script:
+    content: |
+      # ... standard build process
+
+      # Spring Boot specific wrapper with profile
+      let wrapper_content = if ($nu.os-info.name == "windows") {
+          $'@echo off
+rem Spring Boot application with production profile
+java -Dspring.profiles.active=production ^
+     -Dspring.config.location=classpath:/application.properties,classpath:/application-production.properties ^
+     -jar "%~dp0\..\lib\(${{ binary_name }}).jar" %*'
+      } else {
+          $'#!/bin/bash
+# Spring Boot application with production profile
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+exec java -Dspring.profiles.active=production \
+          -Dspring.config.location=classpath:/application.properties,classpath:/application-production.properties \
+          -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
+      }
+
+      # ... save wrapper script
+
+tests:
+  - script:
+      # Test that the application starts with the correct profile
+      - timeout 20s spring-boot-app --server.port=0 --logging.level.root=ERROR 2>&1 | grep -q "production" || true
+----
+
+== Common Patterns Summary
+
+=== For CLI Applications
+* Set `package_type: application`
+* Define `main_class` and `binary_name`
+* Include version and help flag tests
+* Consider memory and GC tuning for performance
+
+=== For Web Applications
+* Use appropriate profiles (production, etc.)
+* Set reasonable startup timeouts in tests
+* Consider health check endpoints
+* May need custom JVM args for web workloads
+
+=== For Libraries
+* Set `package_type: library`
+* Remove `main_class` and `binary_name`
+* Focus tests on JAR existence and class loading
+* Consider publishing to Maven repositories
+
+=== For Complex Projects
+* Customize build commands for your specific setup
+* Handle multi-module builds appropriately
+* Include necessary native dependencies
+* Test the specific functionality your users will need

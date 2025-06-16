@@ -1,0 +1,350 @@
+= JVM Package Skeleton
+
+This skeleton provides a comprehensive template for creating conda packages from JVM-based projects (Java, Kotlin, Scala).
+
+== Supported Features
+
+* **Languages**: Java, Kotlin, Scala, and mixed projects
+* **Build Systems**: Maven, Gradle (with or without wrapper), sbt
+* **Package Types**: Applications (executables) and libraries
+* **Java Versions**: 8, 11, 17, 21, and other LTS versions
+* **Platforms**: Windows, macOS, Linux with appropriate wrapper scripts
+* **Testing**: Comprehensive test suite including version checks and functionality tests
+
+== Quick Start
+
+. Copy this skeleton to your new package directory:
++
+[source,bash]
+----
+cp -r pkg-skeletons/_skeleton_jvm packages/my-jvm-package
+cd packages/my-jvm-package
+----
+
+. Edit the `context` section in `recipe.yaml` with your package details
+. Update the `source` section with your package's URL and hash
+. Customize build and test scripts as needed
+. Build your package with rattler-build
+
+== Configuration
+
+=== Context Variables
+
+Update these variables in the `context` section of `recipe.yaml`:
+
+[cols="1,1,3"]
+|===
+|Variable |Example |Description
+
+|`name` |`my-awesome-tool` |Package name (will be the conda package name)
+|`version` |`1.2.3` |Package version
+|`github_org` |`mycompany` |GitHub organization or username
+|`github_repo` |`awesome-tool` |GitHub repository name
+|`main_class` |`com.example.Main` |Main class for executable JARs (applications only)
+|`binary_name` |`awesome-tool` |Command name users will type (applications only)
+|`language` |`java` |Primary language: `java`, `kotlin`, `scala`, or `mixed`
+|`build_system` |`maven` |Build system: `maven`, `gradle`, or `sbt`
+|`package_type` |`application` |Package type: `application` or `library`
+|`java_version` |`17` |Required Java version (8, 11, 17, 21, etc.)
+|===
+
+== Build System Examples
+
+=== Maven Projects
+
+For Maven-based projects:
+
+[source,yaml]
+----
+context:
+  build_system: maven
+  # ... other variables
+----
+
+The skeleton will:
+
+* Run `mvn clean package -DskipTests=true`
+* Look for JAR files in the `target/` directory
+* Handle multi-module projects
+* Support Spring Boot applications
+
+**Common Maven customizations:**
+
+[source,yaml]
+----
+# For Spring Boot applications, modify the build script:
+# mvn clean package -DskipTests=true spring-boot:repackage
+
+# For multi-module projects:
+# mvn clean package -DskipTests=true -pl :module-name -am
+----
+
+=== Gradle Projects
+
+For Gradle-based projects:
+
+[source,yaml]
+----
+context:
+  build_system: gradle
+  # ... other variables
+----
+
+The skeleton will:
+
+* Use `./gradlew` if available, otherwise `gradle`
+* Run `build -x test --no-daemon`
+* Look for JAR files in `build/libs/`
+* Support Shadow JAR and Spring Boot plugins
+
+**Common Gradle customizations:**
+
+[source,yaml]
+----
+# For Shadow JAR (fat JAR):
+# run-external $gradle_cmd shadowJar --no-daemon
+
+# For Spring Boot:
+# run-external $gradle_cmd bootJar --no-daemon
+----
+
+=== sbt Projects (Scala)
+
+For sbt-based projects:
+
+[source,yaml]
+----
+context:
+  build_system: sbt
+  language: scala
+  # ... other variables
+----
+
+The skeleton will:
+
+* Run `sbt clean package`
+* Find JAR files in target directories
+* Support assembly plugin for fat JARs
+
+== Package Types
+
+=== Applications
+
+For executable applications:
+
+[source,yaml]
+----
+context:
+  package_type: application
+  main_class: com.example.Main
+  binary_name: my-tool
+----
+
+This creates:
+
+* A JAR file in `$PREFIX/lib/my-tool.jar`
+* A wrapper script in `$PREFIX/bin/my-tool` (Unix) or `$PREFIX/bin/my-tool.bat` (Windows)
+* The wrapper script handles Java execution and argument passing
+
+=== Libraries
+
+For library packages:
+
+[source,yaml]
+----
+context:
+  package_type: library
+----
+
+This creates:
+
+* JAR files in `$PREFIX/lib/`
+* No executable wrapper scripts
+* Suitable for use as dependencies in other projects
+
+== Language-Specific Examples
+
+=== Java Application
+
+[source,yaml]
+----
+context:
+  name: java-cli-tool
+  version: "2.1.0"
+  github_org: mycompany
+  github_repo: java-cli-tool
+  main_class: com.mycompany.cli.Main
+  binary_name: java-cli-tool
+  language: java
+  build_system: maven
+  package_type: application
+  java_version: 17
+----
+
+=== Kotlin Application
+
+[source,yaml]
+----
+context:
+  name: kotlin-app
+  version: "1.0.0"
+  github_org: mycompany
+  github_repo: kotlin-app
+  main_class: com.mycompany.MainKt
+  binary_name: kotlin-app
+  language: kotlin
+  build_system: gradle
+  package_type: application
+  java_version: 17
+
+requirements:
+  build:
+    - kotlin  # Add this for Kotlin projects
+----
+
+=== Scala Library
+
+[source,yaml]
+----
+context:
+  name: scala-utils
+  version: "3.2.1"
+  github_org: mycompany
+  github_repo: scala-utils
+  language: scala
+  build_system: sbt
+  package_type: library
+  java_version: 11
+
+requirements:
+  build:
+    - scala  # Add this for Scala projects
+----
+
+== Advanced Features
+
+=== GraalVM Native Images
+
+To build native executables with GraalVM, uncomment the native-image section in the build script:
+
+[source,yaml]
+----
+requirements:
+  build:
+    - graalvm  # Add GraalVM
+
+# The build script will automatically detect native-image and create a native executable
+----
+
+=== Custom JVM Arguments
+
+For applications that need specific JVM arguments, modify the wrapper script:
+
+[source,bash]
+----
+# In the build script, customize wrapper_content:
+let wrapper_content = $'#!/bin/bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+exec java -Xmx2g -XX:+UseG1GC -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
+----
+
+=== Dependency License Collection
+
+The skeleton includes commented sections for collecting dependency licenses:
+
+* **Maven**: Requires `license-maven-plugin`
+* **Gradle**: Requires `gradle-license-plugin`
+* **sbt**: Manual collection or plugins
+
+== Testing
+
+The skeleton includes several test types:
+
+. **Basic execution tests**: Version and help commands
+. **Java compatibility tests**: Verify correct Java version
+. **Package contents validation**: Ensure all files are installed
+. **Custom functionality tests**: Add your own specific tests
+
+=== Custom Test Examples
+
+[source,yaml]
+----
+tests:
+  - script:
+      interpreter: nu
+      content: |
+        # Test with sample input file
+        "sample input data" | save test-input.txt
+        my-tool process test-input.txt --output result.txt
+
+        # Verify output
+        let result = (open result.txt)
+        if not ($result | str contains "expected content") {
+            error make {msg: "Processing test failed"}
+        }
+
+        print "Functionality test passed!"
+----
+
+== Best Practices
+
+=== Dependencies
+
+* **Build dependencies**: Only include what's needed for compilation
+* **Host dependencies**: Include JVM libraries your code links against
+* **Run dependencies**: Usually just Java runtime, as most deps are bundled
+
+=== Version Management
+
+* Use semantic versioning (e.g., `1.2.3`)
+* Keep Java version requirements reasonable (prefer LTS versions)
+* Pin dependency versions in your build files
+
+=== Security
+
+* Always verify source checksums (`sha256`)
+* Review dependency licenses
+* Use current Java versions for security updates
+
+=== Performance
+
+* Use appropriate JVM options for your application size
+* Consider GraalVM native images for CLI tools
+* Test memory usage under realistic conditions
+
+== Troubleshooting
+
+=== Common Issues
+
+**No JAR file found**::
+Check that your build system is producing JARs in the expected location (`target/`, `build/libs/`, etc.)
+
+**Wrapper script not executable**::
+Ensure the build script sets executable permissions on Unix systems
+
+**Java version mismatch**::
+Verify that `java_version` matches your project's requirements
+
+**Build system not detected**::
+Make sure your build files (`pom.xml`, `build.gradle`, `build.sbt`) are present
+
+**Missing dependencies**::
+Add required build tools and libraries to the `requirements` section
+
+=== Debug Tips
+
+. Check build logs for specific error messages
+. Test your application manually with `java -jar`
+. Verify all required files are installed in the prefix
+. Test on different platforms if cross-platform support is needed
+
+== Examples in the Wild
+
+Look at existing JVM packages in the repository for real-world examples:
+
+* CLI applications with argument parsing
+* Web applications with embedded servers
+* Data processing tools
+* Development utilities
+
+These can serve as templates for similar use cases.
