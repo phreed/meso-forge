@@ -1,6 +1,16 @@
 = JavaScript Package Skeleton for conda-forge
 
-This skeleton provides templates for creating conda-forge recipes for JavaScript packages. It includes comprehensive examples and documentation for common JavaScript package patterns.
+This skeleton provides templates for creating conda-forge recipes for JavaScript packages. It includes comprehensive examples and documentation for common JavaScript package patterns, with proven approaches for handling complex builds, workspace dependencies, and application packaging.
+
+== Lessons from Real-World Builds
+
+This skeleton has been updated based on experience building complex packages like bitwarden-cli, which taught us important lessons about:
+
+* Handling workspace dependencies and monorepos
+* Dealing with problematic postinstall scripts (especially electron-rebuild)
+* When to use bundled executables vs Node.js scripts with dependencies
+* Managing complex build toolchains (webpack, TypeScript, etc.)
+* Packaging applications that require runtime dependencies
 
 == Files in this skeleton
 
@@ -11,9 +21,10 @@ This skeleton provides templates for creating conda-forge recipes for JavaScript
 
 == Quick Start
 
-1. Copy the appropriate template:
-   - Use `recipe-simple.yaml` for straightforward packages
-   - Use `recipe.yaml` for more complex packages or when you need guidance
+1. Choose the appropriate build pattern from `recipe.yaml`:
+   - **Pattern 1**: Simple npm package installation (for most packages)
+   - **Pattern 2**: Complex source builds (for monorepos, custom builds)
+   - **Pattern 3**: Full application packaging (when bundling fails)
 
 2. Replace the following placeholders:
    - `{{ PACKAGE_NAME }}` - The npm package name (e.g., "express", "lodash")
@@ -26,22 +37,31 @@ This skeleton provides templates for creating conda-forge recipes for JavaScript
    - `{{ PACKAGE_DESCRIPTION }}` - Detailed description
    - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
 
-3. Update dependencies in the `requirements` section
+3. Choose appropriate source:
+   - npm tarball for simple packages
+   - GitHub source for complex builds or monorepos
 
-4. Test the recipe locally before submitting
+4. Update dependencies and test approach based on package type
 
-== Common JavaScript Package Types
+5. Test the recipe locally before submitting
 
-=== Pure JavaScript Packages
+== Build Patterns and Package Types
 
-For packages written entirely in JavaScript:
+=== Pattern 1: Simple npm Package Installation
+
+For straightforward packages available as npm tarballs:
 
 [source,yaml]
 ----
+source:
+  - url: https://registry.npmjs.org/package/-/package-${{ version }}.tgz
+    sha256: {{ SHA256_HASH }}
+    file_name: package-${{ version }}.tgz
+
 build:
   noarch: generic
-  script:
-    - npm install -g . --prefix $PREFIX
+  script: |
+    npm install -g ./package-${{ version }}.tgz --prefix $PREFIX
 
 requirements:
   build:
@@ -49,61 +69,130 @@ requirements:
     - npm
   run:
     - nodejs
-----
-
-=== CLI Tools/Applications
-
-For packages that provide command-line tools:
-
-[source,yaml]
-----
-build:
-  script:
-    - npm install -g . --prefix $PREFIX
-    - npm run build  # if build step needed
 
 tests:
   - script:
-      - mytool --version
-      - mytool --help
-      - node -e "require('mytool')"
+      - package --version
 ----
 
-=== Web Frameworks and Libraries
+*Use when*: Package works directly from npm tarball, no complex build steps needed.
 
-For web frameworks and browser libraries:
+=== Pattern 2: Complex Source Builds
+
+For monorepos, workspace dependencies, or custom build processes:
 
 [source,yaml]
 ----
+source:
+  - url: https://github.com/user/repo/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: {{ SHA256_HASH }}
+
 build:
-  noarch: generic
-  script:
-    - npm install -g . --prefix $PREFIX
+  script: |
+    # Fix problematic postinstall scripts (common issue)
+    sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/*/package.json
 
-requirements:
-  run:
-    - nodejs
-    - npm
-    # Framework-specific dependencies
-----
+    # Install workspace dependencies
+    npm ci  # or yarn install for yarn workspaces
 
-=== TypeScript Packages
+    # Build the specific package/app
+    cd apps/myapp  # or specific package directory
+    npm run build:prod
 
-For packages written in TypeScript:
-
-[source,yaml]
-----
-build:
-  script:
-    - npm install
-    - npm run build  # compile TypeScript
-    - npm install -g . --prefix $PREFIX
+    # Install globally
+    npm install -g . --prefix $PREFIX
 
 requirements:
   build:
     - nodejs
     - npm
-    - typescript  # if not in package.json
+    - webpack-cli  # add build tools as needed
+    - typescript
+    - cross-env
+----
+
+*Use when*: npm tarball insufficient, workspace dependencies, custom build pipeline.
+
+=== Pattern 3: Full Application with Dependencies
+
+For complex applications where bundling fails and you need all runtime dependencies:
+
+[source,yaml]
+----
+build:
+  script: |
+    # Build application
+    npm ci
+    cd apps/myapp
+    npm run build:prod
+
+    # Copy application and dependencies
+    mkdir -p $PREFIX/lib/myapp
+    cp -r build/* $PREFIX/lib/myapp/
+
+    # Copy runtime node_modules (when bundling insufficient)
+    cd ../..
+    mkdir -p $PREFIX/lib/myapp/node_modules
+    cp -r node_modules/* $PREFIX/lib/myapp/node_modules/
+
+    # Create wrapper script
+    mkdir -p $PREFIX/bin
+    echo '#!/bin/bash' > $PREFIX/bin/myapp
+    echo 'export NODE_PATH="$PREFIX/lib/myapp/node_modules:$NODE_PATH"' >> $PREFIX/bin/myapp
+    echo 'exec node "$PREFIX/lib/myapp/main.js" "$@"' >> $PREFIX/bin/myapp
+    chmod +x $PREFIX/bin/myapp
+
+requirements:
+  run:
+    - nodejs  # Required for Node.js script execution
+----
+
+*Use when*: Bundlers like `pkg` fail, complex runtime dependencies, large applications.
+
+=== TypeScript/Compiled Packages
+
+For packages requiring compilation:
+
+[source,yaml]
+----
+build:
+  script: |
+    npm install
+    npm run build      # TypeScript compilation
+    npm run test       # Optional: run tests during build
+    npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+    - typescript       # if not in package.json
+    - webpack          # if using webpack
+  run:
+    - nodejs
+----
+
+=== Monorepo/Workspace Packages
+
+For packages in monorepos with workspace dependencies:
+
+[source,yaml]
+----
+source:
+  - url: https://github.com/user/monorepo/archive/v${{ version }}.tar.gz
+
+build:
+  script: |
+    # Install all workspace dependencies
+    npm ci  # or yarn install
+
+    # Navigate to specific package
+    cd packages/my-package
+    # or cd apps/my-app
+
+    # Build specific package
+    npm run build
+    npm install -g . --prefix $PREFIX
 ----
 
 == Common Dependencies
@@ -302,30 +391,131 @@ tar -tzf package-1.0.0.tgz
 
 == Common Issues and Solutions
 
-=== Package won't install
-* Check if all dependencies are available in conda-forge
-* Verify Node.js version compatibility
-* Check for missing system dependencies
+=== Electron/Desktop Package Issues
 
-=== Import errors during tests
-* Ensure all runtime dependencies are listed
-* Check for missing peer dependencies
-* Verify package installation was successful
+*Problem*: `electron-rebuild` or similar postinstall scripts fail during workspace installs.
 
-=== Native module compilation fails
-* Check if package has native dependencies (node-gyp)
-* Ensure appropriate compilers are available
-* Consider using pre-built binaries
+*Solution*: Disable problematic postinstall scripts:
+[source,bash]
+----
+sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' package.json
+sed -i 's/"postinstall": ".*problematic.*",/"postinstall": "echo Skipping",/' apps/*/package.json
+----
 
-=== Version conflicts
-* Check for conflicting dependency versions
-* Use npm's peer dependency resolution
-* Consider using exact versions for stability
+=== Workspace/Monorepo Dependency Issues
 
-=== Cross-platform issues
-* Test on different platforms when possible
-* Be aware of path separator differences
-* Consider platform-specific dependencies
+*Problem*: `yarn global add` or `npm install -g` fails with workspace packages.
+
+*Solution*: Install workspace dependencies first, then build specific packages:
+[source,bash]
+----
+npm ci                    # Install all workspace deps
+cd apps/specific-package  # Navigate to target package
+npm run build            # Build the package
+npm install -g . --prefix $PREFIX  # Install globally
+----
+
+=== Module Not Found at Runtime
+
+*Problem*: Package builds successfully but fails with "Cannot find module" errors.
+
+*Solutions*:
+1. For bundled applications: Ensure all dependencies are included in bundling
+2. For Node.js scripts: Copy node_modules and set NODE_PATH:
+[source,bash]
+----
+cp -r node_modules/* $PREFIX/lib/myapp/node_modules/
+export NODE_PATH="$PREFIX/lib/myapp/node_modules:$NODE_PATH"
+----
+
+=== Build Tool Missing (webpack, cross-env, etc.)
+
+*Problem*: Build fails with "command not found" for build tools.
+
+*Solution*: Add missing tools to build requirements:
+[source,yaml]
+----
+requirements:
+  build:
+    - nodejs
+    - npm
+    - webpack-cli
+    - cross-env
+    - typescript
+    # Add other tools as needed based on package.json scripts
+----
+
+=== Package Size Too Large
+
+*Problem*: Package becomes hundreds of MB due to included node_modules.
+
+*Solutions*:
+1. Use bundling approach (Pattern 1 or 2) when possible
+2. For Pattern 3, consider pruning dev dependencies:
+[source,bash]
+----
+npm ci --omit=dev  # Skip development dependencies
+----
+3. Remove unnecessary files before copying:
+[source,bash]
+----
+find node_modules -name "*.md" -delete
+find node_modules -name "test" -type d -exec rm -rf {} +
+----
+
+=== Cross-platform Path Issues
+
+*Problem*: Build scripts fail on different platforms due to path separators.
+
+*Solution*: Use cross-platform tools or conditional scripts:
+[source,bash]
+----
+# Use cross-env for environment variables
+cross-env NODE_ENV=production webpack
+
+# Use npm scripts instead of shell commands when possible
+npm run build:prod
+----
+
+=== Native Module Compilation Failures
+
+*Problem*: Packages with native dependencies fail to build.
+
+*Solutions*:
+1. Add required build tools:
+[source,yaml]
+----
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - python
+    - make
+----
+2. Use pre-built binaries when available
+3. Skip platforms where native compilation fails:
+[source,yaml]
+----
+build:
+  skip: True  # [win]
+----
+
+=== Test Failures
+
+*Problem*: Package builds but tests fail.
+
+*Common fixes*:
+1. CLI tools: Use `--version` instead of `--help` (help often returns exit code 1)
+2. Module tests: Check that package is properly installed before testing imports
+3. Timeout issues: Some packages need time to initialize
+
+[source,yaml]
+----
+tests:
+  - script:
+      - mytool --version           # Usually exits 0
+      # - mytool --help            # Often exits 1, avoid
+      - node -e "require('mytool')" # Basic import test
+----
 
 == Package Management
 
@@ -365,21 +555,65 @@ build:
     - npm install -g . --prefix $PREFIX
 ----
 
-== Advanced Patterns
+== Advanced Patterns and Real-World Examples
 
-=== Monorepo packages
+=== Complex Application: bitwarden-cli Pattern
+
+Based on successfully building bitwarden-cli, here's the pattern for complex applications:
+
 [source,yaml]
 ----
 source:
-  url: https://github.com/user/monorepo/archive/v${{ version }}.tar.gz
+  - url: https://github.com/bitwarden/clients/archive/refs/tags/cli-v${{ version }}.tar.gz
+    sha256: {{ SHA256_HASH }}
 
 build:
-  script:
-    - cd packages/my-package
-    - npm install
-    - npm run build
-    - npm install -g . --prefix $PREFIX
+  script: |
+    # Fix problematic desktop app postinstall script
+    sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/desktop/package.json
+
+    # Install workspace dependencies
+    npm ci
+
+    # Build CLI application
+    cd apps/cli
+    npm run build:oss:prod
+
+    # Copy built files and dependencies for Node.js execution
+    mkdir -p $PREFIX/lib/bitwarden-cli
+    cp -r build/* $PREFIX/lib/bitwarden-cli/
+
+    # Copy node_modules for runtime dependencies
+    cd ../..
+    mkdir -p $PREFIX/lib/bitwarden-cli/node_modules
+    cp -r node_modules/* $PREFIX/lib/bitwarden-cli/node_modules/
+
+    # Create wrapper script
+    mkdir -p $PREFIX/bin
+    echo '#!/bin/bash' > $PREFIX/bin/bw
+    echo 'export NODE_PATH="$PREFIX/lib/bitwarden-cli/node_modules:$NODE_PATH"' >> $PREFIX/bin/bw
+    echo 'exec node "$PREFIX/lib/bitwarden-cli/bw.js" "$@"' >> $PREFIX/bin/bw
+    chmod +x $PREFIX/bin/bw
+
+requirements:
+  build:
+    - nodejs
+    - npm
+    - webpack-cli
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - bw --version  # Use --version instead of bare command
 ----
+
+*Key lessons*:
+- Use `npm ci` for workspace dependencies
+- Disable problematic postinstall scripts
+- Use Node.js script approach when bundling fails
+- Include all node_modules for complex apps
+- Test with `--version` for reliable exit codes
 
 === Scoped packages
 [source,yaml]
@@ -391,18 +625,70 @@ source:
   url: https://registry.npmjs.org/@scope/package-name/-/package-name-${{ version }}.tgz
 ----
 
-=== Development dependencies
+=== Conditional Build Steps
+[source,yaml]
+----
+build:
+  script: |
+    # Different approaches based on package.json existence
+    if [ -f "package-lock.json" ]; then
+      npm ci
+    elif [ -f "yarn.lock" ]; then
+      yarn install
+    else
+      npm install
+    fi
+
+    # Conditional build steps
+    if npm run | grep -q "build:prod"; then
+      npm run build:prod
+    elif npm run | grep -q "build"; then
+      npm run build
+    fi
+
+    npm install -g . --prefix $PREFIX
+----
+
+=== Handling Build Tool Dependencies
 [source,yaml]
 ----
 requirements:
   build:
     - nodejs
     - npm
-    - typescript    # build-time only
-    - webpack      # build-time only
+    # Add build tools that packages expect but don't include
+    - typescript          # If TypeScript compilation needed
+    - webpack             # If webpack bundling used
+    - webpack-cli         # Webpack command line interface
+    - cross-env           # Cross-platform environment variables
+    - copy-webpack-plugin # Common webpack plugins
+    - webpack-node-externals
+    - tsconfig-paths-webpack-plugin
+    - ts-loader           # TypeScript loader for webpack
   run:
     - nodejs
     # Only runtime dependencies here
+----
+
+=== Multi-Platform Considerations
+[source,yaml]
+----
+build:
+  # Pure JavaScript packages can be noarch
+  noarch: generic
+
+  # Skip builds that won't work on certain platforms
+  skip: True  # [win and nodejs_version<"16"]
+
+extra:
+  # Enable additional platforms for pure JS packages
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+
+  # Skip lints that don't apply
+  skip-lints:
+    - missing_hash      # If using git source
 ----
 
 == Resources

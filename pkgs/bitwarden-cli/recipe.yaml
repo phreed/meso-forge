@@ -16,13 +16,31 @@ build:
   number: 0
   noarch: generic
   script: |
+    # Remove problematic postinstall script from desktop app
+    sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/desktop/package.json
+
+    # Install dependencies following GitHub Actions workflow pattern
+    npm ci
+
+    # Build CLI app (JavaScript files instead of bundled executable)
     cd apps/cli
-    yarn add @electron/rebuild
-    yarn install
-    yarn compile
-    # yarn build
-    # npm install webpack webpack-cli --save-dev
-    # npm run build:oss:watch
+    npm run build:oss:prod
+
+    # Copy built JavaScript files and dependencies to package
+    mkdir -p $PREFIX/lib/bitwarden-cli
+    cp -r build/* $PREFIX/lib/bitwarden-cli/
+
+    # Copy required node_modules to the package
+    cd ../..
+    mkdir -p $PREFIX/lib/bitwarden-cli/node_modules
+    cp -r node_modules/* $PREFIX/lib/bitwarden-cli/node_modules/
+
+    # Create wrapper script that sets NODE_PATH
+    mkdir -p $PREFIX/bin
+    echo '#!/bin/bash' > $PREFIX/bin/bw
+    echo 'export NODE_PATH="$PREFIX/lib/bitwarden-cli/node_modules:$NODE_PATH"' >> $PREFIX/bin/bw
+    echo 'exec node "$PREFIX/lib/bitwarden-cli/bw.js" "$@"' >> $PREFIX/bin/bw
+    chmod +x $PREFIX/bin/bw
 
 requirements:
   build:
@@ -33,10 +51,11 @@ requirements:
     - jest
 
   run:
+    - nodejs
 
 tests:
   - script:
-      - bw
+      - bw --version
 
 about:
   homepage: https://bitwarden.com/help/cli/
@@ -49,7 +68,7 @@ about:
     are available from the CLI.
     https://contributing.bitwarden.com/getting-started/clients/cli/
   license: Apache-2.0
-  license_file: COPYING
+  license_file: LICENSE.txt
   repository: https://github.com/bitwarden/clients/tree/main/apps/cli
 
 extra:

@@ -174,10 +174,6 @@ depends-on = [
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
-        "bitwarden-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "devcontainer-cli",
         "{{ tgt_platform }}",
     ] },
@@ -224,6 +220,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "bash-preexec",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "bitwarden-cli",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
