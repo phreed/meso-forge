@@ -1,0 +1,603 @@
+= Rust Package Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for Rust packages, demonstrating various patterns and use cases.
+
+== CLI Tool Example: ripgrep
+
+A line-oriented search tool that recursively searches directories for a regex pattern.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 14.0.3
+
+package:
+  name: ripgrep
+  version: ${{ version }}
+
+source:
+  url: https://github.com/BurntSushi/ripgrep/archive/${{ version }}.tar.gz
+  sha256: f61fe5b8c8c8a2b4b0b7abe1b5c6b8d0e6bec8e8d8e1d5e1b5c6b8d0e6bec8e8
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - rg --version
+      - rg --help
+      - echo "hello world" | rg "hello"
+
+about:
+  homepage: https://github.com/BurntSushi/ripgrep
+  repository: https://github.com/BurntSushi/ripgrep
+  license: MIT
+  license_file:
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A line-oriented search tool that recursively searches directories
+  description: |
+    ripgrep recursively searches directories for a regex pattern while
+    respecting your gitignore. ripgrep is similar to other popular search
+    tools like The Silver Searcher, ack and grep.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== File Finder Example: fd-find
+
+A simple, fast and user-friendly alternative to find.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 8.7.1
+
+package:
+  name: fd-find
+  version: ${{ version }}
+
+source:
+  url: https://github.com/sharkdp/fd/archive/v${{ version }}.tar.gz
+  sha256: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - fd --version
+      - fd --help
+      - fd . --max-depth 1
+
+about:
+  homepage: https://github.com/sharkdp/fd
+  repository: https://github.com/sharkdp/fd
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - THIRDPARTY.yml
+  summary: A simple, fast and user-friendly alternative to 'find'
+  description: |
+    fd is a program to find entries in your filesystem. It is a simple,
+    fast and user-friendly alternative to find. While it does not aim to
+    support all of find's powerful functionality, it provides sensible
+    (opinionated) defaults for a majority of use cases.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Text Display Tool Example: bat
+
+A cat clone with wings (syntax highlighting and Git integration).
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.24.0
+
+package:
+  name: bat
+  version: ${{ version }}
+
+source:
+  url: https://github.com/sharkdp/bat/archive/v${{ version }}.tar.gz
+  sha256: c4d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - bat --version
+      - bat --help
+      - echo "Hello, World!" | bat --language rust
+
+about:
+  homepage: https://github.com/sharkdp/bat
+  repository: https://github.com/sharkdp/bat
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A cat clone with wings
+  description: |
+    A cat clone with syntax highlighting and Git integration. bat supports
+    syntax highlighting for a large number of programming and markup languages.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Cargo Extension Example: cargo-edit
+
+A utility for managing cargo dependencies from the command line.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.12.2
+
+package:
+  name: cargo-edit
+  version: ${{ version }}
+
+source:
+  url: https://github.com/killercup/cargo-edit/archive/v${{ version }}.tar.gz
+  sha256: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - cargo-add --help
+      - cargo-rm --help
+      - cargo-upgrade --help
+
+about:
+  homepage: https://github.com/killercup/cargo-edit
+  repository: https://github.com/killercup/cargo-edit
+  license: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: A utility for managing cargo dependencies from the command line
+  description: |
+    This tool extends Cargo to allow you to add, remove, and upgrade dependencies
+    by modifying your Cargo.toml file from the command line.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Code Statistics Tool Example: tokei
+
+A program that displays statistics about your code.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 12.1.2
+
+package:
+  name: tokei
+  version: ${{ version }}
+
+source:
+  url: https://github.com/XAMPPRocky/tokei/archive/v${{ version }}.tar.gz
+  sha256: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - tokei --version
+      - tokei --help
+      - tokei --languages
+
+about:
+  homepage: https://github.com/XAMPPRocky/tokei
+  repository: https://github.com/XAMPPRocky/tokei
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A program that displays statistics about your code
+  description: |
+    Tokei is a program that displays statistics about your code. Tokei will
+    show the number of files, total lines within those files and code,
+    comments, and blanks grouped by language.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Benchmarking Tool Example: hyperfine
+
+A command-line benchmarking tool.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.18.0
+
+package:
+  name: hyperfine
+  version: ${{ version }}
+
+source:
+  url: https://github.com/sharkdp/hyperfine/archive/v${{ version }}.tar.gz
+  sha256: f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - hyperfine --version
+      - hyperfine --help
+      - hyperfine 'sleep 0.1'
+
+about:
+  homepage: https://github.com/sharkdp/hyperfine
+  repository: https://github.com/sharkdp/hyperfine
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A command-line benchmarking tool
+  description: |
+    A command-line benchmarking tool. Features include statistical analysis
+    across multiple runs, support for arbitrary shell commands, constant
+    feedback about the benchmark progress and current estimates, and more.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== System Dependencies Example: gitui
+
+A blazing fast terminal-ui for git written in Rust.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.24.3
+
+package:
+  name: gitui
+  version: ${{ version }}
+
+source:
+  url: https://github.com/extrawurst/gitui/archive/v${{ version }}.tar.gz
+  sha256: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8
+
+build:
+  number: 0
+  script:
+    - export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - ${{ compiler('c') }}
+    - cargo-bundle-licenses
+    - pkg-config
+  host:
+    - openssl
+    - libgit2
+    - zlib
+  run:
+    - openssl
+    - libgit2
+    - git
+
+tests:
+  - script:
+      - gitui --version
+      - gitui --help
+
+about:
+  homepage: https://github.com/extrawurst/gitui
+  repository: https://github.com/extrawurst/gitui
+  license: MIT
+  license_file:
+    - LICENSE.md
+    - THIRDPARTY.yml
+  summary: Blazing fast terminal-ui for git written in Rust
+  description: |
+    GitUI provides you with the comfort of a git GUI but right in your terminal.
+    It aims to speed up your git workflow.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== HTTP Client Example: xh
+
+A friendly and fast tool for sending HTTP requests.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.21.0
+
+package:
+  name: xh
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ducaale/xh/archive/v${{ version }}.tar.gz
+  sha256: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - ${{ compiler('c') }}
+    - cargo-bundle-licenses
+    - pkg-config
+  host:
+    - openssl
+  run:
+    - openssl
+
+tests:
+  - script:
+      - xh --version
+      - xh --help
+      - xh --print=HhBb httpbin.org/get
+
+about:
+  homepage: https://github.com/ducaale/xh
+  repository: https://github.com/ducaale/xh
+  license: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: A friendly and fast tool for sending HTTP requests
+  description: |
+    xh is a friendly and fast tool for sending HTTP requests. It reimplements
+    as much as possible of HTTPie's excellent design, with a focus on improved
+    performance.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Multi-binary Package Example: cargo-nextest
+
+A next-generation test runner for Rust projects.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.9.64
+
+package:
+  name: cargo-nextest
+  version: ${{ version }}
+
+source:
+  url: https://github.com/nextest-rs/nextest/archive/cargo-nextest-${{ version }}.tar.gz
+  sha256: c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cd cargo-nextest
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - cargo-nextest --version
+      - cargo-nextest --help
+
+about:
+  homepage: https://nexte.st/
+  repository: https://github.com/nextest-rs/nextest
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A next-generation test runner for Rust projects
+  description: |
+    cargo nextest is a next-generation test runner for Rust projects.
+    It provides better performance, cleaner output and a platform-native
+    developer experience.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Database Tool Example: diesel_cli
+
+A safe, extensible ORM and Query Builder for Rust.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.1.4
+
+package:
+  name: diesel_cli
+  version: ${{ version }}
+
+source:
+  url: https://github.com/diesel-rs/diesel/archive/v${{ version }}.tar.gz
+  sha256: d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1
+
+build:
+  number: 0
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cd diesel_cli
+    - cargo install --locked --bins --root $PREFIX --path . --features "postgres sqlite mysql"
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - ${{ compiler('c') }}
+    - cargo-bundle-licenses
+    - pkg-config
+  host:
+    - postgresql
+    - sqlite
+    - mysql
+    - openssl
+  run:
+    - postgresql
+    - sqlite
+    - mysql
+    - openssl
+
+tests:
+  - script:
+      - diesel --version
+      - diesel --help
+
+about:
+  homepage: https://diesel.rs/
+  repository: https://github.com/diesel-rs/diesel
+  license: Apache-2.0
+  license_file:
+    - LICENSE-APACHE
+    - LICENSE-MIT
+    - THIRDPARTY.yml
+  summary: A safe, extensible ORM and Query Builder for Rust
+  description: |
+    Diesel is a Safe, Extensible ORM and Query Builder for Rust.
+    Diesel CLI provides tools for managing database schemas and migrations.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/rust
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----

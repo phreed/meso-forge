@@ -1,0 +1,385 @@
+= Rust Package Skeleton for conda-forge
+
+This skeleton provides templates for creating conda-forge recipes for Rust packages. It includes comprehensive examples and documentation for common Rust package patterns.
+
+== Files in this skeleton
+
+* `recipe.yaml` - Comprehensive template with detailed comments and examples
+* `recipe-simple.yaml` - Simplified template for quick setup
+* `README.adoc` - This documentation file
+* `EXAMPLE.adoc` - Real-world example recipes
+
+== Quick Start
+
+1. Copy the appropriate template:
+   - Use `recipe-simple.yaml` for straightforward packages
+   - Use `recipe.yaml` for more complex packages or when you need guidance
+
+2. Replace the following placeholders:
+   - `{{ PACKAGE_NAME }}` - The Rust package name (e.g., "ripgrep", "fd-find")
+   - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
+   - `{{ SHA256_HASH }}` - SHA256 hash of the source tarball
+   - `{{ HOMEPAGE_URL }}` - Package homepage URL
+   - `{{ DEV_URL }}` - Development repository URL
+   - `{{ LICENSE }}` - Package license (e.g., "MIT", "Apache-2.0")
+   - `{{ PACKAGE_SUMMARY }}` - Brief description
+   - `{{ PACKAGE_DESCRIPTION }}` - Detailed description
+   - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
+
+3. Update dependencies in the `requirements` section
+
+4. Test the recipe locally before submitting
+
+== Common Rust Package Types
+
+=== CLI Applications
+
+For Rust command-line tools:
+
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - mytool --version
+      - mytool --help
+----
+
+=== Library Crates
+
+For Rust libraries (usually don't generate conda packages directly):
+
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+----
+
+=== Applications with System Dependencies
+
+For Rust applications that link to system libraries:
+
+[source,yaml]
+----
+build:
+  script:
+    - export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - ${{ compiler('c') }}  # [if linking to C libraries]
+    - cargo-bundle-licenses
+    - pkg-config
+  host:
+    - openssl  # [if using openssl]
+    - sqlite   # [if using sqlite]
+  run:
+    - openssl  # [if runtime dependency]
+----
+
+=== Cross-compiled Applications
+
+For applications supporting multiple architectures:
+
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+    - cross-rust  # [build_platform != target_platform]
+----
+
+== Common Dependencies
+
+=== Build Tools
+[source,yaml]
+----
+- ${{ compiler('rust') }}
+- cargo-bundle-licenses
+- pkg-config  # [for system library detection]
+- cmake       # [for cmake-based dependencies]
+- make        # [for make-based dependencies]
+----
+
+=== System Libraries
+[source,yaml]
+----
+- openssl     # for TLS/SSL functionality
+- sqlite      # for SQLite database access
+- postgresql  # for PostgreSQL access
+- libxml2     # for XML processing
+- libcurl     # for HTTP client functionality
+- zlib        # for compression
+- bzip2       # for compression
+- xz          # for compression
+- git         # [if package needs git at runtime]
+----
+
+=== Common Rust Dependencies
+[source,yaml]
+----
+# These are usually handled by Cargo automatically,
+# but may need system library support:
+- openssl     # for openssl-sys crate
+- sqlite      # for rusqlite crate
+- postgresql  # for postgres crates
+- libgit2     # for git2 crate
+----
+
+== Testing
+
+=== Basic Executable Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - mytool --version
+      - mytool --help
+----
+
+=== Functionality Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - mytool --version
+      - mytool command --dry-run
+      - echo "test" | mytool process
+----
+
+=== Library Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - cargo test  # [if source available]
+----
+
+== License Information
+
+Common Rust package licenses:
+
+* `MIT` - MIT License (very common)
+* `Apache-2.0` - Apache License 2.0 (very common)
+* `BSD-3-Clause` - BSD 3-Clause
+* `GPL-3.0-or-later` - GNU GPL v3+
+* `MPL-2.0` - Mozilla Public License 2.0
+
+Many Rust projects use dual licensing with `MIT OR Apache-2.0`.
+
+== Platform Support
+
+=== Cross-platform packages
+[source,yaml]
+----
+extra:
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+    - win-64
+----
+
+=== Skip certain platforms
+[source,yaml]
+----
+build:
+  skip: true  # [win]  # Skip Windows builds
+  skip: true  # [osx and arm64]  # Skip Apple Silicon
+----
+
+== Getting SHA256 Hash
+
+To get the SHA256 hash of a source tarball:
+
+[source,bash]
+----
+# For GitHub releases
+curl -L https://github.com/user/repo/archive/v1.0.0.tar.gz | sha256sum
+
+# For crates.io (less common for conda-forge)
+curl -L https://crates.io/api/v1/crates/package/1.0.0/download | sha256sum
+
+# Download and hash locally
+wget https://github.com/user/repo/archive/v1.0.0.tar.gz
+sha256sum v1.0.0.tar.gz
+----
+
+== Cargo Information Commands
+
+Useful commands for gathering package information:
+
+[source,bash]
+----
+# Get package information
+cargo search package
+
+# Check dependencies
+cargo tree
+
+# Get package metadata
+cargo metadata
+
+# Check for security advisories
+cargo audit
+----
+
+== Best Practices
+
+1. *License handling*: Always use `cargo-bundle-licenses` to collect dependency licenses
+2. *Locked builds*: Use `--locked` to ensure reproducible builds
+3. *Binary installation*: Use `--bins` to install only binaries, not examples
+4. *System dependencies*: Link to conda-forge system libraries when possible
+5. *Testing*: Always test that executables can run and show version/help
+6. *Naming*: Use the same name as the GitHub repository or main executable
+
+== Common Issues and Solutions
+
+=== Build failures
+* Check if all system dependencies are available in conda-forge
+* Verify Rust compiler version compatibility
+* Check for missing C/C++ dependencies for sys crates
+
+=== Linking errors
+* Ensure correct system libraries are in host dependencies
+* Set appropriate environment variables for library discovery
+* Use pkg-config when available
+
+=== Cross-compilation issues
+* Use `cross-rust` for cross-compilation support
+* Be aware of target-specific dependencies
+* Test on target platforms when possible
+
+=== License collection fails
+* Ensure `cargo-bundle-licenses` is in build dependencies
+* Check that all dependencies have proper license metadata
+* May need to patch Cargo.toml for missing licenses
+
+=== Runtime dependency issues
+* System libraries needed by the binary must be in run dependencies
+* Check `ldd` output on Linux to identify shared library dependencies
+* Consider static linking for simpler deployment
+
+== Cargo Configuration
+
+=== Custom build configuration
+[source,yaml]
+----
+build:
+  script:
+    - export CARGO_NET_OFFLINE=true
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+----
+
+=== Feature flags
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path . --features "feature1,feature2"
+----
+
+=== Custom target directory
+[source,yaml]
+----
+build:
+  script:
+    - export CARGO_TARGET_DIR=$SRC_DIR/target
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+----
+
+== Advanced Patterns
+
+=== Multiple binaries
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+
+tests:
+  - script:
+      - binary1 --version
+      - binary2 --version
+----
+
+=== Workspace packages
+[source,yaml]
+----
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path ./workspace-member
+----
+
+=== Git dependencies (discouraged)
+[source,yaml]
+----
+source:
+  git_url: https://github.com/user/repo.git
+  git_rev: v${{ version }}
+
+build:
+  script:
+    - cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+    - cargo install --locked --bins --root $PREFIX --path .
+----
+
+== Environment Variables
+
+Common environment variables used in Rust builds:
+
+[source,bash]
+----
+# Cargo configuration
+CARGO_NET_OFFLINE=true      # Disable network access during build
+CARGO_TARGET_DIR=./target   # Custom target directory
+
+# Linking configuration
+PKG_CONFIG_PATH             # pkg-config search paths
+RUSTFLAGS                   # Additional Rust compiler flags
+CFLAGS                      # C compiler flags for sys crates
+CXXFLAGS                    # C++ compiler flags for sys crates
+LDFLAGS                     # Linker flags
+
+# Library paths
+LD_LIBRARY_PATH             # Runtime library search path (Linux)
+DYLD_LIBRARY_PATH           # Runtime library search path (macOS)
+----
+
+== Resources
+
+* link:https://conda-forge.org/docs/[conda-forge documentation]
+* link:https://crates.io/[Crates.io - Rust package registry]
+* link:https://doc.rust-lang.org/cargo/[Cargo documentation]
+* link:https://forge.rust-lang.org/[Rust Forge - development guide]
+* link:https://github.com/rust-lang/cargo/[Cargo GitHub repository]
+* link:https://doc.rust-lang.org/[The Rust Programming Language]

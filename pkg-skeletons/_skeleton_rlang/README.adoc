@@ -1,0 +1,258 @@
+= R Package Skeleton for conda-forge
+
+This skeleton provides templates for creating conda-forge recipes for R packages. It includes comprehensive examples and documentation for common R package patterns.
+
+== Files in this skeleton
+
+* `recipe.yaml` - Comprehensive template with detailed comments and examples
+* `recipe-simple.yaml` - Simplified template for quick setup
+* `README.adoc` - This documentation file
+
+== Quick Start
+
+1. Copy the appropriate template:
+   - Use `recipe-simple.yaml` for straightforward packages
+   - Use `recipe.yaml` for more complex packages or when you need guidance
+
+2. Replace the following placeholders:
+   - `{{ PACKAGE_NAME }}` - The R package name (e.g., "dplyr", "ggplot2")
+   - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
+   - `{{ SHA256_HASH }}` - SHA256 hash of the source tarball
+   - `{{ HOMEPAGE_URL }}` - Package homepage URL
+   - `{{ DEV_URL }}` - Development repository URL
+   - `{{ LICENSE }}` - Package license (e.g., "MIT", "GPL-3.0-or-later")
+   - `{{ PACKAGE_SUMMARY }}` - Brief description
+   - `{{ PACKAGE_DESCRIPTION }}` - Detailed description
+   - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
+
+3. Update dependencies in the `requirements` section
+
+4. Test the recipe locally before submitting
+
+== Common R Package Types
+
+=== Pure R Packages (No Compiled Code)
+
+For packages written entirely in R:
+
+[source,yaml]
+----
+build:
+  number: 0
+  noarch: generic  # Add this line
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  # Remove build compilers
+  host:
+    - r-base
+    - r-dependency1
+    - r-dependency2
+  run:
+    - r-base
+    - r-dependency1
+    - r-dependency2
+----
+
+=== Packages with C/C++ Code
+
+For packages using Rcpp or other compiled code:
+
+[source,yaml]
+----
+build:
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}     # [not win]
+    - ${{ compiler('cxx') }}   # [not win]
+    - ${{ compiler('m2w64_c') }}   # [win]
+    - ${{ compiler('m2w64_cxx') }} # [win]
+  host:
+    - r-base
+    - r-rcpp
+    - r-rcpparmadillo  # if using RcppArmadillo
+----
+
+=== Bioconductor Packages
+
+For packages from Bioconductor:
+
+[source,yaml]
+----
+source:
+  url: https://bioconductor.org/packages/release/bioc/src/contrib/{{ PACKAGE_NAME }}_${{ version }}.tar.gz
+
+# Bioconductor packages often have different dependency patterns
+requirements:
+  host:
+    - r-base
+    - bioconductor-biobase
+    - bioconductor-biocgenerics
+----
+
+=== GitHub-hosted Packages
+
+For packages hosted on GitHub:
+
+[source,yaml]
+----
+source:
+  url: https://github.com/username/packagename/archive/v${{ version }}.tar.gz
+  sha256: {{ SHA256_HASH }}
+----
+
+== Common Dependencies
+
+=== Tidyverse Ecosystem
+[source,yaml]
+----
+- r-dplyr
+- r-ggplot2
+- r-tidyr
+- r-purrr
+- r-tibble
+- r-stringr
+- r-readr
+- r-forcats
+----
+
+=== Statistical Computing
+[source,yaml]
+----
+- r-mass
+- r-matrix
+- r-nlme
+- r-survival
+- r-boot
+- r-cluster
+----
+
+=== Compiled Code Support
+[source,yaml]
+----
+- r-rcpp
+- r-rcpparmadillo
+- r-rcppeigen
+- r-bh  # Boost headers
+----
+
+=== System Dependencies
+[source,yaml]
+----
+# In host section for build-time, in run section for runtime
+- libxml2     # for XML processing
+- libcurl     # for HTTP requests
+- openssl     # for encryption
+- gsl         # GNU Scientific Library
+- fftw        # Fast Fourier Transform
+- libblas     # Basic Linear Algebra Subprograms
+- liblapack   # Linear Algebra PACKage
+----
+
+== Testing
+
+=== Basic Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - $R -e "library('packagename')"  # [not win]
+      - '"%R%" -e "library(''packagename'')"'  # [win]
+----
+
+=== Function Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - $R -e "library('packagename'); result <- some_function(); stopifnot(length(result) > 0)"  # [not win]
+----
+
+=== Package Test Suite
+[source,yaml]
+----
+tests:
+  - script:
+      - $R -e "library('testthat'); library('packagename'); test_check('packagename')"  # [not win]
+----
+
+== License Information
+
+Common R package licenses:
+
+* `MIT` - MIT License
+* `GPL-2.0-or-later` - GNU GPL v2+
+* `GPL-3.0-or-later` - GNU GPL v3+
+* `BSD-3-Clause` - BSD 3-Clause
+* `Apache-2.0` - Apache License 2.0
+* `Artistic-2.0` - Artistic License 2.0
+
+== Platform Support
+
+=== Cross-platform packages
+[source,yaml]
+----
+extra:
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+=== Skip certain platforms
+[source,yaml]
+----
+build:
+  skip: true  # [win]  # Skip Windows builds
+----
+
+== Getting SHA256 Hash
+
+To get the SHA256 hash of a source tarball:
+
+[source,bash]
+----
+# For CRAN packages
+curl -L https://cran.r-project.org/src/contrib/packagename_1.0.0.tar.gz | sha256sum
+
+# For GitHub releases
+curl -L https://github.com/user/repo/archive/v1.0.0.tar.gz | sha256sum
+----
+
+== Best Practices
+
+1. **Version constraints**: Use version constraints only when necessary for compatibility
+2. **Build dependencies**: Only include compilers if the package has compiled code
+3. **Runtime dependencies**: Should generally match host dependencies
+4. **Testing**: Always include at least a basic library load test
+5. **Documentation**: Keep URLs up to date and accurate
+6. **Maintainers**: Use actual GitHub usernames for recipe maintainers
+
+== Common Issues and Solutions
+
+=== Package won't build
+* Check if all dependencies are available in conda-forge
+* Verify compiler requirements match package needs
+* Check for system dependencies
+
+=== Tests fail
+* Ensure all runtime dependencies are listed
+* Check if package requires specific environment variables
+* Verify test commands work in clean environment
+
+=== Cross-compilation issues
+* Add `cross-r-base {{ r_base }}` to build requirements
+* Use appropriate compiler selectors for different platforms
+
+== Resources
+
+* link:https://conda-forge.org/docs/[conda-forge documentation]
+* link:https://r-pkgs.org/[R package documentation]
+* link:https://cran.r-project.org/[CRAN repository]
+* link:https://bioconductor.org/[Bioconductor]

@@ -2,52 +2,175 @@
 schema_version: 1
 
 context:
-  version: 1.14.0
+  # Update version for the R package
+  version: "1.0.0"
 
 package:
-  name: bibtex-tidy
+  # R packages in conda-forge are typically prefixed with "r-"
+  # Replace "packagename" with the actual package name (lowercase)
+  name: r-packagename
   version: ${{ version }}
 
 source:
-  - url: https://registry.npmjs.org/bibtex-tidy/-/bibtex-tidy-${{ version }}.tgz
-    sha256: 0a2c1bb73911a7cee36a30ce1fc86feffe39b2d39acd4c94d02aac6f84a00285
-    # we do not extract the source code and install the tarball directly as that works better
-    file_name: bibtex-tidy-${{ version }}.tgz
-  - path: ../../.scripts/npm_licenses.nu
-    file_name: npm_licenses.nu
+  # Most R packages are hosted on CRAN
+  url: https://cran.r-project.org/src/contrib/packagename_${{ version }}.tar.gz
+  # Alternative sources:
+  # For GitHub releases:
+  # url: https://github.com/username/packagename/archive/v${{ version }}.tar.gz
+  # For Bioconductor packages:
+  # url: https://bioconductor.org/packages/release/bioc/src/contrib/packagename_${{ version }}.tar.gz
+
+  # Replace with actual SHA256 hash of the source tarball
+  sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 build:
+  # Build number - increment for recipe changes without version bump
+  number: 0
+
+  # For pure R packages (no compiled code), uncomment the following:
+  # noarch: generic
+
+  # R packages typically need these rpaths
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+
+  # Build script - standard for most R packages
   script:
-    interpreter: nu
-    content: |
-      $"building ($env.PKG_NAME)!"
-      npm install -g ./bibtex-tidy-${{ version }}.tgz --prefix $env.PREFIX
-      source npm_licenses.nu
-      main | save license_summary.txt
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+  # For packages with configure scripts, you might need:
+  # script:
+  #   - export DISABLE_AUTOBREW=1  # [osx]
+  #   - $R CMD INSTALL --build . ${R_ARGS}
 
 requirements:
   build:
-    - nushell
-    - nodejs
+    # Compilers needed for packages with C/C++/Fortran code
+    # Remove if package is pure R
+    - ${{ compiler('c') }} # [not win]
+    - ${{ compiler('cxx') }} # [not win]
+    - ${{ compiler('fortran') }} # [not win]
+    - ${{ compiler('m2w64_c') }} # [win]
+    - ${{ compiler('m2w64_cxx') }} # [win]
+    - ${{ compiler('m2w64_fortran') }} # [win]
+
+    # For cross-compilation
+    - cross-r-base {{ r_base }} # [build_platform != target_platform]
+
+    # Uncomment if package uses pkg-config
+    # - pkg-config
+
+    # Uncomment if package needs specific build tools
+    # - make     # [not win]
+    # - cmake    # [not win]
+    # - autoconf # [not win]
+    # - automake # [not win]
+
+  host:
+    # Base R is always required
+    - r-base
+
+    # Common R package dependencies - update as needed
+    # Remove version constraints if not needed
+    - r-rcpp # [package uses Rcpp]
+    - r-rcpparmadillo # [package uses RcppArmadillo]
+    - r-rcppeigen # [package uses RcppEigen]
+
+    # Example of common tidyverse dependencies
+    # - r-dplyr >=1.0.0
+    # - r-ggplot2 >=3.0.0
+    # - r-tidyr >=1.0.0
+    # - r-purrr >=0.3.0
+    # - r-tibble >=3.0.0
+    # - r-stringr >=1.4.0
+    # - r-readr >=1.3.0
+    # - r-forcats >=0.5.0
+
+    # Example of statistical packages
+    # - r-mass
+    # - r-matrix
+    # - r-nlme
+    # - r-survival
+
+    # System dependencies for packages that need them
+    # - libblas    # [package needs BLAS]
+    # - liblapack  # [package needs LAPACK]
+    # - libxml2    # [package uses XML]
+    # - libcurl    # [package uses curl]
+    # - openssl    # [package uses openssl]
+    # - gsl        # [package uses GSL]
+    # - fftw       # [package uses FFTW]
+
   run:
-    - nodejs
+    # Base R is always required
+    - r-base
+
+    # Runtime dependencies should match host dependencies
+    # but typically without version constraints for compilers
+    # Copy the r-* dependencies from host section
+
+    # System dependencies needed at runtime
+    # Copy relevant system libraries from host section
 
 tests:
   - script:
-      - bibtex-tidy --version
+      # Basic test to ensure package can be loaded
+      - $R -e "library('packagename')" # [not win]
+      - $R -e "library('packagename'); packageVersion('packagename')" # [not win]
+      - '"%R%" -e "library(''packagename'')"' # [win]
+      - '"%R%" -e "library(''packagename''); packageVersion(''packagename'')"' # [win]
+
+      # Additional tests can be added here
+      # - $R -e "library('packagename'); packagename::some_function()"  # [not win]
+
+  # Alternative: run package tests (if they exist and are fast)
+  # - script:
+  #     - $R -e "library('testthat'); library('packagename'); test_check('packagename')"  # [not win]
 
 about:
-  homepage: https://.org
-  summary: bibtex summary
-  description: |
-    Bibtex description
-  license: Apache-2.0
+  # Update with actual package information
+  homepage: https://github.com/username/packagename
+  repository: https://github.com/username/packagename
+  documentation: https://packagename.readthedocs.io # or other documentation URL
+
+  # Common R package licenses - update as needed
+  license: MIT
+  # Other common licenses:
+  # license: GPL-2.0-or-later
+  # license: GPL-3.0-or-later
+  # license: BSD-3-Clause
+  # license: Apache-2.0
+  # license: Artistic-2.0
+
   license_file:
     - LICENSE
-    - license-summary.txt
-  documentation: https://.org/docs/
-  repository: https://github.com/
+    # Some packages have additional license files
+    # - LICENSE.md
+    # - LICENCE
+    # - COPYING
+
+  # Update with actual package description
+  summary: A brief description of what the package does
+  description: |
+    A longer description of the package functionality.
+    This can span multiple lines and provide more detail
+    about what the package does and how to use it.
 
 extra:
   recipe-maintainers:
-    - maintainer
+    # Replace with actual maintainer GitHub usernames
+    - maintainer1
+    - maintainer2
+
+  # Add additional platforms if the package supports them
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+
+  # For packages that need specific skip conditions
+  # skip-lints:
+  #   - missing_hash  # [source is git]
+  #   - should_be_noarch_generic  # [package has platform-specific code]
+
+  # For packages with known issues on certain platforms
+  # skip: true  # [win and py<39]

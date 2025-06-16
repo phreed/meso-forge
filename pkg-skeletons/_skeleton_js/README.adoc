@@ -1,0 +1,415 @@
+= JavaScript Package Skeleton for conda-forge
+
+This skeleton provides templates for creating conda-forge recipes for JavaScript packages. It includes comprehensive examples and documentation for common JavaScript package patterns.
+
+== Files in this skeleton
+
+* `recipe.yaml` - Comprehensive template with detailed comments and examples
+* `recipe-simple.yaml` - Simplified template for quick setup
+* `README.adoc` - This documentation file
+* `EXAMPLE.adoc` - Real-world example recipes
+
+== Quick Start
+
+1. Copy the appropriate template:
+   - Use `recipe-simple.yaml` for straightforward packages
+   - Use `recipe.yaml` for more complex packages or when you need guidance
+
+2. Replace the following placeholders:
+   - `{{ PACKAGE_NAME }}` - The npm package name (e.g., "express", "lodash")
+   - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
+   - `{{ SHA256_HASH }}` - SHA256 hash of the tarball
+   - `{{ HOMEPAGE_URL }}` - Package homepage URL
+   - `{{ DEV_URL }}` - Development repository URL
+   - `{{ LICENSE }}` - Package license (e.g., "MIT", "Apache-2.0")
+   - `{{ PACKAGE_SUMMARY }}` - Brief description
+   - `{{ PACKAGE_DESCRIPTION }}` - Detailed description
+   - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
+
+3. Update dependencies in the `requirements` section
+
+4. Test the recipe locally before submitting
+
+== Common JavaScript Package Types
+
+=== Pure JavaScript Packages
+
+For packages written entirely in JavaScript:
+
+[source,yaml]
+----
+build:
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+----
+
+=== CLI Tools/Applications
+
+For packages that provide command-line tools:
+
+[source,yaml]
+----
+build:
+  script:
+    - npm install -g . --prefix $PREFIX
+    - npm run build  # if build step needed
+
+tests:
+  - script:
+      - mytool --version
+      - mytool --help
+      - node -e "require('mytool')"
+----
+
+=== Web Frameworks and Libraries
+
+For web frameworks and browser libraries:
+
+[source,yaml]
+----
+build:
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  run:
+    - nodejs
+    - npm
+    # Framework-specific dependencies
+----
+
+=== TypeScript Packages
+
+For packages written in TypeScript:
+
+[source,yaml]
+----
+build:
+  script:
+    - npm install
+    - npm run build  # compile TypeScript
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+    - typescript  # if not in package.json
+----
+
+== Common Dependencies
+
+=== Core Node.js Ecosystem
+[source,yaml]
+----
+- nodejs
+- npm
+- yarn  # alternative package manager
+- pnpm  # alternative package manager
+----
+
+=== Web Development
+[source,yaml]
+----
+- express
+- react
+- vue
+- angular-cli
+- webpack
+- vite
+- rollup
+- babel
+----
+
+=== Testing and Development
+[source,yaml]
+----
+- jest
+- mocha
+- chai
+- eslint
+- prettier
+- typescript
+- nodemon
+----
+
+=== Build Tools
+[source,yaml]
+----
+- webpack
+- rollup
+- vite
+- parcel
+- grunt
+- gulp
+- browserify
+----
+
+=== Utility Libraries
+[source,yaml]
+----
+- lodash
+- moment
+- axios
+- request
+- chalk
+- commander
+- inquirer
+----
+
+== Testing
+
+=== Basic Import Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - node -e "require('mypackage')"
+      - node -e "console.log(require('mypackage').version)"
+----
+
+=== CLI Tool Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - mytool --version
+      - mytool --help
+      - mytool command --dry-run
+----
+
+=== Module Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - node -e "const pkg = require('mypackage'); console.log(typeof pkg.mainFunction)"
+      - npm test  # if package has tests
+----
+
+== Node.js Version Support
+
+=== Modern Node.js (16+)
+[source,yaml]
+----
+requirements:
+  run:
+    - nodejs >=16
+----
+
+=== LTS Support
+[source,yaml]
+----
+requirements:
+  run:
+    - nodejs >=14,<19  # LTS versions
+----
+
+=== Legacy Support
+[source,yaml]
+----
+requirements:
+  run:
+    - nodejs >=12  # Include older versions
+----
+
+== License Information
+
+Common JavaScript package licenses:
+
+* `MIT` - MIT License (most common)
+* `Apache-2.0` - Apache License 2.0
+* `BSD-3-Clause` - BSD 3-Clause
+* `ISC` - ISC License
+* `GPL-3.0-or-later` - GNU GPL v3+
+* `LGPL-3.0-or-later` - GNU LGPL v3+
+
+== Platform Support
+
+=== Cross-platform packages
+[source,yaml]
+----
+build:
+  noarch: generic  # For pure JS packages
+
+extra:
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+=== Skip certain platforms
+[source,yaml]
+----
+build:
+  skip: true  # [win]  # Skip Windows builds
+  skip: true  # [nodejs_version<"14"]
+----
+
+== Getting SHA256 Hash
+
+To get the SHA256 hash of an npm package tarball:
+
+[source,bash]
+----
+# For npm packages
+curl -L https://registry.npmjs.org/package/-/package-1.0.0.tgz | sha256sum
+
+# For GitHub releases
+curl -L https://github.com/user/repo/archive/v1.0.0.tar.gz | sha256sum
+
+# Using npm pack
+npm pack package@1.0.0
+sha256sum package-1.0.0.tgz
+----
+
+== Package Information Commands
+
+Useful commands for gathering package information:
+
+[source,bash]
+----
+# Get package information
+npm info package
+
+# Get package dependencies
+npm ls package
+
+# Download package for inspection
+npm pack package@1.0.0
+
+# Check package contents
+tar -tzf package-1.0.0.tgz
+----
+
+== Best Practices
+
+1. *Naming*: Use the same name as on npm (no `node-` or `js-` prefix usually)
+2. *Dependencies*: Include both runtime and peer dependencies
+3. *Testing*: Always include at least basic require/import tests
+4. *Node versions*: Support currently maintained Node.js versions
+5. *NoArch*: Use `noarch: generic` for pure JavaScript packages
+6. *License files*: Include license files from npm package
+
+== Common Issues and Solutions
+
+=== Package won't install
+* Check if all dependencies are available in conda-forge
+* Verify Node.js version compatibility
+* Check for missing system dependencies
+
+=== Import errors during tests
+* Ensure all runtime dependencies are listed
+* Check for missing peer dependencies
+* Verify package installation was successful
+
+=== Native module compilation fails
+* Check if package has native dependencies (node-gyp)
+* Ensure appropriate compilers are available
+* Consider using pre-built binaries
+
+=== Version conflicts
+* Check for conflicting dependency versions
+* Use npm's peer dependency resolution
+* Consider using exact versions for stability
+
+=== Cross-platform issues
+* Test on different platforms when possible
+* Be aware of path separator differences
+* Consider platform-specific dependencies
+
+== Package Management
+
+=== npm vs yarn vs pnpm
+[source,yaml]
+----
+# Using npm (default)
+build:
+  script:
+    - npm install
+    - npm run build
+    - npm install -g . --prefix $PREFIX
+
+# Using yarn
+build:
+  script:
+    - yarn install
+    - yarn build
+    - npm install -g . --prefix $PREFIX
+
+# Using pnpm
+build:
+  script:
+    - pnpm install
+    - pnpm build
+    - npm install -g . --prefix $PREFIX
+----
+
+=== Package.json scripts
+[source,yaml]
+----
+build:
+  script:
+    - npm install
+    - npm run build    # if build script exists
+    - npm run test     # if test script exists
+    - npm install -g . --prefix $PREFIX
+----
+
+== Advanced Patterns
+
+=== Monorepo packages
+[source,yaml]
+----
+source:
+  url: https://github.com/user/monorepo/archive/v${{ version }}.tar.gz
+
+build:
+  script:
+    - cd packages/my-package
+    - npm install
+    - npm run build
+    - npm install -g . --prefix $PREFIX
+----
+
+=== Scoped packages
+[source,yaml]
+----
+package:
+  name: "@scope/package-name"
+
+source:
+  url: https://registry.npmjs.org/@scope/package-name/-/package-name-${{ version }}.tgz
+----
+
+=== Development dependencies
+[source,yaml]
+----
+requirements:
+  build:
+    - nodejs
+    - npm
+    - typescript    # build-time only
+    - webpack      # build-time only
+  run:
+    - nodejs
+    # Only runtime dependencies here
+----
+
+== Resources
+
+* link:https://conda-forge.org/docs/[conda-forge documentation]
+* link:https://www.npmjs.com/[npm registry]
+* link:https://nodejs.org/[Node.js documentation]
+* link:https://docs.npmjs.com/[npm documentation]
+* link:https://yarnpkg.com/[Yarn documentation]
+* link:https://pnpm.io/[pnpm documentation]

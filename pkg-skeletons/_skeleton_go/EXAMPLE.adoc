@@ -1,0 +1,539 @@
+= Go Package Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for Go packages, demonstrating various patterns and use cases.
+
+== CLI Tool Example: hugo
+
+A fast and modern static site generator written in Go.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.121.1
+
+package:
+  name: hugo
+  version: ${{ version }}
+
+source:
+  url: https://github.com/gohugoio/hugo/archive/v${{ version }}.tar.gz
+  sha256: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-X github.com/gohugoio/hugo/common/hugo.buildDate=$BUILD_DATE" -o $PREFIX/bin/hugo .
+
+requirements:
+  build:
+    - go >=1.20
+    - git
+
+tests:
+  - script:
+      - hugo version
+      - hugo help
+      - hugo new site test-site
+      - cd test-site && hugo --minify --dry-run
+
+about:
+  homepage: https://gohugo.io/
+  repository: https://github.com/gohugoio/hugo
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: The world's fastest framework for building websites
+  description: |
+    Hugo is one of the most popular open-source static site generators.
+    With its amazing speed and flexibility, Hugo makes building websites fun again.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== System Utility Example: fd
+
+A simple, fast and user-friendly alternative to find, written in Rust but demonstrating Go-style packaging.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.7.0
+
+package:
+  name: gdu
+  version: ${{ version }}
+
+source:
+  url: https://github.com/dundee/gdu/archive/v${{ version }}.tar.gz
+  sha256: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w -X github.com/dundee/gdu/v5/build.Version=$PKG_VERSION" -o $PREFIX/bin/gdu ./cmd/gdu
+
+requirements:
+  build:
+    - go >=1.19
+
+tests:
+  - script:
+      - gdu --version
+      - gdu --help
+      - gdu --non-interactive --no-color . || true  # May fail on empty dir
+
+about:
+  homepage: https://github.com/dundee/gdu
+  repository: https://github.com/dundee/gdu
+  license: MIT
+  license_file: LICENSE.md
+  summary: Fast disk usage analyzer with console interface
+  description: |
+    Pretty fast disk usage analyzer written in Go. Gdu is intended primarily
+    for SSD disks where it can fully utilize parallel processing.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Container Tool Example: docker-compose
+
+Docker Compose tool for defining multi-container applications.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.23.3
+
+package:
+  name: docker-compose
+  version: ${{ version }}
+
+source:
+  url: https://github.com/docker/compose/archive/v${{ version }}.tar.gz
+  sha256: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-X github.com/docker/compose/v2/internal.Version=$PKG_VERSION" -o $PREFIX/bin/docker-compose ./cmd
+
+requirements:
+  build:
+    - go >=1.20
+    - git
+
+tests:
+  - script:
+      - docker-compose version
+      - docker-compose --help
+
+about:
+  homepage: https://docs.docker.com/compose/
+  repository: https://github.com/docker/compose
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Define and run multi-container applications with Docker
+  description: |
+    Compose is a tool for defining and running multi-container Docker applications.
+    With Compose, you use a YAML file to configure your application's services.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Infrastructure Tool Example: terraform
+
+Infrastructure as Code tool for building, changing, and versioning infrastructure.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.6.6
+
+package:
+  name: terraform
+  version: ${{ version }}
+
+source:
+  url: https://github.com/hashicorp/terraform/archive/v${{ version }}.tar.gz
+  sha256: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w" -o $PREFIX/bin/terraform .
+
+requirements:
+  build:
+    - go >=1.20
+    - git
+
+tests:
+  - script:
+      - terraform version
+      - terraform --help
+      - terraform init --help
+
+about:
+  homepage: https://www.terraform.io/
+  repository: https://github.com/hashicorp/terraform
+  license: MPL-2.0
+  license_file: LICENSE
+  summary: Infrastructure as Code to provision and manage any cloud, infrastructure, or service
+  description: |
+    Terraform enables you to safely and predictably create, change, and
+    improve infrastructure. It is an open source tool that codifies APIs
+    into declarative configuration files.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Monitoring Tool Example: prometheus
+
+Monitoring system and time series database.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.48.1
+
+package:
+  name: prometheus
+  version: ${{ version }}
+
+source:
+  url: https://github.com/prometheus/prometheus/archive/v${{ version }}.tar.gz
+  sha256: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+
+build:
+  number: 0
+  script:
+    - make build
+    - cp prometheus $PREFIX/bin/
+    - cp promtool $PREFIX/bin/
+
+requirements:
+  build:
+    - go >=1.20
+    - make
+    - nodejs  # for building web UI
+    - yarn
+
+tests:
+  - script:
+      - prometheus --version
+      - promtool --help
+      - prometheus --help
+
+about:
+  homepage: https://prometheus.io/
+  repository: https://github.com/prometheus/prometheus
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: The Prometheus monitoring system and time series database
+  description: |
+    Prometheus is an open-source systems monitoring and alerting toolkit.
+    Prometheus collects and stores its metrics as time series data.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Development Tool Example: golangci-lint
+
+Fast linters runner for Go.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.55.2
+
+package:
+  name: golangci-lint
+  version: ${{ version }}
+
+source:
+  url: https://github.com/golangci/golangci-lint/archive/v${{ version }}.tar.gz
+  sha256: f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w -X main.version=$PKG_VERSION -X main.commit=conda-forge -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o $PREFIX/bin/golangci-lint ./cmd/golangci-lint
+
+requirements:
+  build:
+    - go >=1.20
+
+tests:
+  - script:
+      - golangci-lint --version
+      - golangci-lint --help
+      - golangci-lint linters
+
+about:
+  homepage: https://golangci-lint.run/
+  repository: https://github.com/golangci/golangci-lint
+  license: GPL-3.0-only
+  license_file: LICENSE
+  summary: Fast linters runner for Go
+  description: |
+    golangci-lint is a Go linters aggregator. It's fast, easy to integrate
+    and has nice output. It has integrations with VS Code, GNU Emacs, Sublime Text.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Network Tool Example: mkcert
+
+A simple tool for making locally-trusted development certificates.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.4.4
+
+package:
+  name: mkcert
+  version: ${{ version }}
+
+source:
+  url: https://github.com/FiloSottile/mkcert/archive/v${{ version }}.tar.gz
+  sha256: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w -X main.Version=$PKG_VERSION" -o $PREFIX/bin/mkcert .
+
+requirements:
+  build:
+    - go >=1.17
+
+tests:
+  - script:
+      - mkcert -version
+      - mkcert -help
+
+about:
+  homepage: https://github.com/FiloSottile/mkcert
+  repository: https://github.com/FiloSottile/mkcert
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: A simple tool for making locally-trusted development certificates
+  description: |
+    mkcert is a simple tool for making locally-trusted development certificates.
+    It requires no configuration and works across platforms.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== File Processing Tool Example: jq
+
+Command-line JSON processor (Go implementation).
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.4.0
+
+package:
+  name: gojq
+  version: ${{ version }}
+
+source:
+  url: https://github.com/itchyny/gojq/archive/v${{ version }}.tar.gz
+  sha256: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w -X github.com/itchyny/gojq/cli.version=$PKG_VERSION" -o $PREFIX/bin/gojq ./cmd/gojq
+
+requirements:
+  build:
+    - go >=1.18
+
+tests:
+  - script:
+      - gojq --version
+      - gojq --help
+      - echo '{"name": "test"}' | gojq '.name'
+
+about:
+  homepage: https://github.com/itchyny/gojq
+  repository: https://github.com/itchyny/gojq
+  license: MIT
+  license_file: LICENSE
+  summary: Pure Go implementation of jq
+  description: |
+    gojq is an implementation of jq command in Go language.
+    You can also embed gojq as a library to your Go products.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Database Tool Example: migrate
+
+Database migrations written in Go.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.17.0
+
+package:
+  name: migrate
+  version: ${{ version }}
+
+source:
+  url: https://github.com/golang-migrate/migrate/archive/v${{ version }}.tar.gz
+  sha256: c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w -X main.Version=$PKG_VERSION" -tags 'postgres mysql sqlite3 file' -o $PREFIX/bin/migrate ./cmd/migrate
+
+requirements:
+  build:
+    - go >=1.19
+    - ${{ compiler('c') }}  # for CGO dependencies
+  host:
+    - sqlite
+    - postgresql
+    - mysql
+  run:
+    - sqlite
+    - postgresql
+    - mysql
+
+tests:
+  - script:
+      - migrate -version
+      - migrate -help
+
+about:
+  homepage: https://github.com/golang-migrate/migrate
+  repository: https://github.com/golang-migrate/migrate
+  license: MIT
+  license_file: LICENSE
+  summary: Database migrations written in Go
+  description: |
+    Database migrations written in Go. Use as CLI or import as library.
+    Supports PostgreSQL, MySQL, SQLite, and more.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Web Application Example: caddy
+
+Fast, multi-platform web server with automatic HTTPS.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.7.6
+
+package:
+  name: caddy
+  version: ${{ version }}
+
+source:
+  url: https://github.com/caddyserver/caddy/archive/v${{ version }}.tar.gz
+  sha256: d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1
+
+build:
+  number: 0
+  script:
+    - go build -v -ldflags="-s -w" -o $PREFIX/bin/caddy ./cmd/caddy
+
+requirements:
+  build:
+    - go >=1.20
+
+tests:
+  - script:
+      - caddy version
+      - caddy help
+      - caddy list-modules --packages
+
+about:
+  homepage: https://caddyserver.com/
+  repository: https://github.com/caddyserver/caddy
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Fast, multi-platform web server with automatic HTTPS
+  description: |
+    Caddy is a powerful, enterprise-ready, open source web server with
+    automatic HTTPS written in Go. It simplifies your infrastructure.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/go
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----

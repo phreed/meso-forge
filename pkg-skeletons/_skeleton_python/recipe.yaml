@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/i/ipywidgets/ipywidgets-${{ version }}.tar.gz
-  sha256: d0b9b41e49bae926a866e613a39b0f0097745d2b9f1f3dd406641b4a57ec42c9
+  sha256: "d0b9b41e49bae926a866e613a39b0f0097745d2b9f1f3dd406641b4a57ec42c9"
 
 build:
   noarch: python
@@ -33,8 +33,8 @@ requirements:
 
 tests:
   - python:
-    imports:
-      - ipywidgets
+      imports:
+        - ipywidgets
 
 about:
   homepage: https://github.com/ipython/ipywidgets

@@ -1,0 +1,432 @@
+= Python Package Skeleton for conda-forge
+
+This skeleton provides templates for creating conda-forge recipes for Python packages. It includes comprehensive examples and documentation for common Python package patterns.
+
+== Files in this skeleton
+
+* `recipe.yaml` - Comprehensive template with detailed comments and examples
+* `recipe-simple.yaml` - Simplified template for quick setup
+* `README.adoc` - This documentation file
+* `EXAMPLE.adoc` - Real-world example recipes
+
+== Quick Start
+
+1. Copy the appropriate template:
+   - Use `recipe-simple.yaml` for straightforward packages
+   - Use `recipe.yaml` for more complex packages or when you need guidance
+
+2. Replace the following placeholders:
+   - `{{ PACKAGE_NAME }}` - The Python package name (e.g., "numpy", "requests")
+   - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
+   - `{{ SHA256_HASH }}` - SHA256 hash of the source tarball
+   - `{{ HOMEPAGE_URL }}` - Package homepage URL
+   - `{{ DEV_URL }}` - Development repository URL
+   - `{{ LICENSE }}` - Package license (e.g., "MIT", "Apache-2.0")
+   - `{{ PACKAGE_SUMMARY }}` - Brief description
+   - `{{ PACKAGE_DESCRIPTION }}` - Detailed description
+   - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
+
+3. Update dependencies in the `requirements` section
+
+4. Test the recipe locally before submitting
+
+== Common Python Package Types
+
+=== Pure Python Packages (No Compiled Code)
+
+For packages written entirely in Python:
+
+[source,yaml]
+----
+build:
+  noarch: python
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - pip
+    - python >=3.8
+    - setuptools
+  run:
+    - python >=3.8
+    - dependency1
+    - dependency2
+----
+
+=== Packages with C Extensions
+
+For packages that compile native code:
+
+[source,yaml]
+----
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}  # if using C++
+  host:
+    - pip
+    - python
+    - numpy  # if using numpy C API
+    - cython  # if using Cython
+  run:
+    - python
+    - numpy  # if runtime dependency
+----
+
+=== CLI Tools/Applications
+
+For packages that provide command-line tools:
+
+[source,yaml]
+----
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+  entry_points:
+    - mytool = mypackage.cli:main
+
+tests:
+  - script:
+      - mytool --version
+      - mytool --help
+----
+
+=== Conda-only Packages
+
+For packages not available on PyPI:
+
+[source,yaml]
+----
+source:
+  url: https://github.com/username/package/archive/v${{ version }}.tar.gz
+  sha256: {{ SHA256_HASH }}
+
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+----
+
+== Common Dependencies
+
+=== Scientific Computing Stack
+[source,yaml]
+----
+- numpy
+- scipy
+- pandas
+- matplotlib
+- scikit-learn
+- jupyter
+- ipython
+----
+
+=== Web Development
+[source,yaml]
+----
+- django
+- flask
+- fastapi
+- requests
+- urllib3
+- httpx
+- aiohttp
+----
+
+=== Testing and Development
+[source,yaml]
+----
+- pytest
+- pytest-cov
+- tox
+- black
+- flake8
+- mypy
+- setuptools-scm
+----
+
+=== Data Processing
+[source,yaml]
+----
+- pandas
+- polars
+- dask
+- xarray
+- h5py
+- netcdf4
+- openpyxl
+----
+
+=== Machine Learning
+[source,yaml]
+----
+- tensorflow
+- pytorch
+- scikit-learn
+- xgboost
+- lightgbm
+- transformers
+----
+
+=== System Dependencies
+
+Common system libraries needed by Python packages:
+
+[source,yaml]
+----
+# In host section for build-time, in run section for runtime
+- libxml2         # for lxml, beautifulsoup4
+- libxslt         # for lxml
+- libcurl         # for pycurl
+- openssl         # for cryptography, pyopenssl
+- sqlite          # for sqlite3 support
+- postgresql      # for psycopg2
+- mysql           # for mysqlclient
+- hdf5            # for h5py, pytables
+- netcdf4         # for netcdf4-python
+- openblas        # for numpy, scipy
+- fftw            # for scipy, pyfftw
+- geos            # for shapely, cartopy
+- proj            # for pyproj, cartopy
+----
+
+== Testing
+
+=== Basic Import Tests
+[source,yaml]
+----
+tests:
+  - python:
+      imports:
+        - mypackage
+        - mypackage.submodule
+----
+
+=== Script Tests
+[source,yaml]
+----
+tests:
+  - script:
+      - python -c "import mypackage; print(mypackage.__version__)"
+      - python -m pytest mypackage/tests/  # [linux]
+----
+
+=== Downstream Testing
+[source,yaml]
+----
+tests:
+  - python:
+      imports:
+        - mypackage
+      requires:
+        - pytest
+      commands:
+        - pytest --pyargs mypackage
+----
+
+== Python Version Support
+
+=== Modern Python (3.8+)
+[source,yaml]
+----
+requirements:
+  host:
+    - python >=3.8
+  run:
+    - python >=3.8
+----
+
+=== Version-specific constraints
+[source,yaml]
+----
+requirements:
+  host:
+    - python >=3.9,<3.12  # Specific range
+  run:
+    - python >=3.9,<3.12
+----
+
+=== Legacy Python support
+[source,yaml]
+----
+requirements:
+  host:
+    - python >=3.7  # Include older versions
+  run:
+    - python >=3.7
+----
+
+== License Information
+
+Common Python package licenses:
+
+* `MIT` - MIT License (most common)
+* `Apache-2.0` - Apache License 2.0
+* `BSD-3-Clause` - BSD 3-Clause
+* `GPL-3.0-or-later` - GNU GPL v3+
+* `LGPL-3.0-or-later` - GNU LGPL v3+
+* `PSF-2.0` - Python Software Foundation License
+
+== Platform Support
+
+=== Cross-platform packages
+[source,yaml]
+----
+build:
+  noarch: python  # Only for pure Python
+
+extra:
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+=== Skip certain platforms
+[source,yaml]
+----
+build:
+  skip: true  # [win and py<39]
+  skip: true  # [py<38]
+----
+
+== Getting SHA256 Hash
+
+To get the SHA256 hash of a source tarball:
+
+[source,bash]
+----
+# For PyPI packages
+curl -L https://pypi.io/packages/source/p/package/package-1.0.0.tar.gz | sha256sum
+
+# For GitHub releases
+curl -L https://github.com/user/repo/archive/v1.0.0.tar.gz | sha256sum
+
+# Using pip download
+pip download --no-deps package==1.0.0
+sha256sum package-1.0.0.tar.gz
+----
+
+== Package Information Commands
+
+Useful commands for gathering package information:
+
+[source,bash]
+----
+# Get package dependencies
+pip show package
+
+# Download source for inspection
+pip download --no-deps --no-binary :all: package==1.0.0
+
+# Check package metadata
+python -c "import pkg_resources; print(pkg_resources.get_distribution('package'))"
+----
+
+== Best Practices
+
+1. *Naming*: Use the same name as on PyPI (no `python-` prefix usually)
+2. *Dependencies*: Pin major versions when needed for stability
+3. *Testing*: Always include at least import tests
+4. *Python versions*: Support currently maintained Python versions
+5. *Build isolation*: Use `--no-build-isolation` for conda-forge builds
+6. *NoArch*: Use `noarch: python` for pure Python packages
+
+== Common Issues and Solutions
+
+=== Package won't build
+* Check if all dependencies are available in conda-forge
+* Verify Python version compatibility
+* Check for missing system dependencies
+
+=== Import errors during tests
+* Ensure all runtime dependencies are listed
+* Check for missing optional dependencies
+* Verify package installation was successful
+
+=== C extension compilation fails
+* Ensure correct compilers are specified
+* Check for missing development headers
+* Verify environment variables are set correctly
+
+=== Version conflicts
+* Check for conflicting version constraints
+* Use version ranges instead of exact pins when possible
+* Consider using `compatible_release` operator (`~=`)
+
+=== Cross-platform issues
+* Test on different platforms when possible
+* Use platform selectors for platform-specific dependencies
+* Consider architecture-specific builds for packages with native code
+
+== Package Management
+
+=== Setup.py vs pyproject.toml builds
+[source,yaml]
+----
+# For setup.py based packages
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+
+# For pyproject.toml based packages
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+    - wheel
+    - build  # if using build backend
+----
+
+=== Entry points and scripts
+[source,yaml]
+----
+build:
+  entry_points:
+    - mycli = mypackage.cli:main
+    - mytool = mypackage.tools:run
+
+# Or for console_scripts in setup.py:
+# These are usually handled automatically
+----
+
+== Advanced Patterns
+
+=== Packages with optional dependencies
+[source,yaml]
+----
+outputs:
+  - name: mypackage
+    requirements:
+      run:
+        - python
+        - core-dependency
+
+  - name: mypackage-extras
+    requirements:
+      run:
+        - ${{ pin_subpackage('mypackage', exact=True) }}
+        - optional-dependency1
+        - optional-dependency2
+----
+
+=== Version constraints from upstream
+[source,yaml]
+----
+requirements:
+  run:
+    - numpy >=1.19.0
+    - pandas >=1.3.0,<2.0a0
+    - python >=3.8,<3.12
+----
+
+== Resources
+
+* link:https://conda-forge.org/docs/[conda-forge documentation]
+* link:https://pypi.org/[Python Package Index (PyPI)]
+* link:https://packaging.python.org/[Python Packaging User Guide]
+* link:https://pip.pypa.io/[pip documentation]
+* link:https://setuptools.pypa.io/[setuptools documentation]
+* link:https://wheel.readthedocs.io/[wheel documentation]

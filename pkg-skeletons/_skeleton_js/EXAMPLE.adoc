@@ -1,0 +1,663 @@
+= JavaScript Package Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for JavaScript packages, demonstrating various patterns and use cases.
+
+== Pure JavaScript Library Example: lodash
+
+A popular utility library with no compiled dependencies.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.17.21
+
+package:
+  name: lodash
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/lodash/-/lodash-${{ version }}.tgz
+  sha256: 679591c564c3bffaae8454cf0b3df370c3d6911c9d4b41b85c47bbb24b0b8d2c
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - node -e "const _ = require('lodash'); console.log(_.VERSION)"
+      - node -e "const _ = require('lodash'); console.log(_.chunk([1,2,3,4], 2))"
+
+about:
+  homepage: https://lodash.com/
+  license: MIT
+  license_file: LICENSE
+  summary: A modern JavaScript utility library delivering modularity, performance, & extras.
+  description: |
+    Lodash makes JavaScript easier by taking the hassle out of working with
+    arrays, numbers, objects, strings, etc. Lodash's modular methods are
+    great for iterating arrays, objects, & strings.
+  documentation: https://lodash.com/docs/
+  repository: https://github.com/lodash/lodash
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== CLI Tool Example: eslint
+
+A popular JavaScript linting tool with command-line interface.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 8.55.0
+
+package:
+  name: eslint
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/eslint/-/eslint-${{ version }}.tgz
+  sha256: 1a8d8c7c8a9b8c7d6e5f4a3b2c1d0e9f8g7h6i5j4k3l2m1n0o9p8q7r6s5t4u3
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - eslint --version
+      - eslint --help
+      - node -e "require('eslint')"
+
+about:
+  homepage: https://eslint.org/
+  license: MIT
+  license_file: LICENSE
+  summary: An AST-based pattern checker for JavaScript.
+  description: |
+    ESLint is a tool for identifying and reporting on patterns found in
+    ECMAScript/JavaScript code, with the goal of making code more consistent
+    and avoiding bugs.
+  documentation: https://eslint.org/docs/
+  repository: https://github.com/eslint/eslint
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Web Framework Example: express
+
+A fast, unopinionated, minimalist web framework for Node.js.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.18.2
+
+package:
+  name: express
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/express/-/express-${{ version }}.tgz
+  sha256: 2c091b2b2c8d3b9b8c7d6e5f4a3b2c1d0e9f8g7h6i5j4k3l2m1n0o9p8q7r6s5
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - node -e "const express = require('express'); console.log('Express loaded successfully')"
+      - node -e "const express = require('express'); const app = express(); console.log('Express app created')"
+
+about:
+  homepage: https://expressjs.com/
+  license: MIT
+  license_file: LICENSE
+  summary: Fast, unopinionated, minimalist web framework for node.
+  description: |
+    Express is a minimal and flexible Node.js web application framework
+    that provides a robust set of features for web and mobile applications.
+  documentation: https://expressjs.com/en/4x/api.html
+  repository: https://github.com/expressjs/express
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Build Tool Example: webpack
+
+A module bundler for modern JavaScript applications.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 5.89.0
+
+package:
+  name: webpack
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/webpack/-/webpack-${{ version }}.tgz
+  sha256: 3c4d5e6f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - webpack --version
+      - webpack --help
+      - node -e "require('webpack')"
+
+about:
+  homepage: https://webpack.js.org/
+  license: MIT
+  license_file: LICENSE
+  summary: A module bundler for JavaScript applications.
+  description: |
+    webpack is a module bundler. Its main purpose is to bundle JavaScript
+    files for usage in a browser, yet it is also capable of transforming,
+    bundling, or packaging just about any resource or asset.
+  documentation: https://webpack.js.org/concepts/
+  repository: https://github.com/webpack/webpack
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Testing Framework Example: jest
+
+A JavaScript testing framework with a focus on simplicity.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 29.7.0
+
+package:
+  name: jest
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/jest/-/jest-${{ version }}.tgz
+  sha256: b4c6d8b7e9f0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - jest --version
+      - jest --help
+      - node -e "require('jest')"
+
+about:
+  homepage: https://jestjs.io/
+  license: MIT
+  license_file: LICENSE
+  summary: JavaScript Testing Framework with a focus on simplicity.
+  description: |
+    Jest is a delightful JavaScript Testing Framework with a focus on
+    simplicity. It works out of the box for most JavaScript projects.
+  documentation: https://jestjs.io/docs/
+  repository: https://github.com/facebook/jest
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== TypeScript Tool Example: typescript
+
+The TypeScript language compiler and toolchain.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 5.3.2
+
+package:
+  name: typescript
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/typescript/-/typescript-${{ version }}.tgz
+  sha256: c7d8e9b0f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - tsc --version
+      - tsc --help
+      - tsserver --version
+      - node -e "require('typescript')"
+
+about:
+  homepage: https://www.typescriptlang.org/
+  license: Apache-2.0
+  license_file: LICENSE.txt
+  summary: TypeScript is a language for application scale JavaScript development.
+  description: |
+    TypeScript extends JavaScript by adding types. By understanding JavaScript,
+    TypeScript saves you time catching errors and providing fixes before you run code.
+  documentation: https://www.typescriptlang.org/docs/
+  repository: https://github.com/Microsoft/TypeScript
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== HTTP Client Example: axios
+
+A popular HTTP client for browsers and Node.js.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.6.2
+
+package:
+  name: axios
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/axios/-/axios-${{ version }}.tgz
+  sha256: d9b8c1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - node -e "const axios = require('axios'); console.log(axios.VERSION || 'axios loaded')"
+      - node -e "const axios = require('axios'); console.log(typeof axios.get)"
+
+about:
+  homepage: https://axios-http.com/
+  license: MIT
+  license_file: LICENSE
+  summary: Promise based HTTP client for the browser and node.js
+  description: |
+    Axios is a simple promise based HTTP client for the browser and node.js.
+    Axios provides a simple to use library in a small package with a very
+    extensible interface.
+  documentation: https://axios-http.com/docs/intro
+  repository: https://github.com/axios/axios
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== CLI Generator Example: create-react-app
+
+A tool to create React applications with no build configuration.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 5.0.1
+
+package:
+  name: create-react-app
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/create-react-app/-/create-react-app-${{ version }}.tgz
+  sha256: e0f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+    - npm
+
+tests:
+  - script:
+      - create-react-app --version
+      - create-react-app --help
+      - node -e "require('create-react-app')"
+
+about:
+  homepage: https://create-react-app.dev/
+  license: MIT
+  license_file: LICENSE
+  summary: Create React apps with no build configuration.
+  description: |
+    Create React App is an officially supported way to create single-page
+    React applications. It offers a modern build setup with no configuration.
+  documentation: https://create-react-app.dev/docs/
+  repository: https://github.com/facebook/create-react-app
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Utility CLI Tool Example: prettier
+
+An opinionated code formatter for JavaScript and other languages.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.1.1
+
+package:
+  name: prettier
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/prettier/-/prettier-${{ version }}.tgz
+  sha256: f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - prettier --version
+      - prettier --help
+      - echo 'const x={a:1,b:2};' | prettier --parser babel
+      - node -e "require('prettier')"
+
+about:
+  homepage: https://prettier.io/
+  license: MIT
+  license_file: LICENSE
+  summary: Prettier is an opinionated code formatter.
+  description: |
+    Prettier is an opinionated code formatter. It enforces a consistent style
+    by parsing your code and re-printing it with its own rules that take the
+    maximum line length into account, wrapping code when necessary.
+  documentation: https://prettier.io/docs/
+  repository: https://github.com/prettier/prettier
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Package with Binary Dependencies Example: node-sass
+
+A library that provides binding for Node.js to LibSass.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 9.0.0
+
+package:
+  name: node-sass
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/node-sass/-/node-sass-${{ version }}.tgz
+  sha256: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+build:
+  number: 0
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - nodejs
+    - npm
+    - python
+  host:
+    - libsass
+  run:
+    - nodejs
+    - libsass
+
+tests:
+  - script:
+      - node-sass --version
+      - node-sass --help
+      - node -e "require('node-sass')"
+
+about:
+  homepage: https://github.com/sass/node-sass
+  license: MIT
+  license_file: LICENSE
+  summary: Node.js bindings to libsass
+  description: |
+    Node-sass is a library that provides binding for Node.js to LibSass,
+    the C version of the popular stylesheet preprocessor, Sass.
+  documentation: https://github.com/sass/node-sass#readme
+  repository: https://github.com/sass/node-sass
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Scoped Package Example: @angular/cli
+
+Angular CLI tool as a scoped package.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 17.0.7
+
+package:
+  name: angular-cli
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/@angular/cli/-/cli-${{ version }}.tgz
+  sha256: b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - ng version
+      - ng help
+      - node -e "require('@angular/cli')"
+
+about:
+  homepage: https://angular.io/cli
+  license: MIT
+  license_file: LICENSE
+  summary: CLI tool for Angular
+  description: |
+    The Angular CLI is a command-line interface tool that you use to
+    initialize, develop, scaffold, and maintain Angular applications directly
+    from a command shell.
+  documentation: https://angular.io/cli
+  repository: https://github.com/angular/angular-cli
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----
+
+== Development Server Example: live-server
+
+A simple development HTTP server with live reload capability.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.2.2
+
+package:
+  name: live-server
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/live-server/-/live-server-${{ version }}.tgz
+  sha256: c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - npm install -g . --prefix $PREFIX
+
+requirements:
+  build:
+    - nodejs
+    - npm
+  run:
+    - nodejs
+
+tests:
+  - script:
+      - live-server --version
+      - live-server --help
+      - node -e "require('live-server')"
+
+about:
+  homepage: https://github.com/tapio/live-server
+  license: MIT
+  license_file: LICENSE
+  summary: A simple development http server with live reload capability.
+  description: |
+    This is a little development server with live reload capability.
+    Use it for hacking your HTML/JavaScript/CSS files, but not for deploying
+    the final site.
+  documentation: https://github.com/tapio/live-server#readme
+  repository: https://github.com/tapio/live-server
+
+extra:
+  recipe-maintainers:
+    - conda-forge/nodejs
+----

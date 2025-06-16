@@ -1,0 +1,725 @@
+= R Package Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for R packages, demonstrating various patterns and use cases.
+
+== Pure R Package Example: dplyr
+
+A grammar of data manipulation, providing a consistent set of verbs.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.1.4
+
+package:
+  name: r-dplyr
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/dplyr_${{ version }}.tar.gz
+  sha256: fedd963d0e3ad4b5c0e8c5d39e3d0e1e0f0a0b0c1d2e3f4a5b6c7d8e9f0a1b2
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+  host:
+    - r-base
+    - r-cli >=3.4.0
+    - r-generics
+    - r-glue >=1.3.2
+    - r-lifecycle >=1.0.3
+    - r-magrittr >=1.5
+    - r-pillar >=1.9.0
+    - r-r6
+    - r-rlang >=1.1.0
+    - r-tibble >=3.2.0
+    - r-tidyselect >=1.2.0
+    - r-vctrs >=0.6.4
+  run:
+    - r-base
+    - r-cli >=3.4.0
+    - r-generics
+    - r-glue >=1.3.2
+    - r-lifecycle >=1.0.3
+    - r-magrittr >=1.5
+    - r-pillar >=1.9.0
+    - r-r6
+    - r-rlang >=1.1.0
+    - r-tibble >=3.2.0
+    - r-tidyselect >=1.2.0
+    - r-vctrs >=0.6.4
+
+tests:
+  - script:
+      - $R -e "library('dplyr')"  # [not win]
+      - $R -e "library('dplyr'); packageVersion('dplyr')"  # [not win]
+      - '"%R%" -e "library(''dplyr'')"'  # [win]
+
+about:
+  homepage: https://dplyr.tidyverse.org
+  repository: https://github.com/tidyverse/dplyr
+  documentation: https://dplyr.tidyverse.org
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: A Grammar of Data Manipulation
+  description: |
+    A fast, consistent tool for working with data frame like objects,
+    both in memory and out of memory.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Package with Rcpp Example: RcppArmadillo
+
+RcppArmadillo provides an interface from R to and from Armadillo.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 0.12.6.6.1
+
+package:
+  name: r-rcpparmadillo
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/RcppArmadillo_${{ version }}.tar.gz
+  sha256: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - export DISABLE_AUTOBREW=1  # [osx]
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('fortran') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+  host:
+    - r-base
+    - r-rcpp >=0.11.0
+    - libblas
+    - liblapack
+  run:
+    - r-base
+    - r-rcpp >=0.11.0
+
+tests:
+  - script:
+      - $R -e "library('RcppArmadillo')"  # [not win]
+      - $R -e "RcppArmadillo::armadillo_version()"  # [not win]
+      - '"%R%" -e "library(''RcppArmadillo'')"'  # [win]
+
+about:
+  homepage: https://github.com/RcppCore/RcppArmadillo
+  repository: https://github.com/RcppCore/RcppArmadillo
+  license: GPL-2.0-or-later
+  license_file: LICENSE
+  summary: Rcpp Integration for the Armadillo Templated Linear Algebra Library
+  description: |
+    Armadillo is a templated C++ linear algebra library that aims towards
+    a good balance between speed and ease of use. This package provides
+    RcppArmadillo as a header-only C++ library.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Bioconductor Package Example: Biostrings
+
+Efficient manipulation of biological strings.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.68.1
+  bioc_version: 3.17
+
+package:
+  name: bioconductor-biostrings
+  version: ${{ version }}
+
+source:
+  url: https://bioconductor.org/packages/release/bioc/src/contrib/Biostrings_${{ version }}.tar.gz
+  sha256: c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+  host:
+    - r-base
+    - bioconductor-biocgenerics >=0.37.0
+    - bioconductor-iranges >=2.31.2
+    - bioconductor-s4vectors >=0.35.4
+    - bioconductor-xvector >=0.37.1
+    - r-crayon
+  run:
+    - r-base
+    - bioconductor-biocgenerics >=0.37.0
+    - bioconductor-iranges >=2.31.2
+    - bioconductor-s4vectors >=0.35.4
+    - bioconductor-xvector >=0.37.1
+    - r-crayon
+
+tests:
+  - script:
+      - $R -e "library('Biostrings')"  # [not win]
+      - $R -e "Biostrings::DNA_ALPHABET"  # [not win]
+      - '"%R%" -e "library(''Biostrings'')"'  # [win]
+
+about:
+  homepage: https://bioconductor.org/packages/Biostrings
+  repository: https://github.com/Bioconductor/Biostrings
+  license: Artistic-2.0
+  license_file: LICENSE
+  summary: Efficient manipulation of biological strings
+  description: |
+    Memory efficient string containers, string matching algorithms, and
+    other utilities, for fast manipulation of large biological sequences
+    or sets of sequences.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+    - conda-forge/bioconductor
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== System Dependencies Example: xml2
+
+Parse XML with R using libxml2.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.3.5
+
+package:
+  name: r-xml2
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/xml2_${{ version }}.tar.gz
+  sha256: d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - export DISABLE_AUTOBREW=1  # [osx]
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - pkg-config
+  host:
+    - r-base
+    - libxml2
+  run:
+    - r-base
+    - libxml2
+
+tests:
+  - script:
+      - $R -e "library('xml2')"  # [not win]
+      - $R -e "xml2::libxml2_version()"  # [not win]
+      - '"%R%" -e "library(''xml2'')"'  # [win]
+
+about:
+  homepage: https://xml2.r-lib.org/
+  repository: https://github.com/r-lib/xml2
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: Parse XML
+  description: |
+    Work with XML files using a simple, consistent interface. Built on
+    top of the libxml2 C library.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Statistical Package Example: randomForest
+
+Breiman and Cutler's Random Forests for Classification and Regression.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.7-1.1
+
+package:
+  name: r-randomforest
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/randomForest_${{ version }}.tar.gz
+  sha256: e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('fortran') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+  host:
+    - r-base
+  run:
+    - r-base
+
+tests:
+  - script:
+      - $R -e "library('randomForest')"  # [not win]
+      - $R -e "data(iris); randomForest::randomForest(Species ~ ., data=iris, ntree=10)"  # [not win]
+      - '"%R%" -e "library(''randomForest'')"'  # [win]
+
+about:
+  homepage: https://www.stat.berkeley.edu/~breiman/RandomForests/
+  repository: https://github.com/cran/randomForest
+  license: GPL-2.0-or-later
+  license_file: LICENSE
+  summary: Breiman and Cutler's Random Forests for Classification and Regression
+  description: |
+    Classification and regression based on a forest of trees using
+    random inputs, based on Breiman (2001).
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Visualization Package Example: ggplot2
+
+Create Elegant Data Visualisations Using the Grammar of Graphics.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.4.4
+
+package:
+  name: r-ggplot2
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/ggplot2_${{ version }}.tar.gz
+  sha256: f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  host:
+    - r-base
+    - r-cli
+    - r-glue
+    - r-gtable >=0.1.1
+    - r-isoband
+    - r-lifecycle >=1.0.1
+    - r-mass
+    - r-mgcv
+    - r-rlang >=1.1.0
+    - r-scales >=1.2.0
+    - r-tibble
+    - r-vctrs >=0.5.0
+    - r-withr >=2.5.0
+  run:
+    - r-base
+    - r-cli
+    - r-glue
+    - r-gtable >=0.1.1
+    - r-isoband
+    - r-lifecycle >=1.0.1
+    - r-mass
+    - r-mgcv
+    - r-rlang >=1.1.0
+    - r-scales >=1.2.0
+    - r-tibble
+    - r-vctrs >=0.5.0
+    - r-withr >=2.5.0
+
+tests:
+  - script:
+      - $R -e "library('ggplot2')"  # [not win]
+      - $R -e "library('ggplot2'); ggplot(mtcars, aes(mpg, wt)) + geom_point()"  # [not win]
+      - '"%R%" -e "library(''ggplot2'')"'  # [win]
+
+about:
+  homepage: https://ggplot2.tidyverse.org
+  repository: https://github.com/tidyverse/ggplot2
+  documentation: https://ggplot2.tidyverse.org/reference/
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: Create Elegant Data Visualisations Using the Grammar of Graphics
+  description: |
+    A system for declaratively creating graphics, based on "The Grammar
+    of Graphics". You provide the data, tell ggplot2 how to map variables
+    to aesthetics, what graphical primitives to use, and it takes care of the details.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== GitHub Package Example: devtools
+
+Tools to Make Developing R Packages Easier.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.4.5
+
+package:
+  name: r-devtools
+  version: ${{ version }}
+
+source:
+  url: https://github.com/r-lib/devtools/archive/v${{ version }}.tar.gz
+  sha256: a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  host:
+    - r-base
+    - r-cli >=3.3.0
+    - r-desc >=1.4.2
+    - r-ellipsis >=0.3.2
+    - r-fs >=1.5.2
+    - r-lifecycle >=1.0.3
+    - r-memoise >=2.0.1
+    - r-miniui >=0.1.1.1
+    - r-pkgbuild >=1.3.1
+    - r-pkgdown >=2.0.6
+    - r-pkgload >=1.3.0
+    - r-profvis >=0.3.7
+    - r-rcmdcheck >=1.4.0
+    - r-remotes >=2.4.2
+    - r-rlang >=1.0.6
+    - r-roxygen2 >=7.2.1
+    - r-rversions >=2.1.1
+    - r-sessioninfo >=1.2.2
+    - r-testthat >=3.1.5
+    - r-usethis >=2.1.6
+    - r-withr >=2.5.0
+  run:
+    - r-base
+    - r-cli >=3.3.0
+    - r-desc >=1.4.2
+    - r-ellipsis >=0.3.2
+    - r-fs >=1.5.2
+    - r-lifecycle >=1.0.3
+    - r-memoise >=2.0.1
+    - r-miniui >=0.1.1.1
+    - r-pkgbuild >=1.3.1
+    - r-pkgdown >=2.0.6
+    - r-pkgload >=1.3.0
+    - r-profvis >=0.3.7
+    - r-rcmdcheck >=1.4.0
+    - r-remotes >=2.4.2
+    - r-rlang >=1.0.6
+    - r-roxygen2 >=7.2.1
+    - r-rversions >=2.1.1
+    - r-sessioninfo >=1.2.2
+    - r-testthat >=3.1.5
+    - r-usethis >=2.1.6
+    - r-withr >=2.5.0
+
+tests:
+  - script:
+      - $R -e "library('devtools')"  # [not win]
+      - $R -e "devtools::session_info()"  # [not win]
+      - '"%R%" -e "library(''devtools'')"'  # [win]
+
+about:
+  homepage: https://devtools.r-lib.org/
+  repository: https://github.com/r-lib/devtools
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: Tools to Make Developing R Packages Easier
+  description: |
+    Collection of package development tools designed to make common
+    development tasks easier.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Multiple Outputs Example: tidyverse
+
+The tidyverse meta-package with core and extended versions.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.0.0
+
+package:
+  name: r-tidyverse-core
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/tidyverse_${{ version }}.tar.gz
+  sha256: b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8
+
+build:
+  number: 0
+  noarch: generic
+
+outputs:
+  - name: r-tidyverse-core
+    script: $R CMD INSTALL --build . ${R_ARGS}
+    requirements:
+      host:
+        - r-base
+      run:
+        - r-base
+        - r-broom >=1.0.0
+        - r-conflicted >=1.2.0
+        - r-cli >=3.4.0
+        - r-dbplyr >=2.3.0
+        - r-dplyr >=1.1.0
+        - r-dtplyr >=1.2.2
+        - r-forcats >=1.0.0
+        - r-ggplot2 >=3.4.0
+        - r-googledrive >=2.0.0
+        - r-googlesheets4 >=1.0.1
+        - r-haven >=2.5.1
+        - r-hms >=1.1.2
+        - r-httr >=1.4.4
+        - r-jsonlite >=1.8.4
+        - r-lubridate >=1.9.0
+        - r-magrittr >=2.0.3
+        - r-modelr >=0.1.10
+        - r-pillar >=1.8.1
+        - r-purrr >=1.0.0
+        - r-ragg >=1.2.4
+        - r-readr >=2.1.3
+        - r-readxl >=1.4.1
+        - r-reprex >=2.0.2
+        - r-rlang >=1.0.6
+        - r-rstudioapi >=0.14
+        - r-rvest >=1.0.3
+        - r-stringr >=1.5.0
+        - r-tibble >=3.1.8
+        - r-tidyr >=1.2.1
+        - r-xml2 >=1.3.3
+    test:
+      script:
+        - $R -e "library('tidyverse')"  # [not win]
+        - '"%R%" -e "library(''tidyverse'')"'  # [win]
+
+  - name: r-tidyverse
+    requirements:
+      run:
+        - ${{ pin_subpackage('r-tidyverse-core', exact=True) }}
+        - r-tidymodels  # Extended tidyverse
+    test:
+      script:
+        - $R -e "library('tidyverse')"  # [not win]
+
+about:
+  homepage: https://tidyverse.tidyverse.org
+  repository: https://github.com/tidyverse/tidyverse
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: Easily Install and Load the Tidyverse
+  description: |
+    The tidyverse is an opinionated collection of R packages designed for
+    data science. All packages share an underlying design philosophy, grammar,
+    and data structures.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Package with Tests Example: testthat
+
+Unit Testing for R packages.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.2.1
+
+package:
+  name: r-testthat
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/testthat_${{ version }}.tar.gz
+  sha256: c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9
+
+build:
+  number: 0
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+  host:
+    - r-base
+    - r-brio
+    - r-callr >=3.7.3
+    - r-cli >=3.6.1
+    - r-desc
+    - r-digest
+    - r-ellipsis >=0.2.0
+    - r-evaluate
+    - r-jsonlite
+    - r-lifecycle >=1.0.3
+    - r-magrittr
+    - r-praise
+    - r-processx
+    - r-ps >=1.3.4
+    - r-r6 >=2.2.0
+    - r-rlang >=1.1.0
+    - r-waldo >=0.4.0
+    - r-withr >=2.4.3
+  run:
+    - r-base
+    - r-brio
+    - r-callr >=3.7.3
+    - r-cli >=3.6.1
+    - r-desc
+    - r-digest
+    - r-ellipsis >=0.2.0
+    - r-evaluate
+    - r-jsonlite
+    - r-lifecycle >=1.0.3
+    - r-magrittr
+    - r-praise
+    - r-processx
+    - r-ps >=1.3.4
+    - r-r6 >=2.2.0
+    - r-rlang >=1.1.0
+    - r-waldo >=0.4.0
+    - r-withr >=2.4.3
+
+tests:
+  - script:
+      - $R -e "library('testthat')"  # [not win]
+      - $R -e "library('testthat'); test_check('testthat')"  # [not win and not (osx and arm64)]
+      - '"%R%" -e "library(''testthat'')"'  # [win]
+
+about:
+  homepage: https://testthat.r-lib.org
+  repository: https://github.com/r-lib/testthat
+  license: MIT
+  license_file:
+    - LICENSE
+    - LICENSE.md
+  summary: Unit Testing for R
+  description: |
+    Software testing is important, but, in part because it is frustrating
+    and boring, many of us avoid it. testthat is a testing framework for
+    R that is easy to learn and use, and integrates with your existing workflow.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/r
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----

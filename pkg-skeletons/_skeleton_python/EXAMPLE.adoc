@@ -1,0 +1,641 @@
+= Python Package Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for Python packages, demonstrating various patterns and use cases.
+
+== Pure Python Package Example: requests
+
+A popular HTTP library with no compiled extensions.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.31.0
+
+package:
+  name: requests
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/r/requests/requests-${{ version }}.tar.gz
+  sha256: 942c5a758f98d790eaed1a29cb68efa5b8fb3e1cfc33a0e3213f6c3f1d0b7d4b
+
+build:
+  noarch: python
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - pip
+    - python >=3.7
+    - setuptools
+  run:
+    - python >=3.7
+    - charset-normalizer >=2,<4
+    - idna >=2.5,<4
+    - urllib3 >=1.21.1,<3
+    - certifi >=2017.4.17
+
+tests:
+  - python:
+      imports:
+        - requests
+        - requests.adapters
+        - requests.auth
+        - requests.cookies
+        - requests.exceptions
+        - requests.models
+        - requests.packages
+        - requests.sessions
+        - requests.structures
+        - requests.utils
+
+about:
+  homepage: https://requests.readthedocs.io
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Python HTTP for Humans.
+  description: |
+    Requests is a simple, yet elegant HTTP library. It provides methods
+    for accessing Web resources via HTTP.
+  documentation: https://requests.readthedocs.io
+  repository: https://github.com/psf/requests
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - kalefranz
+    - mcg1969
+----
+
+== Package with C Extensions: numpy
+
+A foundational package for scientific computing with compiled code.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.26.2
+
+package:
+  name: numpy
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/n/numpy/numpy-${{ version }}.tar.gz
+  sha256: f65738447676ab5777f11e6bbbdb8ce11b785e105f690bc45966574816b6d3ea
+
+build:
+  number: 0
+  script:
+    - export NPY_NUM_BUILD_JOBS=${CPU_COUNT}
+    - pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+  host:
+    - libblas
+    - libcblas
+    - liblapack
+    - pip
+    - python
+    - setuptools
+    - cython
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - numpy
+        - numpy.linalg.lapack_lite
+        - numpy.random.mtrand
+  - script:
+      - python -c "import numpy; numpy.test(verbose=2)"  # [not win]
+
+about:
+  homepage: https://numpy.org
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Fundamental package for array computing in Python
+  description: |
+    NumPy is the fundamental package needed for scientific computing with Python.
+  documentation: https://numpy.org/doc/stable/
+  repository: https://github.com/numpy/numpy
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - msarahan
+    - pelson
+    - rgommers
+    - ocefpaf
+----
+
+== CLI Tool Example: black
+
+A Python code formatter that provides command-line tools.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 23.11.0
+
+package:
+  name: black
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/b/black/black-${{ version }}.tar.gz
+  sha256: 4c68855825ff432ec50be5a1c6c76a0500b2b3b5f014b5b32e0aa6c53c6d5c5a
+
+build:
+  noarch: python
+  script: pip install . -v --no-deps --no-build-isolation
+  entry_points:
+    - black = black:patched_main
+    - blackd = blackd:patched_main
+
+requirements:
+  host:
+    - hatch-fancy-pypi-readme
+    - hatch-vcs
+    - hatchling
+    - pip
+    - python >=3.8
+  run:
+    - click >=8.0.0
+    - mypy_extensions >=0.4.3
+    - packaging >=22.0
+    - pathspec >=0.9.0
+    - platformdirs >=2
+    - python >=3.8
+    - tomli >=1.1.0  # [py<311]
+    - typed-ast >=1.4.2  # [py<38]
+    - typing_extensions >=4.0.1  # [py<310]
+
+tests:
+  - script:
+      - black --help
+      - black --version
+      - blackd --help
+  - python:
+      imports:
+        - black
+        - blackd
+
+about:
+  homepage: https://github.com/psf/black
+  license: MIT
+  license_file: LICENSE
+  summary: The uncompromising Python code formatter
+  description: |
+    Black is the uncompromising Python code formatter. By using it, you agree
+    to cede control over minutiae of hand-formatting.
+  documentation: https://black.readthedocs.io/
+  repository: https://github.com/psf/black
+
+extra:
+  recipe-maintainers:
+    - jreback
+    - mariusvniekerk
+    - nehaljwani
+----
+
+== Web Framework Example: flask
+
+A lightweight web framework for Python.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.0.0
+
+package:
+  name: flask
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/f/flask/flask-${{ version }}.tar.gz
+  sha256: cfadcdb638b609361d29ec22360d6070a77d7463dcb3ab08d2c2f2f168845f58
+
+build:
+  noarch: python
+  script: pip install . -v --no-deps --no-build-isolation
+  entry_points:
+    - flask = flask.cli:main
+
+requirements:
+  host:
+    - pip
+    - python >=3.8
+    - setuptools
+  run:
+    - blinker >=1.6.2
+    - click >=8.1.3
+    - itsdangerous >=2.1.2
+    - jinja2 >=3.1.2
+    - python >=3.8
+    - werkzeug >=3.0.0
+
+tests:
+  - python:
+      imports:
+        - flask
+        - flask.cli
+        - flask.json
+        - flask.templating
+  - script:
+      - flask --help
+
+about:
+  homepage: https://flask.palletsprojects.com/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: A simple framework for building complex web applications.
+  description: |
+    Flask is a lightweight WSGI web application framework. It is designed
+    to make getting started quick and easy, with the ability to scale up
+    to complex applications.
+  documentation: https://flask.palletsprojects.com/
+  repository: https://github.com/pallets/flask
+
+extra:
+  recipe-maintainers:
+    - goanpeca
+    - nehaljwani
+    - ocefpaf
+----
+
+== Scientific Package Example: pandas
+
+A data analysis and manipulation library.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.1.4
+
+package:
+  name: pandas
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/p/pandas/pandas-${{ version }}.tar.gz
+  sha256: fcb68203c833cc735321512e13861358079a96c174a61f5116a1de89c58c0ef7
+
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+  host:
+    - cython >=0.29.33
+    - numpy
+    - pip
+    - python
+    - setuptools
+    - versioneer
+  run:
+    - numpy >=1.22.4
+    - python
+    - python-dateutil >=2.8.2
+    - pytz >=2020.1
+    - tzdata >=2022.1
+
+tests:
+  - python:
+      imports:
+        - pandas
+        - pandas.api
+        - pandas.api.types
+        - pandas.arrays
+        - pandas.compat
+        - pandas.core
+        - pandas.errors
+        - pandas.io
+        - pandas.plotting
+        - pandas.testing
+        - pandas.tseries
+        - pandas.util
+  - script:
+      - python -c "import pandas as pd; pd.test()"  # [not win]
+
+about:
+  homepage: https://pandas.pydata.org/
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: High-performance, easy-to-use data structures and data analysis tools.
+  description: |
+    pandas is a fast, powerful, flexible and easy to use open source data
+    analysis and manipulation tool, built on top of the Python programming language.
+  documentation: https://pandas.pydata.org/docs/
+  repository: https://github.com/pandas-dev/pandas
+
+extra:
+  recipe-maintainers:
+    - jreback
+    - jorisvandenbossche
+    - TomAugspurger
+    - wesm
+----
+
+== Package with Optional Dependencies: matplotlib
+
+A plotting library with multiple backends and optional features.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.8.2
+
+package:
+  name: matplotlib-base
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/m/matplotlib/matplotlib-${{ version }}.tar.gz
+  sha256: 01a978b871b881ee76017152f1f1a0cbf6bd5f7b8ff8c96df0df1bd57d8755a1
+
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - pkg-config
+  host:
+    - certifi
+    - freetype
+    - numpy
+    - pip
+    - python
+    - setuptools
+    - setuptools_scm
+  run:
+    - contourpy >=1.0.1
+    - cycler >=0.10
+    - fonttools >=4.22.0
+    - kiwisolver >=1.0.1
+    - numpy >=1.21
+    - packaging >=20.0
+    - pillow >=6.2.0
+    - pyparsing >=2.3.1
+    - python >=3.9
+    - python-dateutil >=2.7
+
+tests:
+  - python:
+      imports:
+        - matplotlib
+        - matplotlib.pyplot
+        - matplotlib.backends
+        - matplotlib.backends.backend_agg
+  - script:
+      - python -c "import matplotlib; print(matplotlib.__version__)"
+
+about:
+  homepage: https://matplotlib.org/
+  license: PSF-2.0
+  license_file: LICENSE/LICENSE
+  summary: Publication quality figures in Python
+  description: |
+    Matplotlib is a comprehensive library for creating static, animated,
+    and interactive visualizations in Python.
+  documentation: https://matplotlib.org/stable/
+  repository: https://github.com/matplotlib/matplotlib
+
+extra:
+  recipe-maintainers:
+    - mdboom
+    - ocefpaf
+    - pelson
+    - tacaswell
+    - dopplershift
+----
+
+== Machine Learning Package Example: scikit-learn
+
+A machine learning library with compiled extensions.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.3.2
+
+package:
+  name: scikit-learn
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/s/scikit-learn/scikit-learn-${{ version }}.tar.gz
+  sha256: a2f54c76accc15a34bfb9066e6c7a56c1e7235dda5762b990792330b52ccfb05
+
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - llvm-openmp  # [osx]
+    - libgomp      # [linux]
+  host:
+    - cython >=0.29.33
+    - numpy
+    - pip
+    - python
+    - scipy >=1.5.0
+    - setuptools
+  run:
+    - joblib >=1.1.1
+    - numpy >=1.17.3
+    - python
+    - scipy >=1.5.0
+    - threadpoolctl >=2.0.0
+
+tests:
+  - python:
+      imports:
+        - sklearn
+        - sklearn.cluster
+        - sklearn.datasets
+        - sklearn.ensemble
+        - sklearn.feature_extraction
+        - sklearn.linear_model
+        - sklearn.metrics
+        - sklearn.model_selection
+        - sklearn.preprocessing
+        - sklearn.tree
+        - sklearn.utils
+
+about:
+  homepage: https://scikit-learn.org/
+  license: BSD-3-Clause
+  license_file: COPYING
+  summary: A set of python modules for machine learning and data mining
+  description: |
+    Simple and efficient tools for predictive data analysis.
+    Accessible to everybody, and reusable in various contexts.
+  documentation: https://scikit-learn.org/stable/
+  repository: https://github.com/scikit-learn/scikit-learn
+
+extra:
+  recipe-maintainers:
+    - amueller
+    - jakirkham
+    - ogrisel
+    - ocefpaf
+    - lesteve
+----
+
+== Package with System Dependencies: lxml
+
+An XML processing library that requires system libraries.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.9.3
+
+package:
+  name: lxml
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/l/lxml/lxml-${{ version }}.tar.gz
+  sha256: 48628bd53a426c9eb9bc066a923acaa0878d1e86129fd5359aee99285f4eed9c
+
+build:
+  script: pip install . -v --no-deps --no-build-isolation
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+  host:
+    - libxml2
+    - libxslt
+    - pip
+    - python
+    - setuptools
+  run:
+    - libxml2
+    - libxslt
+    - python
+
+tests:
+  - python:
+      imports:
+        - lxml
+        - lxml.etree
+        - lxml.html
+        - lxml.objectify
+  - script:
+      - python -c "from lxml import etree; print(etree.LXML_VERSION)"
+
+about:
+  homepage: https://lxml.de/
+  license: BSD-3-Clause
+  license_file: LICENSE.txt
+  summary: Pythonic binding for the C libraries libxml2 and libxslt.
+  description: |
+    lxml is a Pythonic, mature binding for the libxml2 and libxslt libraries.
+    It provides safe and convenient access to these libraries using the
+    ElementTree API.
+  documentation: https://lxml.de/
+  repository: https://github.com/lxml/lxml
+
+extra:
+  recipe-maintainers:
+    - jjhelmus
+    - ocefpaf
+----
+
+== Testing Package Example: pytest
+
+A testing framework with plugins and entry points.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 7.4.3
+
+package:
+  name: pytest
+  version: ${{ version }}
+
+source:
+  url: https://pypi.io/packages/source/p/pytest/pytest-${{ version }}.tar.gz
+  sha256: d989d136982de4e3b29dabcc838ad581c64e8ed52c11fbe86ddebd9da0818cd5
+
+build:
+  noarch: python
+  script: pip install . -v --no-deps --no-build-isolation
+  entry_points:
+    - pytest = pytest:console_main
+    - py.test = pytest:console_main
+
+requirements:
+  host:
+    - pip
+    - python >=3.7
+    - setuptools
+    - setuptools_scm >=6.2.3
+  run:
+    - colorama  # [win]
+    - exceptiongroup >=1.0.0rc8  # [py<311]
+    - iniconfig
+    - packaging
+    - pluggy >=0.12,<2.0
+    - python >=3.7
+    - tomli >=1.0.0  # [py<311]
+
+tests:
+  - script:
+      - pytest --help
+      - pytest --version
+  - python:
+      imports:
+        - pytest
+
+about:
+  homepage: https://pytest.org/
+  license: MIT
+  license_file: LICENSE
+  summary: Simple powerful testing with Python
+  description: |
+    The pytest framework makes it easy to write small tests, yet scales
+    to support complex functional testing for applications and libraries.
+  documentation: https://docs.pytest.org/
+  repository: https://github.com/pytest-dev/pytest
+
+extra:
+  recipe-maintainers:
+    - flub
+    - goanpeca
+    - nicoddemus
+    - ocefpaf
+    - mingwandroid
+----

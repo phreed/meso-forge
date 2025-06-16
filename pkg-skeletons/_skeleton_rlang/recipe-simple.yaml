@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "{{ PACKAGE_VERSION }}"
+
+package:
+  name: r-{{ PACKAGE_NAME }}
+  version: ${{ version }}
+
+source:
+  url: https://cran.r-project.org/src/contrib/{{ PACKAGE_NAME }}_${{ version }}.tar.gz
+  sha256: ${{ SHA256_HASH }}
+
+build:
+  dynamic_linking:
+    rpath_allowlist: ["lib/R/lib", "lib"]
+
+  script:
+    - $R CMD INSTALL --build . ${R_ARGS}
+
+requirements:
+  build:
+    # Remove compilers if package is pure R
+    - ${{ compiler('c') }} # [not win]
+    - ${{ compiler('cxx') }} # [not win]
+    - ${{ compiler('m2w64_c') }} # [win]
+    - ${{ compiler('m2w64_cxx') }} # [win]
+    - cross-r-base {{ r_base }} # [build_platform != target_platform]
+  host:
+    - r-base
+    # Add R package dependencies here
+    # - r-dplyr
+    # - r-ggplot2
+    # - r-rcpp  # [if using Rcpp]
+  run:
+    - r-base
+    # Copy R dependencies from host section
+    # - r-dplyr
+    # - r-ggplot2
+
+tests:
+  - script:
+      - $R -e "library('{{ PACKAGE_NAME }}')" # [not win]
+      - '"%R%" -e "library(''{{ PACKAGE_NAME }}'')"' # [win]
+
+about:
+  homepage: ${{ HOMEPAGE_URL }}
+  repository: ${{ DEV_URL }}
+  license: ${{ LICENSE }}
+  license_file: LICENSE
+  summary: ${{ PACKAGE_SUMMARY }}
+  description: |
+    {{ PACKAGE_DESCRIPTION }}
+
+extra:
+  recipe-maintainers:
+    - ${{ MAINTAINER_GITHUB_USERNAME }}
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64

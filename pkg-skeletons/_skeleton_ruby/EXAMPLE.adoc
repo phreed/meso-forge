@@ -1,0 +1,641 @@
+= Ruby Gem Examples for conda-forge
+
+This document provides real-world examples of conda-forge recipes for Ruby gems, demonstrating various patterns and use cases.
+
+== Pure Ruby Gem Example: thor
+
+A toolkit for building powerful command-line interfaces.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.3.0
+
+package:
+  name: ruby-thor
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/thor-${{ version }}.gem
+  sha256: 118fcebf19f7b9b1b0e0aa3ae479cea777755621f65326e4a84cf6de149a7b84
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+
+tests:
+  - script:
+      - ruby -e "require 'thor'"
+      - ruby -e "require 'thor'; puts Thor::VERSION"
+
+about:
+  homepage: https://github.com/rails/thor
+  repository: https://github.com/rails/thor
+  documentation: https://rubydoc.info/gems/thor
+  license: MIT
+  license_file: LICENSE.md
+  summary: Thor is a toolkit for building powerful command-line interfaces.
+  description: |
+    Thor is a simple and efficient tool for building self-documenting
+    command line utilities. It removes the pain of parsing command line
+    options, writing "USAGE:" banners, and can also be used as an
+    alternative to the Rake build tool.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Gem with Native Extensions: nokogiri
+
+An HTML, XML, SAX, and Reader parser with native C extensions.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.15.5
+
+package:
+  name: ruby-nokogiri
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/nokogiri-${{ version }}.gem
+  sha256: 1efcf5a8b9c1f2943de3b4cb2e1b4a38c5a7c1d8f9c3d5d4d3f2f1a1b2c3d4e5
+
+build:
+  number: 0
+  script:
+    - export CPPFLAGS="${CPPFLAGS} -I${PREFIX}/include"
+    - export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - pkg-config
+  host:
+    - ruby
+    - ruby-dev
+    - libxml2
+    - libxslt
+    - zlib
+  run:
+    - ruby
+    - libxml2
+    - libxslt
+    - zlib
+
+tests:
+  - script:
+      - ruby -e "require 'nokogiri'"
+      - ruby -e "require 'nokogiri'; puts Nokogiri::VERSION"
+      - ruby -e "require 'nokogiri'; doc = Nokogiri::HTML('<html><body><h1>Hello</h1></body></html>'); puts doc.css('h1').text"
+
+about:
+  homepage: https://nokogiri.org/
+  repository: https://github.com/sparklemotion/nokogiri
+  documentation: https://nokogiri.org/rdoc/
+  license: MIT
+  license_file: LICENSE.md
+  summary: Nokogiri (鋸) makes it easy and painless to work with XML and HTML
+  description: |
+    Nokogiri is an HTML, XML, SAX, and Reader parser. Among Nokogiri's
+    many features is the ability to search documents via XPath or CSS3 selectors.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== CLI Tool Example: bundler
+
+The Ruby dependency manager with command-line interface.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.4.22
+
+package:
+  name: ruby-bundler
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/bundler-${{ version }}.gem
+  sha256: b23e2c5c2c4e9c5d5f8e5a9b4c2d1e0f9e8d7c6b5a4938271605948372615847
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - mkdir -p $PREFIX/bin
+    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/bundle $PREFIX/bin/bundle
+    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/bundler $PREFIX/bin/bundler
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+
+tests:
+  - script:
+      - ruby -e "require 'bundler'"
+      - bundle --version
+      - bundler --version
+      - bundle help
+
+about:
+  homepage: https://bundler.io/
+  repository: https://github.com/rubygems/rubygems
+  documentation: https://bundler.io/docs.html
+  license: MIT
+  license_file: LICENSE.md
+  summary: The best way to manage your application's dependencies
+  description: |
+    Bundler makes sure Ruby applications run the same code on every machine.
+    It does this by managing the gems that the application depends on.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Web Framework Example: sinatra
+
+A DSL for quickly creating web applications in Ruby.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.1.0
+
+package:
+  name: ruby-sinatra
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/sinatra-${{ version }}.gem
+  sha256: 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+    - ruby-mustermann >=3.0
+    - ruby-rack >=2.2.4
+    - ruby-rack-protection >=3.1.0
+    - ruby-tilt >=2.0
+
+tests:
+  - script:
+      - ruby -e "require 'sinatra'"
+      - ruby -e "require 'sinatra'; puts Sinatra::VERSION"
+
+about:
+  homepage: https://sinatrarb.com/
+  repository: https://github.com/sinatra/sinatra
+  documentation: https://sinatrarb.com/documentation.html
+  license: MIT
+  license_file: LICENSE
+  summary: Classy web-development dressed in a DSL
+  description: |
+    Sinatra is a DSL for quickly creating web applications in Ruby with
+    minimal effort. It offers a clean domain specific language (DSL) for
+    defining RESTful HTTP actions and then defining how the application
+    should respond.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Testing Framework Example: rspec
+
+A testing framework for Ruby with behavior-driven development.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 3.12.0
+
+package:
+  name: ruby-rspec
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/rspec-${{ version }}.gem
+  sha256: abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - mkdir -p $PREFIX/bin
+    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/rspec $PREFIX/bin/rspec
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+    - ruby-rspec-core >=3.12.0,<3.13
+    - ruby-rspec-expectations >=3.12.0,<3.13
+    - ruby-rspec-mocks >=3.12.0,<3.13
+
+tests:
+  - script:
+      - ruby -e "require 'rspec'"
+      - rspec --version
+      - rspec --help
+
+about:
+  homepage: https://rspec.info/
+  repository: https://github.com/rspec/rspec
+  documentation: https://rspec.info/documentation/
+  license: MIT
+  license_file: LICENSE.md
+  summary: Behaviour Driven Development for Ruby
+  description: |
+    RSpec is a computer domain-specific language (DSL) (particular application
+    domain) testing tool written in the programming language Ruby to test Ruby code.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== HTTP Client Example: faraday
+
+An HTTP client library that provides a common interface over many adapters.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.7.12
+
+package:
+  name: ruby-faraday
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/faraday-${{ version }}.gem
+  sha256: fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+    - ruby-faraday-net-http >=2.0,<4.0
+
+tests:
+  - script:
+      - ruby -e "require 'faraday'"
+      - ruby -e "require 'faraday'; puts Faraday::VERSION"
+      - ruby -e "require 'faraday'; conn = Faraday.new('https://httpbin.org'); puts 'Faraday connection created successfully'"
+
+about:
+  homepage: https://lostisland.github.io/faraday/
+  repository: https://github.com/lostisland/faraday
+  documentation: https://lostisland.github.io/faraday/
+  license: MIT
+  license_file: LICENSE.md
+  summary: HTTP/REST API client library
+  description: |
+    Faraday is an HTTP client library abstraction layer that provides a
+    common interface over many adapters (such as Net::HTTP) and embraces
+    the concept of Rack middleware when processing the request/response cycle.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== JSON Processing Example: json
+
+A JSON implementation for Ruby with C extensions.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 2.7.1
+
+package:
+  name: ruby-json
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/json-${{ version }}.gem
+  sha256: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+
+build:
+  number: 0
+  script:
+    - export CPPFLAGS="${CPPFLAGS} -I${PREFIX}/include"
+    - export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+  host:
+    - ruby
+    - ruby-dev
+  run:
+    - ruby
+
+tests:
+  - script:
+      - ruby -e "require 'json'"
+      - ruby -e "require 'json'; puts JSON.generate({test: 'value'})"
+      - ruby -e "require 'json'; puts JSON.parse('{\"test\": \"value\"}')"
+
+about:
+  homepage: https://ruby.github.io/json/
+  repository: https://github.com/ruby/json
+  documentation: https://ruby.github.io/json/
+  license: Ruby
+  license_file: COPYING
+  summary: A JSON implementation for Ruby
+  description: |
+    This is a implementation of the JSON specification according to RFC 7159.
+    You can think of it as a low fat alternative to XML, if you want to store
+    data to disk or transmit it over a network rather than use a verbose
+    markup language.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Database Adapter Example: pg
+
+A Ruby interface to the PostgreSQL RDBMS.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 1.5.4
+
+package:
+  name: ruby-pg
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/pg-${{ version }}.gem
+  sha256: 9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba
+
+build:
+  number: 0
+  script:
+    - export CPPFLAGS="${CPPFLAGS} -I${PREFIX}/include"
+    - export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - pkg-config
+  host:
+    - ruby
+    - ruby-dev
+    - postgresql
+    - libpq
+  run:
+    - ruby
+    - libpq
+
+tests:
+  - script:
+      - ruby -e "require 'pg'"
+      - ruby -e "require 'pg'; puts PG.library_version"
+
+about:
+  homepage: https://github.com/ged/ruby-pg
+  repository: https://github.com/ged/ruby-pg
+  documentation: https://rubydoc.info/gems/pg
+  license: BSD-2-Clause
+  license_file: LICENSE
+  summary: Pg is the Ruby interface to the PostgreSQL RDBMS
+  description: |
+    Pg is the Ruby interface to the PostgreSQL RDBMS. It works with
+    PostgreSQL 9.3 and later. A small example usage is provided in
+    the file sample/lostsync.rb.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Source Build Example: jekyll
+
+A static site generator built from GitHub source.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 4.3.2
+
+package:
+  name: ruby-jekyll
+  version: ${{ version }}
+
+source:
+  url: https://github.com/jekyll/jekyll/archive/v${{ version }}.tar.gz
+  sha256: abcd1234567890efabcd1234567890efabcd1234567890efabcd1234567890ef
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem build *.gemspec
+    - gem install *.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - mkdir -p $PREFIX/bin
+    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/jekyll $PREFIX/bin/jekyll
+
+requirements:
+  host:
+    - ruby
+    - ruby-bundler
+  run:
+    - ruby
+    - ruby-addressable >=2.4
+    - ruby-colorator >=1.0
+    - ruby-em-websocket >=0.5
+    - ruby-i18n >=1.0
+    - ruby-jekyll-sass-converter >=2.0,<4.0
+    - ruby-jekyll-watch >=2.0
+    - ruby-kramdown >=2.3,<3.0
+    - ruby-kramdown-parser-gfm >=1.0
+    - ruby-liquid >=4.0
+    - ruby-mercenary >=0.3.6,<0.5
+    - ruby-pathutil >=0.9
+    - ruby-rouge >=3.0,<5.0
+    - ruby-safe-yaml >=1.0
+    - ruby-terminal-table >=1.8
+
+tests:
+  - script:
+      - ruby -e "require 'jekyll'"
+      - jekyll --version
+      - jekyll --help
+
+about:
+  homepage: https://jekyllrb.com/
+  repository: https://github.com/jekyll/jekyll
+  documentation: https://jekyllrb.com/docs/
+  license: MIT
+  license_file: LICENSE
+  summary: A simple, blog-aware, static site generator
+  description: |
+    Jekyll is a simple, blog-aware, static site generator perfect for
+    personal, project, or organization sites. Think of it like a
+    file-based CMS, without all the complexity.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
+
+== Rails Framework Example: rails
+
+The Ruby on Rails web application framework.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  version: 7.1.2
+
+package:
+  name: ruby-rails
+  version: ${{ version }}
+
+source:
+  url: https://rubygems.org/downloads/rails-${{ version }}.gem
+  sha256: 123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - mkdir -p $PREFIX/bin
+    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/rails $PREFIX/bin/rails
+
+requirements:
+  host:
+    - ruby
+  run:
+    - ruby
+    - ruby-actioncable >=7.1.2,<7.2
+    - ruby-actionmailbox >=7.1.2,<7.2
+    - ruby-actionmailer >=7.1.2,<7.2
+    - ruby-actionpack >=7.1.2,<7.2
+    - ruby-actiontext >=7.1.2,<7.2
+    - ruby-actionview >=7.1.2,<7.2
+    - ruby-activejob >=7.1.2,<7.2
+    - ruby-activemodel >=7.1.2,<7.2
+    - ruby-activerecord >=7.1.2,<7.2
+    - ruby-activestorage >=7.1.2,<7.2
+    - ruby-activesupport >=7.1.2,<7.2
+    - ruby-bundler >=1.15.0
+    - ruby-railties >=7.1.2,<7.2
+
+tests:
+  - script:
+      - ruby -e "require 'rails'"
+      - rails --version
+      - rails --help
+
+about:
+  homepage: https://rubyonrails.org/
+  repository: https://github.com/rails/rails
+  documentation: https://guides.rubyonrails.org/
+  license: MIT
+  license_file: MIT-LICENSE
+  summary: Full-stack web application framework
+  description: |
+    Ruby on Rails is a full-stack web framework optimized for programmer
+    happiness and sustainable productivity. It encourages beautiful code
+    by favoring convention over configuration.
+
+extra:
+  recipe-maintainers:
+    - conda-forge/ruby
+  additional-platforms:
+    - linux-aarch64
+    - osx-arm64
+----
