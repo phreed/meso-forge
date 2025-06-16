@@ -22,17 +22,23 @@ build:
 requirements:
   build:
     # Remove compilers if package is pure R
-    - ${{ compiler('c') }} # [not win]
-    - ${{ compiler('cxx') }} # [not win]
-    - ${{ compiler('m2w64_c') }} # [win]
-    - ${{ compiler('m2w64_cxx') }} # [win]
-    - cross-r-base {{ r_base }} # [build_platform != target_platform]
+    - if: unix
+      then: ${{ compiler('c') }}
+    - if: unix
+      then: ${{ compiler('cxx') }}
+    - if: win
+      then: ${{ compiler('m2w64_c') }}
+    - if: win
+      then: ${{ compiler('m2w64_cxx') }}
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
     # Add R package dependencies here
     # - r-dplyr
     # - r-ggplot2
-    # - r-rcpp  # [if using Rcpp]
+    # - if: package uses Rcpp
+    #   then: r-rcpp
   run:
     - r-base
     # Copy R dependencies from host section
@@ -41,8 +47,10 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('{{ PACKAGE_NAME }}')" # [not win]
-      - '"%R%" -e "library(''{{ PACKAGE_NAME }}'')"' # [win]
+      - if: unix
+        then: $R -e "library('{{ PACKAGE_NAME }}')"
+      - if: win
+        then: '"%R%" -e "library(''{{ PACKAGE_NAME }}'')"'
 
 about:
   homepage: ${{ HOMEPAGE_URL }}

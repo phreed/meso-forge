@@ -2,202 +2,75 @@
 schema_version: 1
 
 context:
-  # Update version for the Ruby gem
   version: "1.0.0"
 
 package:
-  # Ruby packages in conda-forge are typically prefixed with "ruby-"
-  # Replace "gemname" with the actual gem name (lowercase)
-  name: ruby-gemname
+  name: gemname
   version: ${{ version }}
 
 source:
-  # Most Ruby gems are hosted on RubyGems.org
-  url: https://rubygems.org/downloads/gemname-${{ version }}.gem
-  # Alternative sources:
-  # For GitHub releases (if gem not available):
-  # url: https://github.com/username/gemname/archive/v${{ version }}.tar.gz
-  # For git repositories:
-  # git_url: https://github.com/username/gemname.git
-  # git_rev: v${{ version }}
-
-  # Replace with actual SHA256 hash of the gem file
-  sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  - url: https://rubygems.org/downloads/gemname-${{ version }}.gem
+    sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 
 build:
-  # Build number - increment for recipe changes without version bump
   number: 0
+  # For pure Ruby gems (no native extensions)
+  noarch: generic
 
-  # For pure Ruby gems (no native extensions), uncomment the following:
-  # noarch: generic
-
-  # Build script - standard for most Ruby gems
   script:
-    # Install the gem using gem install
-    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    # Standard gem installation - the -n flag automatically creates CLI executables
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin gemname-${{ version }}.gem
 
-    # For source builds (when building from extracted source):
-    # - gem build *.gemspec
-    # - gem install *.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    # Extract license file
+    - gem unpack gemname-${{ version }}.gem
+    - cp gemname-${{ version }}/LICENSE* LICENSE || cp gemname-${{ version }}/LICENSE.* LICENSE || echo "No LICENSE file found"
 
-    # For gems with native extensions that need special handling:
-    # - export CPPFLAGS="${CPPFLAGS} -I${PREFIX}/include"
-    # - export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
-    # - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
-
-  # Skip on platforms where Ruby is not available or gem doesn't support
-  # skip: true  # [win]
-  # skip: true  # [py<38]  # if gem requires specific Python version for some reason
+  # For gems with native extensions, remove 'noarch: generic' above and add build requirements below
 
 requirements:
-  build:
-    # Compilers needed for gems with native extensions (C/C++)
-    # Remove if gem is pure Ruby
-    - ${{ compiler('c') }} # [not win]
-    - ${{ compiler('cxx') }} # [not win]
-    - ${{ compiler('m2w64_c') }} # [win]
-    - ${{ compiler('m2w64_cxx') }} # [win]
-
-    # For cross-compilation (uncomment if needed)
-    # - cross-ruby {{ ruby }}  # [build_platform != target_platform]
-
-    # Uncomment if gem uses pkg-config
-    # - pkg-config
-
-    # Build tools for gems with native extensions
-    # - make      # [not win]
-    # - cmake     # [if gem uses CMake]
-    # - autoconf  # [if gem uses autotools]
-    # - automake  # [if gem uses autotools]
+  # For gems with native extensions, add build section:
+  # build:
+  #   - if: unix
+  #     then: ${{ compiler('c') }}
+  #   - if: unix
+  #     then: ${{ compiler('cxx') }}
+  #   - if: win
+  #     then: ${{ compiler('m2w64_c') }}
+  #   - if: win
+  #     then: ${{ compiler('m2w64_cxx') }}
 
   host:
-    # Ruby interpreter is always required
     - ruby
-
-    # Ruby development headers (needed for gems with native extensions)
-    - ruby-dev # [gem has native extensions]
-
-    # Common build dependencies for gems with native extensions
-    - bundler # [gem uses Bundler]
-    - rake # [gem uses Rake for building]
-
-    # System dependencies for gems that need them
-    # - libxml2      # [gem uses XML]
-    # - libxslt      # [gem uses XSLT]
-    # - libcurl      # [gem uses curl]
-    # - openssl      # [gem uses OpenSSL]
-    # - sqlite       # [gem uses SQLite]
-    # - postgresql   # [gem uses PostgreSQL]
-    # - mysql        # [gem uses MySQL]
-    # - redis        # [gem uses Redis]
-    # - zlib         # [gem uses zlib]
-    # - libffi       # [gem uses FFI]
-    # - libyaml      # [gem uses YAML extensively]
-    # - readline     # [gem uses readline]
-    # - ncurses      # [gem uses ncurses]
-
-    # Example of common Ruby gem dependencies
-    # Update with actual dependencies from gemspec
-    # - ruby-activesupport  # [gem depends on activesupport]
-    # - ruby-rake          # [gem depends on rake]
-    # - ruby-bundler       # [gem depends on bundler]
-    # - ruby-rspec         # [gem depends on rspec for testing]
-    # - ruby-nokogiri      # [gem depends on nokogiri for XML]
-    # - ruby-json          # [gem depends on json]
-    # - ruby-thor          # [gem depends on thor CLI framework]
-    # - ruby-faraday       # [gem depends on faraday HTTP client]
-    # - ruby-httparty      # [gem depends on httparty]
+    # Add other build dependencies here
 
   run:
-    # Ruby interpreter is always required
-    - ruby
-
-    # Runtime dependencies should match gemspec requirements
-    # Copy the ruby-* dependencies from host section that are runtime deps
-    # Remove build-only dependencies like ruby-dev, bundler, rake
-
-    # System dependencies needed at runtime
-    # Copy relevant system libraries from host section that are needed at runtime
-
-    # Example runtime dependencies:
-    # - ruby-activesupport
-    # - ruby-nokogiri
-    # - ruby-json
+    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    # Add runtime dependencies here with rb- prefix for Ruby gems:
+    # - rb-activesupport >=6.0,<8.0
+    # - rb-nokogiri >=1.10,<2.0
 
 tests:
   - script:
-      # Basic test to ensure gem can be loaded
-      - ruby -e "require 'gemname'"
+      # Test gem can be required
+      - ruby -r gemname -e 'exit 0'
 
-      # Test that gem version is correct
-      - ruby -e "require 'gemname'; puts Gemname::VERSION"
-
-      # Test that executables are available (if gem provides CLI tools)
+      # Test CLI tools if gem provides them (CLI tools are automatically created by gem install -n)
       # - gemname --version
       # - gemname --help
 
-      # More comprehensive tests (if gem has a test suite)
-      # - cd $SRC_DIR && rake test     # [if using Rake]
-      # - cd $SRC_DIR && rspec         # [if using RSpec]
-      # - cd $SRC_DIR && bundle exec rake test  # [if using Bundler]
-
-  # Alternative: Ruby-specific import test
-  # - ruby:
-  #     imports:
-  #       - gemname
-  #       - gemname/submodule
-
 about:
-  # Update with actual gem information
   homepage: https://github.com/username/gemname
   repository: https://github.com/username/gemname
   documentation: https://rubydoc.info/gems/gemname
 
-  # Common Ruby gem licenses - update as needed
   license: MIT
-  # Other common licenses:
-  # license: Apache-2.0
-  # license: BSD-3-Clause
-  # license: GPL-2.0-or-later
-  # license: GPL-3.0-or-later
-  # license: Ruby  # [for Ruby-specific license]
+  license_file: LICENSE
 
-  license_file:
-    - LICENSE
-    # Some gems have different license file names
-    # - LICENSE.txt
-    # - LICENSE.md
-    # - COPYING
-    # - MIT-LICENSE
-
-  # Update with actual gem description
-  summary: A brief description of what the gem does
+  summary: Brief description of the gem
   description: |
-    A longer description of the gem functionality.
-    This can span multiple lines and provide more detail
-    about what the gem does, its main features, and how to use it.
-
-    Common use cases and examples can be included here.
+    Longer description of what the gem does.
+    Include main features and use cases.
 
 extra:
   recipe-maintainers:
-    # Replace with actual maintainer GitHub usernames
     - maintainer1
-    - maintainer2
-
-  # Add additional platforms if the gem supports them
-  additional-platforms:
-    - linux-aarch64
-    - osx-arm64
-
-  # For gems that need specific skip conditions
-  # skip-lints:
-  #   - missing_hash        # [source is git]
-  #   - should_be_noarch_generic  # [gem has platform-specific code]
-
-  # For gems with known issues on certain platforms
-  # skip: true  # [win and ruby_version<"2.7"]
-
-  # Ruby version compatibility (if gem has specific requirements)
-  # ruby_version: ">=2.7"
-  # ruby_version: "~>3.0"

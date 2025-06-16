@@ -40,31 +40,43 @@ build:
 
   # For packages with configure scripts, you might need:
   # script:
-  #   - export DISABLE_AUTOBREW=1  # [osx]
+  #   - if: osx
+  #     then: export DISABLE_AUTOBREW=1
   #   - $R CMD INSTALL --build . ${R_ARGS}
 
 requirements:
   build:
     # Compilers needed for packages with C/C++/Fortran code
     # Remove if package is pure R
-    - ${{ compiler('c') }} # [not win]
-    - ${{ compiler('cxx') }} # [not win]
-    - ${{ compiler('fortran') }} # [not win]
-    - ${{ compiler('m2w64_c') }} # [win]
-    - ${{ compiler('m2w64_cxx') }} # [win]
-    - ${{ compiler('m2w64_fortran') }} # [win]
+    - if: unix
+      then: ${{ compiler('c') }}
+    - if: unix
+      then: ${{ compiler('cxx') }}
+    - if: unix
+      then: ${{ compiler('fortran') }}
+    - if: win
+      then: ${{ compiler('m2w64_c') }}
+    - if: win
+      then: ${{ compiler('m2w64_cxx') }}
+    - if: win
+      then: ${{ compiler('m2w64_fortran') }}
 
     # For cross-compilation
-    - cross-r-base {{ r_base }} # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
 
     # Uncomment if package uses pkg-config
     # - pkg-config
 
     # Uncomment if package needs specific build tools
-    # - make     # [not win]
-    # - cmake    # [not win]
-    # - autoconf # [not win]
-    # - automake # [not win]
+    # - if: unix
+    #   then: make
+    # - if: unix
+    #   then: cmake
+    # - if: unix
+    #   then: autoconf
+    # - if: unix
+    #   then: automake
 
   host:
     # Base R is always required
@@ -72,9 +84,12 @@ requirements:
 
     # Common R package dependencies - update as needed
     # Remove version constraints if not needed
-    - r-rcpp # [package uses Rcpp]
-    - r-rcpparmadillo # [package uses RcppArmadillo]
-    - r-rcppeigen # [package uses RcppEigen]
+    # - if: package uses Rcpp
+    #   then: r-rcpp
+    # - if: package uses RcppArmadillo
+    #   then: r-rcpparmadillo
+    # - if: package uses RcppEigen
+    #   then: r-rcppeigen
 
     # Example of common tidyverse dependencies
     # - r-dplyr >=1.0.0
@@ -93,13 +108,20 @@ requirements:
     # - r-survival
 
     # System dependencies for packages that need them
-    # - libblas    # [package needs BLAS]
-    # - liblapack  # [package needs LAPACK]
-    # - libxml2    # [package uses XML]
-    # - libcurl    # [package uses curl]
-    # - openssl    # [package uses openssl]
-    # - gsl        # [package uses GSL]
-    # - fftw       # [package uses FFTW]
+    # - if: package needs BLAS
+    #   then: libblas
+    # - if: package needs LAPACK
+    #   then: liblapack
+    # - if: package uses XML
+    #   then: libxml2
+    # - if: package uses curl
+    #   then: libcurl
+    # - if: package uses openssl
+    #   then: openssl
+    # - if: package uses GSL
+    #   then: gsl
+    # - if: package uses FFTW
+    #   then: fftw
 
   run:
     # Base R is always required
@@ -115,17 +137,23 @@ requirements:
 tests:
   - script:
       # Basic test to ensure package can be loaded
-      - $R -e "library('packagename')" # [not win]
-      - $R -e "library('packagename'); packageVersion('packagename')" # [not win]
-      - '"%R%" -e "library(''packagename'')"' # [win]
-      - '"%R%" -e "library(''packagename''); packageVersion(''packagename'')"' # [win]
+      - if: unix
+        then: $R -e "library('packagename')"
+      - if: unix
+        then: $R -e "library('packagename'); packageVersion('packagename')"
+      - if: win
+        then: '"%R%" -e "library(''packagename'')"'
+      - if: win
+        then: '"%R%" -e "library(''packagename''); packageVersion(''packagename'')"'
 
       # Additional tests can be added here
-      # - $R -e "library('packagename'); packagename::some_function()"  # [not win]
+      # - if: unix
+      #   then: $R -e "library('packagename'); packagename::some_function()"
 
   # Alternative: run package tests (if they exist and are fast)
   # - script:
-  #     - $R -e "library('testthat'); library('packagename'); test_check('packagename')"  # [not win]
+  #     - if: unix
+  #       then: $R -e "library('testthat'); library('packagename'); test_check('packagename')"
 
 about:
   # Update with actual package information
@@ -169,8 +197,12 @@ extra:
 
   # For packages that need specific skip conditions
   # skip-lints:
-  #   - missing_hash  # [source is git]
-  #   - should_be_noarch_generic  # [package has platform-specific code]
+  #   - if: source is git
+  #     then: missing_hash
+  #   - if: package has platform-specific code
+  #     then: should_be_noarch_generic
 
   # For packages with known issues on certain platforms
-  # skip: true  # [win and py<39]
+  # skip:
+  #   if: win and match(python, "<3.9")
+  #   then: true

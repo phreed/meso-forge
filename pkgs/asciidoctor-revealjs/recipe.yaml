@@ -11,27 +11,26 @@ package:
 source:
   - url: https://rubygems.org/downloads/asciidoctor-revealjs-${{ version }}.gem
     sha256: 3504a5e7eaf2c91de37f96189314ffb1e6bf94dad9d646d5c9a24c6691bf6ae2
-  - path: asciidoctor-revealjs.bat
-  - path: asciidoctor-revealjs.sh
 
 build:
   number: 0
-  script: |
-    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-revealjs-{{ version }}.gem
-    - gem unpack {{ name }}-{{ version }}.gem
-    - cp -v asciidoctor-revealjs.bat $PREFIX/bin/asciidoctor-revealjs.bat
-    - cp -v asciidoctor-revealjs.sh $PREFIX/bin/asciidoctor-revealjs
+  noarch: generic
+  script:
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-revealjs-${{ version }}.gem
+    - gem unpack asciidoctor-revealjs-${{ version }}.gem
+    - cp asciidoctor-revealjs-${{ version }}/LICENSE.adoc LICENSE.adoc
 
 requirements:
   host:
     - ruby
   run:
     - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    - asciidoctor >=1.5.0
 
 tests:
-  - script: |
-      ruby -r asciidoctor -e 'exit 0'
-      asciidoctor-revealjs -V
+  - script:
+      - ruby -e "require 'asciidoctor-revealjs'"
+      - asciidoctor-revealjs --version
 
 about:
   homepage: https://github.com/asciidoctor/asciidoctor-reveal.js

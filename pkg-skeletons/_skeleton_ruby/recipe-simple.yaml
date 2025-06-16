@@ -2,57 +2,46 @@
 schema_version: 1
 
 context:
-  version: "${{ GEM_VERSION }}"
+  version: "1.0.0"
 
 package:
-  name: ruby-${{ GEM_NAME }}
+  name: gemname
   version: ${{ version }}
 
 source:
-  url: https://rubygems.org/downloads/${{ GEM_NAME }}-${{ version }}.gem
-  sha256: ${{ SHA256_HASH }}
+  - url: https://rubygems.org/downloads/gemname-${{ version }}.gem
+    sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 
 build:
   number: 0
+  noarch: generic
   script:
-    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin gemname-${{ version }}.gem
+    - gem unpack gemname-${{ version }}.gem
+    - cp gemname-${{ version }}/LICENSE* LICENSE || echo "No LICENSE file found"
 
 requirements:
-  build:
-    # Remove compilers if gem is pure Ruby
-    - ${{ compiler('c') }} # [not win]
-    - ${{ compiler('cxx') }} # [not win]
-    - ${{ compiler('m2w64_c') }} # [win]
-    - ${{ compiler('m2w64_cxx') }} # [win]
   host:
     - ruby
-    # Add Ruby gem dependencies here
-    # - ruby-activesupport
-    # - ruby-nokogiri
-    # - ruby-rake  # [if build dependency]
   run:
-    - ruby
-    # Copy runtime dependencies from host section
-    # - ruby-activesupport
-    # - ruby-nokogiri
+    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    # Add runtime dependencies here with rb- prefix for Ruby gems:
+    # - rb-activesupport >=6.0,<8.0
 
 tests:
   - script:
-      - ruby -e "require '${{ GEM_NAME }}'"
+      - ruby -r gemname -e 'exit 0'
+      # - gemname --version  # if gem provides CLI tools (automatically created by gem install -n)
 
 about:
-  homepage: ${{ HOMEPAGE_URL }}
-  repository: ${{ DEV_URL }}
-  documentation: https://rubydoc.info/gems/${{ GEM_NAME }}
-  license: ${{ LICENSE }}
+  homepage: https://github.com/username/gemname
+  repository: https://github.com/username/gemname
+  license: MIT
   license_file: LICENSE
-  summary: ${{ GEM_SUMMARY }}
+  summary: Brief description of the gem
   description: |
-    ${{ GEM_DESCRIPTION }}
+    Longer description of what the gem does.
 
 extra:
   recipe-maintainers:
-    - ${{ MAINTAINER_GITHUB_USERNAME }}
-  additional-platforms:
-    - linux-aarch64
-    - osx-arm64
+    - maintainer1

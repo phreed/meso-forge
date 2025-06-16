@@ -32,7 +32,8 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
     - r-cli >=3.4.0
@@ -62,9 +63,12 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('dplyr')"  # [not win]
-      - $R -e "library('dplyr'); packageVersion('dplyr')"  # [not win]
-      - '"%R%" -e "library(''dplyr'')"'  # [win]
+      - if: unix
+        then: $R -e "library('dplyr')"
+      - if: unix
+        then: $R -e "library('dplyr'); packageVersion('dplyr')"
+      - if: win
+        then: '"%R%" -e "library(''dplyr'')"'
 
 about:
   homepage: https://dplyr.tidyverse.org
@@ -111,7 +115,8 @@ build:
   dynamic_linking:
     rpath_allowlist: ["lib/R/lib", "lib"]
   script:
-    - export DISABLE_AUTOBREW=1  # [osx]
+    - if: osx
+      then: export DISABLE_AUTOBREW=1
     - $R CMD INSTALL --build . ${R_ARGS}
 
 requirements:
@@ -119,7 +124,8 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
     - ${{ compiler('fortran') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
     - r-rcpp >=0.11.0
@@ -131,9 +137,12 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('RcppArmadillo')"  # [not win]
-      - $R -e "RcppArmadillo::armadillo_version()"  # [not win]
-      - '"%R%" -e "library(''RcppArmadillo'')"'  # [win]
+      - if: unix
+        then: $R -e "library('RcppArmadillo')"
+      - if: unix
+        then: $R -e "RcppArmadillo::armadillo_version()"
+      - if: win
+        then: '"%R%" -e "library(''RcppArmadillo'')"'
 
 about:
   homepage: https://github.com/RcppCore/RcppArmadillo
@@ -184,7 +193,8 @@ build:
 requirements:
   build:
     - ${{ compiler('c') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
     - bioconductor-biocgenerics >=0.37.0
@@ -202,9 +212,12 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('Biostrings')"  # [not win]
-      - $R -e "Biostrings::DNA_ALPHABET"  # [not win]
-      - '"%R%" -e "library(''Biostrings'')"'  # [win]
+      - if: unix
+        then: $R -e "library('Biostrings')"
+      - if: unix
+        then: $R -e "Biostrings::DNA_ALPHABET"
+      - if: win
+        then: '"%R%" -e "library(''Biostrings'')"'
 
 about:
   homepage: https://bioconductor.org/packages/Biostrings
@@ -250,13 +263,15 @@ build:
   dynamic_linking:
     rpath_allowlist: ["lib/R/lib", "lib"]
   script:
-    - export DISABLE_AUTOBREW=1  # [osx]
+    - if: osx
+      then: export DISABLE_AUTOBREW=1
     - $R CMD INSTALL --build . ${R_ARGS}
 
 requirements:
   build:
     - ${{ compiler('c') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
     - pkg-config
   host:
     - r-base
@@ -267,9 +282,12 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('xml2')"  # [not win]
-      - $R -e "xml2::libxml2_version()"  # [not win]
-      - '"%R%" -e "library(''xml2'')"'  # [win]
+      - if: unix
+        then: $R -e "library('xml2')"
+      - if: unix
+        then: $R -e "xml2::libxml2_version()"
+      - if: win
+        then: '"%R%" -e "library(''xml2'')"'
 
 about:
   homepage: https://xml2.r-lib.org/
@@ -321,7 +339,8 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('fortran') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
   run:
@@ -329,9 +348,12 @@ requirements:
 
 tests:
   - script:
-      - $R -e "library('randomForest')"  # [not win]
-      - $R -e "data(iris); randomForest::randomForest(Species ~ ., data=iris, ntree=10)"  # [not win]
-      - '"%R%" -e "library(''randomForest'')"'  # [win]
+      - if: unix
+        then: $R -e "library('randomForest')"
+      - if: unix
+        then: $R -e "data(iris); randomForest::randomForest(Species ~ ., data=iris, ntree=10)"
+      - if: win
+        then: '"%R%" -e "library(''randomForest'')"'
 
 about:
   homepage: https://www.stat.berkeley.edu/~breiman/RandomForests/
@@ -657,7 +679,8 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
-    - cross-r-base {{ r_base }}  # [build_platform != target_platform]
+    - if: build_platform != target_platform
+      then: cross-r-base {{ r_base }}
   host:
     - r-base
     - r-brio

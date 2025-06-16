@@ -1,389 +1,124 @@
-= Ruby Gem Skeleton for conda-forge
+= Ruby Gem Skeleton for meso-forge
 
-This skeleton provides templates for creating conda-forge recipes for Ruby gems. It includes comprehensive examples and documentation for common Ruby gem patterns.
-
-== Files in this skeleton
-
-* `recipe.yaml` - Comprehensive template with detailed comments and examples
-* `recipe-simple.yaml` - Simplified template for quick setup
-* `README.adoc` - This documentation file
+This skeleton provides a template for creating conda packages from Ruby gems, based on patterns proven to work in this project.
 
 == Quick Start
 
-1. Copy the appropriate template:
-   - Use `recipe-simple.yaml` for straightforward gems
-   - Use `recipe.yaml` for more complex gems or when you need guidance
+1. Copy `recipe.yaml` and rename the directory to match your gem name
+2. Update the following in `recipe.yaml`:
+   - `gemname` → your gem's actual name
+   - `version` → the gem version
+   - `sha256` → SHA256 hash of the gem file
+   - Dependencies in `requirements` section
+   - URLs and metadata in `about` section
+3. CLI tools are automatically created if the gem provides them
+4. Test with: `pixi run build your-gem-name --skip-existing=none`
 
-2. Replace the following placeholders:
-   - `{{ GEM_NAME }}` - The Ruby gem name (e.g., "rails", "nokogiri")
-   - `{{ GEM_VERSION }}` - The version number (e.g., "1.0.0")
-   - `{{ SHA256_HASH }}` - SHA256 hash of the gem file
-   - `{{ HOMEPAGE_URL }}` - Gem homepage URL
-   - `{{ DEV_URL }}` - Development repository URL
-   - `{{ LICENSE }}` - Gem license (e.g., "MIT", "Apache-2.0")
-   - `{{ GEM_SUMMARY }}` - Brief description
-   - `{{ GEM_DESCRIPTION }}` - Detailed description
-   - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
+== Basic Pattern
 
-3. Update dependencies in the `requirements` section
-
-4. Test the recipe locally before submitting
-
-== Common Ruby Gem Types
-
-=== Pure Ruby Gems (No Native Extensions)
-
-For gems written entirely in Ruby:
+Most Ruby packages in this project follow this pattern:
 
 [source,yaml]
 ----
 build:
   number: 0
-  noarch: generic  # Add this line
+  noarch: generic  # For pure Ruby gems
   script:
-    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin gemname-${{ version }}.gem
+    - gem unpack gemname-${{ version }}.gem
+    - cp gemname-${{ version }}/LICENSE* LICENSE || echo "No LICENSE file found"
 
 requirements:
-  # Remove build compilers
   host:
     - ruby
-    - ruby-bundler  # if needed for build
   run:
-    - ruby
-    - ruby-dependency1
-    - ruby-dependency2
+    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    # Add gem dependencies with rb- prefix
 ----
 
-=== Gems with Native Extensions (C/C++)
+== Examples from this project
 
-For gems that compile native code:
+=== Pure Ruby gem (asciidoctor)
+- Uses `noarch: generic`
+- Simple gem install with `-N -l -V --norc --ignore-dependencies -n $PREFIX/bin`
+- Runtime dependencies use `${{ pin_compatible('ruby', upper_bound='x.x') }}`
+
+=== Gem with dependencies (asciidoctor-pdf)
+- Same build pattern
+- Multiple `rb-*` dependencies in run section
+- Version constraints like `>=2.0,<3.0`
+
+=== Gem with CLI tools (asciidoctor-revealjs)
+- CLI tools are automatically created by `gem install -n $PREFIX/bin`
+- No custom wrapper scripts needed
+- Tests include version check: `gemname --version`
+
+== CLI Tool Support
+
+If your gem provides command-line tools, they are automatically created by the standard installation:
+
+```yaml
+script:
+  - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin gemname-${{ version }}.gem
+```
+
+The `-n $PREFIX/bin` flag tells gem install to create executable scripts in `$PREFIX/bin` automatically. No custom wrapper scripts are needed.
+
+== Gem Dependencies
+
+Use `rb-` prefix for Ruby gem dependencies:
 
 [source,yaml]
 ----
-build:
-  number: 0
-  script:
-    - export CPPFLAGS="${CPPFLAGS} -I${PREFIX}/include"
-    - export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
-    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
-
 requirements:
-  build:
-    - ${{ compiler('c') }}     # [not win]
-    - ${{ compiler('cxx') }}   # [not win]
-    - ${{ compiler('m2w64_c') }}   # [win]
-    - ${{ compiler('m2w64_cxx') }} # [win]
-  host:
-    - ruby
-    - ruby-dev
-    - libxml2      # example system dependency
   run:
-    - ruby
-    - libxml2      # needed at runtime too
-----
-
-=== CLI Tools/Executables
-
-For gems that provide command-line tools:
-
-[source,yaml]
-----
-build:
-  script:
-    - gem install $SRC_DIR/*.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
-    - mkdir -p $PREFIX/bin
-    - ln -sf $PREFIX/lib/ruby/gems/$RUBY_VERSION/bin/* $PREFIX/bin/
-
-tests:
-  - script:
-      - gem_executable --version
-      - gem_executable --help
-----
-
-=== Source Builds (from GitHub)
-
-For gems built from source instead of pre-built gem files:
-
-[source,yaml]
-----
-source:
-  url: https://github.com/username/gemname/archive/v${{ version }}.tar.gz
-  sha256: {{ SHA256_HASH }}
-
-build:
-  script:
-    - gem build *.gemspec
-    - gem install *.gem --install-dir $PREFIX/lib/ruby/gems/$RUBY_VERSION --no-document
-----
-
-== Common Dependencies
-
-=== Ruby Standard Library Extensions
-[source,yaml]
-----
-- ruby-json
-- ruby-yaml
-- ruby-csv
-- ruby-uri
-- ruby-net-http
-----
-
-=== Popular Frameworks and Libraries
-[source,yaml]
-----
-- ruby-rails
-- ruby-sinatra
-- ruby-rack
-- ruby-activesupport
-- ruby-activerecord
-- ruby-actionpack
-----
-
-=== Testing and Development
-[source,yaml]
-----
-- ruby-rspec
-- ruby-minitest
-- ruby-rake
-- ruby-bundler
-- ruby-rubocop
-----
-
-=== HTTP and Networking
-[source,yaml]
-----
-- ruby-faraday
-- ruby-httparty
-- ruby-rest-client
-- ruby-net-ssh
-- ruby-net-sftp
-----
-
-=== Data Processing
-[source,yaml]
-----
-- ruby-nokogiri   # XML/HTML parsing
-- ruby-json
-- ruby-csv
-- ruby-pdf-reader
-- ruby-spreadsheet
-----
-
-=== CLI and Terminal
-[source,yaml]
-----
-- ruby-thor       # CLI framework
-- ruby-colorize   # colored output
-- ruby-tty-*      # TTY toolkit family
-- ruby-commander  # CLI framework
-----
-
-=== System Dependencies
-
-Common system libraries needed by Ruby gems:
-
-[source,yaml]
-----
-# In host section for build-time, in run section for runtime
-- libxml2         # for XML processing (nokogiri, etc.)
-- libxslt         # for XSLT processing
-- libcurl         # for HTTP requests
-- openssl         # for encryption and HTTPS
-- sqlite          # for SQLite database support
-- postgresql      # for PostgreSQL support
-- mysql           # for MySQL support
-- redis           # for Redis support
-- zlib            # for compression
-- libffi          # for FFI (Foreign Function Interface)
-- libyaml         # for YAML processing
-- readline        # for readline support
-- ncurses         # for terminal applications
+    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+    - rb-activesupport >=6.0,<8.0
+    - rb-nokogiri >=1.10,<2.0
+    - asciidoctor >=1.5.0  # Other packages in this project
 ----
 
 == Testing
 
-=== Basic Tests
+Basic test pattern:
 [source,yaml]
 ----
 tests:
   - script:
-      - ruby -e "require 'gemname'"
-----
-
-=== Version Check
-[source,yaml]
-----
-tests:
-  - script:
-      - ruby -e "require 'gemname'; puts Gemname::VERSION"
-----
-
-=== Executable Tests
-[source,yaml]
-----
-tests:
-  - script:
-      - gemname --version
-      - gemname --help
-----
-
-=== Comprehensive Test Suite
-[source,yaml]
-----
-tests:
-  - script:
-      - cd $SRC_DIR && rake test        # [if using Rake]
-      - cd $SRC_DIR && rspec           # [if using RSpec]
-      - cd $SRC_DIR && bundle exec rake test  # [if using Bundler]
-----
-
-=== Ruby Import Tests
-[source,yaml]
-----
-tests:
-  - ruby:
-      imports:
-        - gemname
-        - gemname/submodule
-----
-
-== License Information
-
-Common Ruby gem licenses:
-
-* `MIT` - MIT License (most common)
-* `Apache-2.0` - Apache License 2.0
-* `BSD-3-Clause` - BSD 3-Clause
-* `GPL-2.0-or-later` - GNU GPL v2+
-* `GPL-3.0-or-later` - GNU GPL v3+
-* `Ruby` - Ruby License (for Ruby core-related gems)
-
-== Platform Support
-
-=== Cross-platform gems
-[source,yaml]
-----
-extra:
-  additional-platforms:
-    - linux-aarch64
-    - osx-arm64
-----
-
-=== Skip certain platforms
-[source,yaml]
-----
-build:
-  skip: true  # [win]  # Skip Windows builds
-  skip: true  # [ruby_version<"2.7"]  # Skip old Ruby versions
-----
-
-=== Ruby version constraints
-[source,yaml]
-----
-extra:
-  ruby_version: ">=2.7"    # Minimum Ruby version
-  ruby_version: "~>3.0"    # Compatible with Ruby 3.x
+      - ruby -r gemname -e 'exit 0'
+      - gemname --version  # if provides CLI
 ----
 
 == Getting SHA256 Hash
 
-To get the SHA256 hash of a gem file:
-
 [source,bash]
 ----
-# For gems from RubyGems.org
 curl -L https://rubygems.org/downloads/gemname-1.0.0.gem | sha256sum
-
-# For GitHub releases
-curl -L https://github.com/user/repo/archive/v1.0.0.tar.gz | sha256sum
-
-# Using gem fetch and local hash
-gem fetch gemname -v 1.0.0
-sha256sum gemname-1.0.0.gem
 ----
 
-== Gem Information Commands
+== Common Issues
 
-Useful commands for gathering gem information:
+=== Build appears to succeed but package doesn't work
+- Check that runtime dependencies are correct
+- Verify gem can be required: `ruby -r gemname -e 'exit 0'`
 
-[source,bash]
-----
-# Get gem dependencies
-gem dependency gemname
+=== CLI tool not found
+- Verify the gem actually provides CLI tools (check gem documentation)
+- Ensure `gem install` uses the `-n $PREFIX/bin` flag
 
-# Get gem information
-gem info gemname
+=== Dependency conflicts
+- Use appropriate version constraints
+- Check conda-forge for existing `rb-*` packages
 
-# List gem contents
-gem contents gemname
+== Files in this skeleton
 
-# Show gemspec
-gem specification gemname
-----
-
-== Best Practices
-
-1. *Naming*: Use `ruby-` prefix for conda-forge package names
-2. *Dependencies*: Only include runtime dependencies in `run` section
-3. *Native extensions*: Include compilers only if gem has native code
-4. *Testing*: Always include at least a basic require test
-5. *Documentation*: Keep URLs accurate and up-to-date
-6. *Versioning*: Follow semantic versioning constraints when needed
-
-== Common Issues and Solutions
-
-=== Gem won't install
-* Check if all dependencies are available in conda-forge
-* Verify system dependencies for native extensions
-* Check Ruby version compatibility
-
-=== Native extension compilation fails
-* Ensure correct compilers are specified
-* Check for missing system libraries
-* Verify include and library paths are correct
-
-=== Tests fail
-* Ensure all runtime dependencies are listed
-* Check if gem requires specific environment setup
-* Verify test commands work in clean environment
-
-=== Missing executables
-* Check if gem provides CLI tools that need linking
-* Ensure `$PREFIX/bin` is in PATH during tests
-* Verify executable permissions and shebang lines
-
-=== Cross-compilation issues
-* Use appropriate compiler selectors for different platforms
-* Consider platform-specific dependencies
-* Test on target platforms when possible
-
-== Ruby Version Management
-
-=== Specifying Ruby version requirements
-[source,yaml]
-----
-requirements:
-  host:
-    - ruby >=2.7,<4.0  # Ruby version range
-  run:
-    - ruby >=2.7,<4.0
-----
-
-=== Platform-specific Ruby versions
-[source,yaml]
-----
-requirements:
-  host:
-    - ruby >=3.0  # [not (win and ruby_version<"3.0")]
-  run:
-    - ruby >=3.0  # [not (win and ruby_version<"3.0")]
-----
+- `recipe.yaml` - Main recipe template
+- `recipe-simple.yaml` - Simplified recipe template
+- `README.adoc` - This documentation
 
 == Resources
 
-* link:https://conda-forge.org/docs/[conda-forge documentation]
-* link:https://rubygems.org/[RubyGems.org]
-* link:https://ruby-doc.org/[Ruby documentation]
-* link:https://bundler.io/[Bundler documentation]
-* link:https://guides.rubygems.org/specification-reference/[Gem specification reference]
-* link:https://guides.rubygems.org/gems-with-extensions/[Ruby native extensions guide]
+- Check existing Ruby packages in `pkgs-forged/` for real examples
+- Gem info: `gem specification gemname`
+- Dependencies: `gem dependency gemname`
+- RubyGems.org for gem downloads and metadata
