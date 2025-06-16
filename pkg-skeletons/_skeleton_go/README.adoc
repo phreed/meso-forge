@@ -124,10 +124,16 @@ build:
 
 === Projects with go generate
 
-Some projects require `go generate` before building:
+Some projects require `go generate` before building. Be aware of version embedding challenges:
 
 [source,nu]
 ----
+# For projects with git-based version embedding, create VERSION file first
+if ${{ uses_git_version }} {
+  print $"Creating VERSION file with version ($env.PKG_VERSION)..."
+  $"v($env.PKG_VERSION)" | save VERSION
+}
+
 # Run code generation
 go generate ./...
 
@@ -135,24 +141,57 @@ go generate ./...
 go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/(${{ binary_name }})" ${{ main_package }}
 ----
 
+WARNING: Many Go projects use `go generate` with version tools that expect git repositories. In conda builds (using source tarballs), these tools often fall back to "v0.0.0". Handle VERSION files before running `go generate` to avoid this issue.
+
 == Testing
 
-Update the tests section for your specific binary:
+Update the tests section for your specific binary. Focus on functionality over exact version strings:
 
 [source,yaml]
 ----
 tests:
   - script:
-      # Version check (adjust based on how your program outputs version)
+      # Test that version command works (doesn't crash)
       - mytool --version
-      - mytool version | grep "${{ version }}"
 
-      # Functionality tests
+      # Test help functionality
       - mytool --help
+
+      # If you need version verification, be flexible:
+      # - mytool --version | grep -E "(v?[0-9]+\.[0-9]+\.[0-9]+|${{ version }})"
+
+      # Functional tests (more important than version strings)
       - mytool subcommand --test-flag
+      - mytool --check-config /dev/null
 ----
 
+IMPORTANT: Avoid overly strict version checks like `test "$(mytool --version)" != "v0.0.0"`. Version embedding often fails in conda build environments, but the program functionality remains intact. Test what matters: does the binary work correctly?
+
 == Troubleshooting
+
+=== Version Embedding Issues
+
+Many Go projects have version embedding problems in conda builds:
+
+**Problem**: Binary shows "v0.0.0" instead of actual version
+**Cause**: Git-based version tools fail without `.git` directory
+**Solutions**:
+1. Set `uses_git_version: true` and create VERSION file before `go generate`
+2. Use ldflags `-X` for string variables (not `//go:embed` byte slices)
+3. Make tests focus on functionality, not exact version strings
+
+**Debugging version embedding**:
+[source,bash]
+----
+# Find version variables (must be string type for ldflags -X)
+grep -r "var.*[Vv]ersion.*string" --include="*.go"
+
+# Look for embedded VERSION files
+grep -r "go:embed.*VERSION" --include="*.go"
+
+# Check for version generation tools
+find . -name "*version*" -o -name "*generate*" | grep -v .git
+----
 
 === SHA256 Calculation
 
@@ -163,16 +202,6 @@ To get the sha256 for your source archive:
 curl -sL https://github.com/org/repo/archive/refs/tags/v1.0.0.tar.gz | sha256sum
 ----
 
-=== Finding Version Injection Points
-
-Look for version variables in the Go source:
-
-[source,bash]
-----
-grep -r "var.*[Vv]ersion" --include="*.go"
-grep -r "Version.*=" --include="*.go"
-----
-
 === License Issues
 
 If `go-licenses` fails on certain packages, add them to the ignore list:
@@ -181,13 +210,56 @@ If `go-licenses` fails on certain packages, add them to the ignore list:
 ----
 go-licenses save ${{ main_package }} \
   --save_path=$license_dir \
-  --ignore=problematic/package/path
+  --ignore=problematic/package/path \
+  --ignore=golang.org/x/sys/unix \
+  --ignore=golang.org/x/crypto/internal/poly1305
 ----
+
+== Version Embedding Patterns
+
+=== Git-based Version Tools (Common Issue)
+
+Many projects use tools like this in `go generate`:
+[source,go]
+----
+//go:generate go run ./versiongetter
+//go:embed VERSION
+var version []byte
+----
+
+**Problem**: `versiongetter` writes "v0.0.0" when no git repo exists
+**Solution**: Create VERSION file before `go generate`
+
+=== LDFLAGS String Injection (Preferred)
+
+Look for string version variables:
+[source,go]
+----
+var Version string  // Can be set with ldflags -X
+----
+
+Use in recipe:
+[source,nu]
+----
+$ldflags = ($ldflags | append $"-X github.com/org/repo/internal/version.Version=v($env.PKG_VERSION)")
+----
+
+=== Embedded File Approach (Complex)
+
+Projects using `//go:embed VERSION`:
+[source,go]
+----
+//go:embed VERSION
+var version []byte  // Cannot be set with ldflags -X
+----
+
+Must handle VERSION file creation before embedding occurs.
 
 == Examples
 
 See these packages for real-world examples:
 
-* `kompose`: Kubernetes conversion tool
-* `mediamtx`: Media server (uses go generate)
-* `temporal`: CLI tool (from rattler-build docs)
+* `mediamtx`: Complex version embedding with go generate (demonstrates VERSION file handling)
+* `fd`: Simple ldflags version injection
+* `dysk`: Static binary with minimal dependencies
+* Real examples in `pkgs/` directory

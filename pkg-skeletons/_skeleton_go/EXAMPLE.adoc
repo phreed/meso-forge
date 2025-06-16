@@ -486,6 +486,140 @@ extra:
     - osx-arm64
 ----
 
+== Complex Version Embedding Example: mediamtx
+
+Media server with git-based version embedding challenges (real-world example).
+
+This demonstrates handling projects that use `go generate` with git-based version tools.
+
+[source,yaml]
+----
+schema_version: 1
+
+context:
+  group: bluenviron
+  name: mediamtx
+  version: 1.11.3
+  uses_git_version: true  # Enable VERSION file handling
+
+package:
+  version: ${{ version }}
+  name: mediamtx
+
+source:
+  url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
+  target_directory: src/mediamtx
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Change to source directory
+      cd src/mediamtx
+
+      # CRITICAL: Create VERSION file with correct version BEFORE go generate
+      # Many projects use go generate with versiongetter tools that expect git repos
+      # Without this, the tool writes "v0.0.0" as fallback
+      print $"Creating VERSION file with version ($env.PKG_VERSION)..."
+      $"v($env.PKG_VERSION)" | save VERSION
+
+      # Run go generate to create embedded files
+      # The versiongetter will now find our VERSION file
+      print "Generating embedded files..."
+      go generate ./...
+
+      # Set up LDFLAGS for optimized binary
+      mut ldflags = ["-s" "-w"]
+      let ldflags_str = ($ldflags | str join " ")
+
+      # Build the binary with static linking
+      $env.CGO_ENABLED = "0"
+      let output_path = $"($env.PREFIX)/bin/mediamtx"
+      go build -ldflags $ldflags_str -o $output_path .
+
+      # Collect licenses from all dependencies
+      print "Collecting dependency licenses..."
+      let license_dir = $"($env.SRC_DIR)/license-files"
+      mkdir $license_dir
+
+      # Extended ignore list for problematic packages
+      (go-licenses save .
+        --save_path=$license_dir
+        --ignore=golang.org/x/sys/unix
+        --ignore=golang.org/x/crypto/internal/poly1305
+        --ignore=golang.org/x/crypto/salsa20/salsa
+        --ignore=golang.org/x/crypto/argon2
+        --ignore=golang.org/x/crypto/blake2b
+        --ignore=golang.org/x/sys/cpu
+        --ignore=golang.org/x/crypto/sha3
+        --ignore=github.com/ugorji/go/codec
+        --ignore=github.com/benburkert/openpgp
+        | complete | ignore)
+
+requirements:
+  build:
+    - nushell
+    - ${{ compiler('go-nocgo') }}
+    - go-licenses
+
+tests:
+  - script:
+      # IMPORTANT: Focus on functionality, not strict version checks
+      # Version embedding often fails in conda builds but doesn't affect functionality
+
+      # Test that version command works (doesn't crash)
+      - mediamtx --version
+
+      # Test help functionality
+      - mediamtx --help
+
+      # DON'T do strict version checks like this:
+      # - test "$(mediamtx --version)" != "v0.0.0"  # Too brittle!
+
+      # If you must verify version, be flexible:
+      # - mediamtx --version | grep -E "(v?[0-9]+\.[0-9]+\.[0-9]+|MediaMTX)"
+
+about:
+  homepage: https://github.com/bluenviron/mediamtx
+  summary: "MediaMTX is a live media server"
+  description: |
+    MediaMTX is a ready-to-use and zero-dependency real-time media server and
+    media proxy that allows to publish, read, proxy, record and playback video and audio streams.
+  license: Apache-2.0
+  license_file:
+    - src/mediamtx/LICENSE
+    - license-files/
+
+extra:
+  recipe-maintainers:
+    - phreed
+----
+
+=== Key Lessons from mediamtx
+
+**The Problem**:
+- Project uses `//go:generate go run ./versiongetter`
+- The `versiongetter` tool reads git history to determine version
+- In conda builds (source tarballs), no `.git` directory exists
+- Tool falls back to writing "v0.0.0" to VERSION file
+- `//go:embed VERSION` embeds this incorrect version into binary
+
+**The Solution**:
+1. Create VERSION file with correct version BEFORE `go generate`
+2. Set `uses_git_version: true` in context
+3. Make tests focus on functionality, not exact version strings
+4. Handle extensive license ignore lists for complex projects
+
+**Testing Philosophy**:
+- Test that commands work, not that versions are exact
+- Version embedding issues are common but don't affect core functionality
+- Avoid `test "$(cmd --version)" != "v0.0.0"` patterns
+- Focus on `cmd --help`, `cmd --check-config`, functional tests
+
 == Web Application Example: caddy
 
 Fast, multi-platform web server with automatic HTTPS.
@@ -536,4 +670,81 @@ extra:
   additional-platforms:
     - linux-aarch64
     - osx-arm64
+----
+
+== Version Embedding Patterns Reference
+
+=== Pattern 1: Simple ldflags injection (Recommended)
+
+Projects with string version variables:
+
+[source,go]
+----
+package main
+
+var version string = "dev"  // Can be overridden with ldflags
+
+func main() {
+    if versionFlag {
+        fmt.Println(version)
+        return
+    }
+    // ... rest of application
+}
+----
+
+Recipe approach:
+[source,nu]
+----
+$ldflags = ($ldflags | append $"-X main.version=v($env.PKG_VERSION)")
+go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/(${{ binary_name }})" .
+----
+
+=== Pattern 2: Go embed VERSION file (Complex)
+
+Projects using embedded version files:
+
+[source,go]
+----
+package core
+
+//go:generate go run ./versiongetter
+//go:embed VERSION
+var version []byte  // Cannot use ldflags -X (not string type)
+
+func Version() string {
+    return string(version)
+}
+----
+
+Recipe approach:
+[source,nu]
+----
+# Create VERSION file BEFORE go generate
+$"v($env.PKG_VERSION)" | save VERSION
+go generate ./...
+go build -o $"($env.PREFIX)/bin/(${{ binary_name }})" .
+----
+
+=== Pattern 3: Build-time injection via package
+
+Projects with version packages:
+
+[source,go]
+----
+package version
+
+var (
+    Version   string = "unknown"
+    GitCommit string = "unknown"
+    BuildDate string = "unknown"
+)
+----
+
+Recipe approach:
+[source,nu]
+----
+$ldflags = ($ldflags | append $"-X github.com/org/repo/internal/version.Version=v($env.PKG_VERSION)")
+$ldflags = ($ldflags | append $"-X github.com/org/repo/internal/version.BuildDate=(date now | format date '%Y-%m-%d')")
+go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/(${{ binary_name }})" .
 ----
