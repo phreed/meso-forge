@@ -198,10 +198,6 @@ depends-on = [
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
-        "mediamtx",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "metashell",
         "{{ tgt_platform }}",
     ] },
@@ -264,6 +260,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "gtksourceview5",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "mediamtx",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [

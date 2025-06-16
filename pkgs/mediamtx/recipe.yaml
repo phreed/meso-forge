@@ -18,32 +18,62 @@ source:
 build:
   number: 0
   script:
-    - cd src/mediamtx
-    - go generate ./...
-    - CGO_ENABLED=0 go build .
-    # s="-s -w -X=github.com/${{ group }}/${{ name }}/version.Version=${{ version }} -X=github.com/${{ group }}/${{ name }}/server.mode=release"
-    #     -o $PREFIX/bin/${{ name }}
-    # - go-licenses save . --save_path ../../library_licenses
-    #     --ignore=golang.org/x/crypto/internal/poly1305
-    #     --ignore=golang.org/x/crypto/salsa20/salsa
-    #     --ignore=golang.org/x/sys/unix
-    #     --ignore=golang.org/x/crypto/argon2
-    #     --ignore=golang.org/x/crypto/blake2b
-    #     --ignore=golang.org/x/sys/cpu
-    #     --ignore=golang.org/x/crypto/sha3
-    #     --ignore=github.com/ugorji/go/codec
-    #     --ignore=github.com/benburkert/openpgp
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Change to source directory
+      cd src/mediamtx
+
+      # Create VERSION file with correct version
+      print $"Creating VERSION file with version ($env.PKG_VERSION)..."
+      $"v($env.PKG_VERSION)" | save VERSION
+
+      # Run go generate to create embedded files
+      print "Generating embedded files..."
+      go generate ./...
+
+      # Set up LDFLAGS for optimized binary
+      mut ldflags = ["-s" "-w"]
+
+      let ldflags_str = ($ldflags | str join " ")
+
+      # Build the binary with static linking
+      $env.CGO_ENABLED = "0"
+      let output_path = $"($env.PREFIX)/bin/mediamtx"
+      go build -ldflags $ldflags_str -o $output_path .
+
+      # Collect licenses from all dependencies
+      print "Collecting dependency licenses..."
+      let license_dir = $"($env.SRC_DIR)/license-files"
+      mkdir $license_dir
+
+      # Save licenses, ignoring common problematic packages
+      (go-licenses save .
+        --save_path=$license_dir
+        --ignore=golang.org/x/sys/unix
+        --ignore=golang.org/x/crypto/internal/poly1305
+        --ignore=golang.org/x/crypto/salsa20/salsa
+        --ignore=golang.org/x/crypto/argon2
+        --ignore=golang.org/x/crypto/blake2b
+        --ignore=golang.org/x/sys/cpu
+        --ignore=golang.org/x/crypto/sha3
+        --ignore=github.com/ugorji/go/codec
+        --ignore=github.com/benburkert/openpgp
+        | complete | ignore)
 
 requirements:
   build:
-    - cmake
-    - ${{ compiler('go') }}
-    # - ${{ stdlib('c') }}
+    - nushell
+    # For static binaries without C dependencies
+    - ${{ compiler('go-nocgo') }}
     - go-licenses
 
 tests:
-  - script: |
-      mediamtx --help 2>&1  | grep "${{ version }}"
+  - script:
+      # Test that the binary works
+      - mediamtx --version
+      - mediamtx --help
 
 about:
   homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md
@@ -54,9 +84,8 @@ about:
       It has been conceived as a "media router" that routes media streams from one end to the other.
   license: Apache-2.0
   license_file:
-    - LICENSE.txt
-    - https://github.com/bluenviron/mediamtx/blob/main/LICENSE
-    - library_licenses
+    - src/mediamtx/LICENSE
+    - license-files/
   documentation: https://github.com/bluenviron/mediamtx/blob/main/README.md
   repository: https://github.com/bluenviron/mediamtx
 

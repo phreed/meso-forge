@@ -61,14 +61,14 @@ def main [
     let cmd = $"rattler-build test --package-file ($conda_file) --channel conda-forge ($verbosity)"
 
     print $"🚀 Running: ($cmd)"
-    print "─" * 80
+    print ("─" | repeat 80 | str join)
 
     # Execute the test
     let start_time = date now
     let result = (do { bash -c $cmd } | complete)
     let duration = ((date now) - $start_time)
 
-    print "─" * 80
+    print ("─" | repeat 80 | str join)
     print ""
 
     if $result.exit_code == 0 {
@@ -130,7 +130,7 @@ export def test-all [
     }
 
     print $"🧪 Testing ($packages | length) packages for platform ($platform)"
-    print "=" * 80
+    print ("=" | repeat 80 | str join)
     print ""
 
     mut passed = 0
@@ -165,7 +165,7 @@ export def test-all [
         }
 
         print ""
-        print "─" * 80
+        print ("─" | repeat 80 | str join)
         print ""
     }
 
