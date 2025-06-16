@@ -46,7 +46,9 @@ build:
                   "-G", "Ninja",
                   "-DBUILD_TESTS=OFF",
                   "-DBUILD_EXAMPLES=OFF",
+                  "-DBUILD_DOCS=OFF",
                   $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+                  $"-DCMAKE_PREFIX_PATH=($install_prefix)",
                   $env.SRC_DIR
               ]
           } else {
@@ -54,7 +56,9 @@ build:
                   "-GNinja",
                   "-DBUILD_TESTS=OFF",
                   "-DBUILD_EXAMPLES=OFF",
+                  "-DBUILD_DOCS=OFF",
                   $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
+                  $"-DCMAKE_PREFIX_PATH=($install_prefix)",
                   $env.SRC_DIR
               ]
           }
@@ -138,14 +142,27 @@ requirements:
     - cmake
     - ninja
   host:
-    # TODO: Add any header-only dependencies
-    # Example: - eigen
+    # TODO: Add any header-only dependencies your library requires
+    # Common C++ header-only libraries:
+    # - eigen                  # Linear algebra library
+    # - boost-cpp              # Boost C++ libraries (if using header-only parts)
+    # - nlohmann_json          # JSON for Modern C++
+    # - fmt                    # Modern C++ formatting library (header-only mode)
+    # - spdlog                 # Fast C++ logging library (header-only mode)
+    # - catch2                 # Testing framework (if including test headers)
+    # - doctest                # Testing framework (if including test headers)
   run:
     # Header-only libraries typically need the same dependencies at runtime
     # TODO: Add runtime dependencies (usually same as host for header-only)
+    # Common pattern: copy host dependencies here
+    # - eigen
+    # - boost-cpp
+    # - nlohmann_json
   run_constraints:
     # TODO: Add optional dependencies that should be version-constrained if present
-    # Example: - boost-cpp >=1.70
+    # Examples:
+    # - boost-cpp >=1.70       # Minimum Boost version required
+    # - eigen >=3.3            # Minimum Eigen version required
 
 tests:
   # Test 1: Check that key header files are installed
@@ -171,9 +188,15 @@ tests:
         # Create a minimal test program
         let test_content = $"
         #include <($env.PKG_NAME)/core.hpp>
+        #include <iostream>
 
         int main() {
-            // TODO: Add minimal usage example
+            // TODO: Add minimal usage example that actually uses the library
+            // Example:
+            // auto obj = MyLibrary::create();
+            // std::cout << \"Library version: \" << obj.version() << std::endl;
+
+            std::cout << \"Test compilation successful!\" << std::endl;
             return 0;
         }
         " | str trim
@@ -195,8 +218,15 @@ tests:
             run-external $env.CXX /std:c++14 $"/I($include_path)" test.cpp /Fe:test.exe
             run-external test.exe
         } else {
-            # Unix compilation
-            run-external $env.CXX -std=c++14 $"-I($include_path)" test.cpp -o test
+            # Unix compilation with better error handling
+            let compile_flags = [
+                "-std=c++14",
+                $"-I($include_path)",
+                "-Wall",
+                "-Wextra",
+                "-o", "test"
+            ]
+            run-external $env.CXX ...$compile_flags test.cpp
             run-external ./test
         }
 
@@ -211,17 +241,33 @@ tests:
 
 about:
   homepage: https://github.com/example/${{ name }} # TODO: Update URL
-  license: MIT # TODO: Update license
-  license_file: LICENSE # TODO: Verify license file name
-  summary: Short description of the header-only library # TODO: Update
+  license: MIT # TODO: Update license (common: MIT, Apache-2.0, BSD-3-Clause, BSL-1.0)
+  license_file: LICENSE # TODO: Verify license file name (may be LICENSE.txt, COPYING, etc.)
+  summary: Short description of the header-only library # TODO: Update (keep under 80 chars)
   description: |
     A longer description of what this header-only C++ library does.
     It can span multiple lines and should explain the key features
     and use cases of the library.
 
+    Key features:
+    - Header-only design for easy integration
+    - Feature 1
+    - Feature 2
+    - C++14/17/20 compatible
+
+    Usage:
+    ```cpp
+    #include <${{ name }}/core.hpp>
+    // Example usage code here
+    ```
+
     TODO: Replace with actual description
   documentation: https://example.github.io/${{ name }}/ # TODO: Update URL
   repository: https://github.com/example/${{ name }} # TODO: Update URL
+  # Optional additional fields:
+  # dev_url: https://github.com/example/${{ name }}/issues
+  # doc_url: https://docs.example.com/${{ name }}/
+  # doc_source_url: https://github.com/example/${{ name }}/tree/main/docs
 
 extra:
   recipe-maintainers:

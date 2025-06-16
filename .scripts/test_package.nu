@@ -4,6 +4,7 @@
 # Usage: nu test_package.nu <package> [--target-platform <platform>]
 
 use manifest_utils.nu *
+use std repeat
 
 def main [
     package: string,                         # Package name to test

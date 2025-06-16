@@ -202,10 +202,6 @@ depends-on = [
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
-        "mumble-voip",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "neovide",
         "{{ tgt_platform }}",
     ] },
@@ -264,6 +260,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "mediamtx",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "mumble-voip",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [

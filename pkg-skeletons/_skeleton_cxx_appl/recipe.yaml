@@ -4,6 +4,8 @@ schema_version: 1
 context:
   name: "my-cpp-app" # TODO: Replace with actual application name
   version: "1.0.0" # TODO: Replace with actual version
+  # Optional: Set number of parallel build jobs
+  nprocs: 4
 
 package:
   name: ${{ name }}
@@ -53,7 +55,33 @@ build:
               "-DCMAKE_BUILD_TYPE=Release",
               $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
               $"-DCMAKE_PREFIX_PATH=($install_prefix)",
+              # Common settings for conda builds
+              $"-DBOOST_ROOT=($install_prefix)",
           ]
+
+          # Add compiler flags to handle common C++ build issues
+          # These flags help with compatibility across different compilers and standards
+          let cxx_flags = [
+              "-Wno-error=cpp",                # Ignore #warning directives as errors
+              "-Wno-cpp",                      # Ignore #warning directives
+              "-Wno-deprecated-declarations",  # Ignore deprecated C++17 features (e.g., std::wstring_convert)
+              # Additional flags for specific issues:
+              # "-Wno-error=deprecated-declarations",  # Alternative if above doesn't work
+              # "-fPIC",                       # Position Independent Code (for shared libraries)
+              # "-O3",                         # Optimization level 3
+          ]
+
+          let c_flags = [
+              "-Wno-error=cpp",
+              "-Wno-cpp",
+              "-std=c11",                      # Use C11 to avoid C23 bool conflicts (C23 makes bool a keyword)
+              # Alternative standards if needed:
+              # "-std=c99",                    # Use if C11 causes issues
+              # "-std=gnu11",                  # GNU extensions with C11
+          ]
+
+          $cmake_args = ($cmake_args | append $"-DCMAKE_CXX_FLAGS=($cxx_flags | str join ' ')")
+          $cmake_args = ($cmake_args | append $"-DCMAKE_C_FLAGS=($c_flags | str join ' ')")
 
           # TODO: Add project-specific CMake options
           # Example options (adjust based on your project):
@@ -61,6 +89,15 @@ build:
               "-DBUILD_TESTING=OFF",
               "-DBUILD_EXAMPLES=OFF",
               "-DBUILD_DOCS=OFF",
+              # Common options for Qt applications:
+              # "-DQT_VERSION_MAJOR=5",
+              # "-DWITH_QT6=OFF",
+              # Common options for server/daemon applications:
+              # "-Dspeechd=OFF",
+              # "-Doverlay-xcompile=OFF",
+              # "-Dzeroconf=OFF",
+              # "-Dserver=OFF",
+              # Common feature toggles:
               # "-DENABLE_FEATURE_X=ON",
               # "-DWITH_LIBRARY_Y=ON",
           ]
@@ -82,7 +119,39 @@ build:
 
           # Install
           print "Installing..."
-          run-external cmake --install .
+          let install_result = (run-external cmake --install . | complete)
+
+          # If CMake install fails, try manual installation
+          if $install_result.exit_code != 0 {
+              print "CMake install failed, attempting manual installation..."
+
+              # TODO: Adjust based on your application's build output
+              # Common manual installation patterns:
+
+              # Pattern 1: Single executable (most common)
+              # mkdir ($install_prefix | path join "bin")
+              # cp main_executable ($install_prefix | path join "bin" $env.PKG_NAME)
+
+              # Pattern 2: Multiple executables with known names
+              # mkdir ($install_prefix | path join "bin")
+              # cp executable1 ($install_prefix | path join "bin")
+              # cp executable2 ($install_prefix | path join "bin")
+
+              # Pattern 3: All executables in build directory
+              # mkdir ($install_prefix | path join "bin")
+              # ls . | where type == file and ($it.name | str ends-with ".exe" or ($it.mode | str contains "x")) | each { |exe|
+              #     cp $exe.name ($install_prefix | path join "bin")
+              # }
+
+              # Pattern 4: Libraries and executables
+              # mkdir ($install_prefix | path join "bin")
+              # mkdir ($install_prefix | path join "lib")
+              # cp *.so ($install_prefix | path join "lib") # Linux/macOS shared libraries
+              # cp *.dll ($install_prefix | path join "bin") # Windows shared libraries
+              # cp *.a ($install_prefix | path join "lib")   # Static libraries
+
+              error make {msg: "Installation failed. Update manual installation section in build script."}
+          }
 
       } else if ("Makefile" | path exists) {
           print "Building with Make..."
@@ -138,26 +207,122 @@ requirements:
     - cmake
     - ninja
     - pkg-config
-    # TODO: Add any additional build tools (e.g., make, meson, autotools)
+
+    # Protocol Buffers (uncomment if your app uses protobuf):
+    # - protobuf               # Protocol Buffers compiler (protoc)
+    # - libprotobuf-static     # Static protobuf libraries for linking
+    # - libprotobuf            # Dynamic protobuf libraries
+
+    # Additional build tools (uncomment as needed):
+    # - make                   # GNU Make (alternative to Ninja)
+    # - meson                  # Meson build system (alternative to CMake)
+    # - python                 # Often needed for build scripts, code generation
+    # - py-build-cmake         # Python CMake build backend
+    # - autotools              # Autotools build system (./configure)
+    # - libtool                # Library building tools
+
+    # Language-specific build tools:
+    # - go                     # Go compiler (for Go parts of hybrid projects)
+    # - rust                   # Rust compiler (for Rust parts of hybrid projects)
+    # - nodejs                 # Node.js (for JavaScript build tools)
+
+    # Platform-specific tools:
+    - if: unix
+      then: make # GNU Make for Unix systems
+
+    # X11 development (uncomment for GUI applications on Linux):
+    # - xorg-xproto            # X11 protocol headers (legacy)
+    # - xorg-xextproto         # X11 extension protocol headers (legacy)
+    # - xorg-xorgproto         # X11 protocol headers (modern, preferred)
+
+    # Static library variants (for static linking):
+    # - libopenssl-static      # Static OpenSSL libraries
+    # - libprotobuf-static     # Static Protocol Buffers libraries
   host:
     # TODO: Add libraries your application links against
-    # Examples:
-    # - libcurl
-    # - openssl
-    # - boost-cpp
-    # - qt-main  # for Qt applications
-    # - gtk3     # for GTK applications
+    # IMPORTANT: Libraries here should match what's in build: for linking
+
+    # Core C++ Libraries:
+    # - boost-cpp              # Boost C++ libraries (filesystem, system, etc.)
+    # - abseil-cpp             # Google Abseil libraries (strings, containers, etc.)
+    # - fmt                    # Modern C++ formatting library
+    # - spdlog                 # Fast C++ logging library
+
+    # Serialization/Communication:
+    # - libprotobuf            # Protocol Buffers runtime (pairs with protobuf in build:)
+    # - nlohmann_json          # JSON for Modern C++
+    # - libcurl                # HTTP client library
+    # - libzmq                 # ZeroMQ messaging library
+
+    # Cryptography/Security:
+    # - openssl                # Cryptography and SSL/TLS
+    # - libssl                 # SSL/TLS libraries (often included with openssl)
+    # - libsodium              # Modern cryptography library
+
+    # Audio/Media Libraries:
+    # - libopus                # Opus audio codec
+    # - libsndfile             # Audio file I/O
+    # - libogg                 # Ogg container format
+    # - libvorbis              # Vorbis audio codec
+    # - libflac                # FLAC lossless audio codec
+    # - mpg123                 # MPEG audio decoder
+    # - lame                   # LAME MP3 encoder
+    # - alsa-lib               # Audio subsystem (Linux)
+
+    # System Libraries:
+    # - libcap                 # POSIX capabilities (Linux)
+    # - attr                   # Extended attributes (Linux)
+    # - libzlib                # Compression library
+    # - libiconv               # Character encoding conversion
+
+    # UI Frameworks (choose one):
+    # Qt Framework:
+    # - qt-main                # Qt 5 framework (complete)
+    # - qt6-main               # Qt 6 framework (complete)
+    # - qt                     # Qt 5 base components only
+    # GTK Framework:
+    # - gtk3                   # GTK 3
+    # - gtk4                   # GTK 4
+    # - gtksourceview5         # Source code editing widget for GTK
+
+    # X11/Graphics Libraries (for Linux GUI apps):
+    # - xorg-libx11            # X11 client library
+    # - xorg-libxext           # X11 extensions
+    # - xorg-libxi             # X11 input extension
+    # - xorg-libxfixes         # X11 fixes extension
+    # - libxcb                 # X11 C bindings (modern alternative to Xlib)
+    # - libgl-devel            # OpenGL development files
+    # - mesalib                # Mesa 3D graphics implementation
+
+    # Network/Discovery Libraries:
+    # - poco                   # C++ networking and utility libraries
+    # - avahi                  # Zero-configuration networking (Bonjour/mDNS)
+    # - zeroconf               # Network service discovery
+
+    # Database Libraries:
+    # - sqlite                 # SQLite embedded database
+    # - libpq                  # PostgreSQL client library
+    # - unixodbc               # ODBC database connectivity
+
+    # Image/Graphics Libraries:
+    # - libpng                 # PNG image format
+    # - libjpeg-turbo          # JPEG image format (fast implementation)
+    # - libtiff                # TIFF image format
+    # - libwebp                # WebP image format
   run:
     # Run dependencies are often automatically added via run_exports
     # from host dependencies. Only add explicit run dependencies if needed.
     # TODO: Add any runtime-only dependencies
 
 tests:
-  # Test 1: Check that executables exist and run
+  # Test 1: Basic executable functionality
+  # NOTE: Use --version instead of --help because --help often exits with code 1
   - script:
       # TODO: Update with your actual executable names
       - ${{ name }} --version
-      - ${{ name }} --help
+      # Additional basic tests:
+      # - ${{ name }} --help 2>&1 || true  # Allow help to exit with code 1
+      # - which ${{ name }}                # Verify executable is in PATH
 
   # Test 2: More comprehensive functionality test using nushell
   - script:
@@ -172,6 +337,14 @@ tests:
             error make {msg: "Failed to run ${{ name }} --version"}
         }
 
+        print $"Version output: ($version_output.stdout)"
+
+        # Test help command (may exit with code 1, which is normal)
+        let help_output = (run-external ${{ name }} --help | complete)
+        if $help_output.exit_code > 1 {
+            error make {msg: "Help command failed with unexpected exit code"}
+        }
+
         # TODO: Add more specific tests for your application
         # Example: Test with input file
         # "test input" | save test.txt
@@ -179,6 +352,27 @@ tests:
         # let result = (open output.txt)
         # if $result != "expected output" {
         #     error make {msg: "Output mismatch"}
+        # }
+
+        # Example: Test library linking (check for missing shared libraries)
+        # This helps catch runtime dependency issues early
+        if ($nu.os-info.name != "windows") {
+            let ldd_output = (run-external ldd (which ${{ name }}) | complete)
+            if ($ldd_output.stdout | str contains "not found") {
+                print $"LDD output: ($ldd_output.stdout)"
+                error make {msg: "Missing shared library dependencies detected"}
+            }
+            print "All shared library dependencies found"
+        }
+
+        # Example: Test configuration file creation
+        # let config_dir = ($nu.home-path | path join ".config" ${{ name }})
+        # if not ($config_dir | path exists) {
+        #     mkdir $config_dir
+        # }
+        # run-external ${{ name }} --init-config
+        # if not (($config_dir | path join "config.yaml") | path exists) {
+        #     error make {msg: "Configuration file not created"}
         # }
 
         print "All tests passed!"
@@ -192,17 +386,26 @@ tests:
 
 about:
   homepage: https://github.com/example/${{ name }} # TODO: Update URL
-  license: MIT # TODO: Update license
-  license_file: LICENSE # TODO: Verify license file name
-  summary: Short description of the application # TODO: Update
+  license: MIT # TODO: Update license (common: MIT, Apache-2.0, BSD-3-Clause, GPL-3.0)
+  license_file: LICENSE # TODO: Verify license file name (may be LICENSE.txt, COPYING, etc.)
+  summary: Short description of the application # TODO: Update (keep under 80 chars)
   description: |
     A longer description of what this C++ application does.
     It can span multiple lines and should explain the key features
     and use cases of the application.
 
+    Key features:
+    - Feature 1
+    - Feature 2
+    - Feature 3
+
     TODO: Replace with actual description
   documentation: https://example.github.io/${{ name }}/ # TODO: Update URL
   repository: https://github.com/example/${{ name }} # TODO: Update URL
+  # Optional additional fields:
+  # dev_url: https://github.com/example/${{ name }}/issues
+  # doc_url: https://docs.example.com/${{ name }}/
+  # doc_source_url: https://github.com/example/${{ name }}/tree/main/docs
 
 extra:
   recipe-maintainers:
