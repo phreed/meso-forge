@@ -141,9 +141,12 @@ export def test-all [
     for pkg in $packages {
         print $"Testing ($pkg.package)..."
 
-        let result = (do {
+        let result = (try {
             main $pkg.package --target-platform $platform --manifest $manifest
-        } | complete)
+            {exit_code: 0}
+        } catch {
+            {exit_code: 1}
+        })
 
         if $result.exit_code == 0 {
             $passed = $passed + 1
