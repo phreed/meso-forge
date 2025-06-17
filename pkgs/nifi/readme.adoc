@@ -1,0 +1,67 @@
+= Apache Nifi
+:version: 2.4.0
+
+Easy to use, powerful, and reliable system to process and distribute data
+
+== Description
+
+Apache NiFi is a dataflow system based on the concepts of flow-based programming.
+It supports powerful and scalable directed graphs of data routing, transformation, and system mediation logic.
+NiFi has a web-based user interface for design, control, feedback, and monitoring of dataflows.
+Key features:
+
+- Web-based user interface for seamless experience between design, control, feedback, and monitoring
+- Highly configurable Loss tolerant vs guaranteed delivery, Low latency vs high throughput, Dynamic prioritization
+- Flow can be modified at runtime
+- Data Lineage tracking from beginning to end
+- Designed for extension - build your own processors and more
+- Secure communication over SSL, Multi-tenant authorization, and internal authorization/policy management
+
+This package builds Apache NiFi from source using Maven and Java 21.
+After installation, you can start NiFi with the `nifi` command.
+
+== Links
+
+* Homepage: https://nifi.apache.org
+* Repository: https://github.com/apache/nifi
+* Documentation: https://nifi.apache.org/documentation/
+
+== Package Information
+
+* **License**: Apache-2.0
+* **Version**: 2.4.0
+
+== Requirements
+
+=== Host Requirements
+
+* openjdk=${{ java_version }}
+
+=== Run Requirements
+
+* openjdk=${{ java_version }}
+* which
+
+=== Build Requirements
+
+* nushell
+* openjdk=${{ java_version }}
+* maven >=3.6.0
+* unzip
+* tar
+* gzip
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge ${{ name }}
+----
+
+== Maintainers
+
+* phreed
+
+---

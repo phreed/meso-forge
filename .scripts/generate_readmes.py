@@ -394,16 +394,25 @@ class ReadmeGenerator:
         print("\nDone!")
 
 def main(
+    base_dir: Path = typer.Option(Path(__file__).parent.parent, "--base-dir",
+        help="Base directory for the project"),
     pkg_dir: Optional[str] = typer.Option("pkgs", "--pkg-dir",
         help="Directory containing the recipe packages"),
-    base_dir: Optional[Path] = typer.Option(Path(__file__).parent.parent, "--base-dir",
-        help="Base directory for the project"),
     recipe: Optional[str] = typer.Option(None, "--recipe",
         help="Name of a single recipe to analyze")
 ):
     """
     Construct a readme.adoc file for the recipe
     """
+    if base_dir is None:
+        print(f"Error: base_dir is not set properly {base_dir}")
+        raise typer.Exit(1)
+    if not base_dir.exists():
+        print(f"Error: base_dir does not exist {base_dir}")
+        raise typer.Exit(1)
+    if not base_dir.is_dir():
+        print(f"Error: base_dir is not a directory {base_dir}")
+        raise typer.Exit(1)
 
     pkgs_dir = base_dir / pkg_dir
 
@@ -418,15 +427,15 @@ def main(
     generator = ReadmeGenerator(pkgs_dir)
 
     if recipe:
-        # Generate a single recipe
         recipe_path = pkgs_dir / recipe / "recipe.yaml"
+        print (f"Generate a single readme {recipe_path}")
         if not recipe_path.exists():
             print(f"Error: Recipe file not found at {recipe_path}")
-        raise typer.Exit(1)
+            raise typer.Exit(1)
         generator.generate_readme(recipe_path)
         generator.print_summary()
     else:
-        # Generate all recipes (default behavior)
+        print ("Generate all recipes (default behavior)")
         generator.generate_all_readmes()
 
 if __name__ == "__main__":
