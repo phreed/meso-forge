@@ -92,20 +92,6 @@ cmd = [
     "--no-test",
 ]
 
-[tasks.smart-build]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    ".scripts/build.nu",
-    "{{ pkg }}",
-    "--target-platform={{ tgt_platform }}",
-    "--no-test",
-    "--check-remote",
-]
-
 [tasks.check-package]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
@@ -118,14 +104,6 @@ cmd = [
     "--platform={{ tgt_platform }}",
     "--check_all",
     "--check_local",
-]
-
-[tasks.smart-build-all]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/build.nu *; build-all --platform {{ tgt_platform }} --continue-on-error",
 ]
 
 [tasks.list-manifest]
@@ -178,10 +156,6 @@ depends-on = [{ task = "build", args = ["nifi", "{{ tgt_platform }}"] }]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
-        "devcontainer-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "iamb",
         "{{ tgt_platform }}",
     ] },
@@ -228,6 +202,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "bitwarden-cli",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "devcontainer-cli",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [

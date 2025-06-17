@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/devcontainers/cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: f628cfbd9eba9e8881902b970e9432fec815044ec9bea901a8562ea3ef8f4615
+  sha256: 3b7c20f403645d25238562813818de5746d38128415fab08f2423dc754425eec
 
 build:
   number: 0
@@ -18,9 +18,25 @@ build:
     yarn
     yarn compile
 
+    # Install the CLI entry point
+    mkdir -p $PREFIX/bin
+    cp devcontainer.js $PREFIX/bin/devcontainer
+    chmod +x $PREFIX/bin/devcontainer
+
+    # Install the compiled distribution files
+    mkdir -p $PREFIX/lib/devcontainer-cli
+    cp -r dist $PREFIX/lib/devcontainer-cli/
+
+    # Update the entry point to use the installed location
+    sed -i "s|require('./dist/spec-node/devContainersSpecCLI')|require('$PREFIX/lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI')|" $PREFIX/bin/devcontainer
+
 requirements:
   build:
     - yarn
+    - python
+    - make
+    - ${{ compiler('cxx') }}
+    - pkg-config
   host:
     - nodejs
   run:
@@ -28,7 +44,7 @@ requirements:
 
 tests:
   - script: |
-      node devcontainer.js --help
+      devcontainer --help
       # stderr:
       #   contains: "Please create a configuration file"
       # exit: 2

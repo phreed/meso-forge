@@ -27,6 +27,7 @@ source:
 
 build:
   # Use noarch for pure JavaScript packages without native dependencies
+  # Remove 'noarch: generic' for packages with native Node.js modules
   noarch: generic
   script: |
     # BUILD PATTERN 1: Simple npm package installation (recommended for most cases)
@@ -76,6 +77,23 @@ build:
     # EOF
     # chmod +x $PREFIX/bin/{{ PACKAGE_NAME }}
 
+    # BUILD PATTERN 4: Packages with native Node.js modules
+    # Use for packages that depend on native modules (node-pty, canvas, sqlite3, etc.)
+    # Requires C++ compiler and Python in build requirements:
+
+    # # Install dependencies (native modules will be compiled automatically)
+    # npm ci                           # For package-lock.json
+    # # yarn install                   # For yarn.lock
+    #
+    # # Build the package (compilation of native modules happens during install)
+    # npm run build                    # Standard build script
+    # # npm run compile                # For additional compilation steps
+    #
+    # # Install globally if it's a CLI tool
+    # npm install -g . --prefix $PREFIX
+    #
+    # # Note: Set noarch: false (remove noarch: generic) for packages with native modules
+
     # Generate license summary (keep this for all patterns)
     nu npm_licenses.nu | save license_summary.txt
 
@@ -97,9 +115,12 @@ requirements:
 
   # For GitHub source builds, may need additional tools:
   # - git
-  # - python              # For node-gyp native builds
-  # - make                # For native compilation
-  # - {{ compiler('c') }} # For native modules
+
+  # For packages with native Node.js modules (like node-pty, canvas, sqlite3):
+  # - python                 # Required by node-gyp for native builds
+  # - make                   # For native compilation
+  # - ${{ compiler('cxx') }} # C++ compiler for native modules
+  # - pkg-config             # For finding system libraries during compilation
 
   run:
     - nodejs
@@ -203,3 +224,50 @@ extra:
 #    - cd to specific package directory
 #    - Handle workspace dependencies
 #    - May need lerna/nx tools
+#
+# 6. PACKAGES WITH NATIVE MODULES (like devcontainer-cli, node-pty):
+#    - Add python, make, ${{ compiler('cxx') }}, pkg-config to build requirements
+#    - Remove noarch: generic (native modules are platform-specific)
+#    - Use BUILD PATTERN 4 above
+#    - Native compilation happens automatically during npm install
+#    - Test with actual functionality, not just --help
+#    - Examples: node-pty, canvas, sqlite3, native-keymap, node-sass
+#
+# TROUBLESHOOTING NATIVE MODULES:
+#
+# Common build failures and solutions:
+#
+# 1. "node-gyp rebuild" fails:
+#    - Ensure python, make, ${{ compiler('cxx') }}, pkg-config are in build requirements
+#    - Check if package needs specific system libraries (add to host requirements)
+#    - Some packages need additional build tools (cmake, ninja-build)
+#
+# 2. "Cannot find module" errors during compilation:
+#    - Add missing system development packages to host requirements
+#    - Examples: libffi-devel, openssl-devel, zlib-devel
+#
+# 3. "Permission denied" or "EACCES" errors:
+#    - Usually indicates missing build tools or incorrect permissions
+#    - Ensure all build dependencies are properly declared
+#
+# 4. Platform-specific failures:
+#    - Some native modules only work on specific platforms
+#    - Use skip conditions: skip: True  # [win] or skip: True  # [osx]
+#    - Check upstream package compatibility
+#
+# 5. Memory or timeout issues during compilation:
+#    - Large native modules may need extended build timeouts
+#    - Consider using pre-compiled binaries if available
+#
+# 6. Common error messages and solutions:
+#    - "Python executable not found": Add python to build requirements
+#    - "make: command not found": Add make to build requirements
+#    - "fatal error: 'node.h' file not found": Add nodejs-devel to build requirements
+#    - "Package 'pkg-config' not found": Add pkg-config to build requirements
+#    - "No suitable version of gyp found": Usually resolved by python dependency
+#
+# 7. Debugging tips:
+#    - Check the full build log for specific missing dependencies
+#    - Look for "node-gyp" related errors in the npm install output
+#    - Verify the package actually needs native compilation (check package.json)
+#    - Some packages have "install" scripts that attempt native builds unnecessarily
