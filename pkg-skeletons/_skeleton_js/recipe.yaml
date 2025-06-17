@@ -131,20 +131,25 @@ requirements:
     # - git                 # If package needs git at runtime
 
 tests:
-  - script:
-      # TEST PATTERN 1: CLI tool tests (for command-line applications)
-      - ${{ PACKAGE_NAME }} --version # Version check (exits with 0 on success)
-      # - {{ PACKAGE_NAME }} --help      # Help check (may exit with 1, use carefully)
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # TEST PATTERN 1: CLI tool tests (for command-line applications)
+        - ^${{ PACKAGE_NAME }} --version # Version check (exits with 0 on success)
+        # - ^{{ PACKAGE_NAME }} --help      # Help check (may exit with 1, use carefully)
 
-      # TEST PATTERN 2: Module import tests (for libraries)
-      # - node -e "require('{{ PACKAGE_NAME }}')"                    # Basic require test
-      # - node -e "console.log(typeof require('{{ PACKAGE_NAME }}')" # Type check
-      # - node -e "const pkg = require('{{ PACKAGE_NAME }}'); console.log(pkg.version || 'no version')" # Version test
+        # TEST PATTERN 2: Module import tests (for libraries)
+        # - ^node -e "require('{{ PACKAGE_NAME }}')"                    # Basic require test
+        # - ^node -e "console.log(typeof require('{{ PACKAGE_NAME }}')" # Type check
+        # - ^node -e "const pkg = require('{{ PACKAGE_NAME }}'); console.log(pkg.version || 'no version')" # Version test
 
-      # TEST PATTERN 3: Functional tests (for more comprehensive testing)
-      # - node -e "const pkg = require('{{ PACKAGE_NAME }}'); pkg.someFunction()" # Function test
-      # - echo "test input" | {{ PACKAGE_NAME }} --stdin              # Input processing test
-      # - {{ PACKAGE_NAME }} --validate-config ./test-config.json    # Config validation test
+        # TEST PATTERN 3: Functional tests (for more comprehensive testing)
+        # - ^node -e "const pkg = require('{{ PACKAGE_NAME }}'); pkg.someFunction()" # Function test
+        # - ^echo "test input" | ^{{ PACKAGE_NAME }} --stdin              # Input processing test
+        # - ^{{ PACKAGE_NAME }} --validate-config ./test-config.json    # Config validation test
 
 about:
   homepage: ${{ HOMEPAGE_URL }}

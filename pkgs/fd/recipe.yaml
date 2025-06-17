@@ -14,33 +14,54 @@ source:
 
 build:
   number: 0
-  script: |
-    cargo install --root $PREFIX --path .
-    $PREFIX/bin/fd --gen-completions bash > fd.bash
-    $PREFIX/bin/fd --gen-completions fish > fd.fish
-    mkdir -p $PREFIX/share/bash-completion/completions
-    mkdir -p $PREFIX/share/fish/vendor_completions.d
-    cp fd.bash $PREFIX/share/bash-completion/completions/fd
-    cp fd.fish $PREFIX/share/fish/vendor_completions.d/fd.fish
-    mkdir -p $PREFIX/share/zsh/site-functions
-    cp contrib/completion/_fd $PREFIX/share/zsh/site-functions/_fd
-    mkdir -p $PREFIX/share/man/man1
-    cp doc/fd.1 $PREFIX/share/man/man1/fd.1
-    cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml
-    # --previous missing-licenses.yaml --check-previous
+  script:
+    interpreter: nu
+    content: |
+      ^cargo install --root ($env.PREFIX) --path .
+
+      # Generate completions
+      let fd_bin = ($env.PREFIX | path join "bin" "fd")
+      ^$fd_bin --gen-completions bash | save fd.bash
+      ^$fd_bin --gen-completions fish | save fd.fish
+
+      # Install completions
+      let bash_completions_dir = ($env.PREFIX | path join "share" "bash-completion" "completions")
+      let fish_completions_dir = ($env.PREFIX | path join "share" "fish" "vendor_completions.d")
+      let zsh_completions_dir = ($env.PREFIX | path join "share" "zsh" "site-functions")
+      let man_dir = ($env.PREFIX | path join "share" "man" "man1")
+
+      ^mkdir -p $bash_completions_dir
+      ^mkdir -p $fish_completions_dir
+      ^mkdir -p $zsh_completions_dir
+      ^mkdir -p $man_dir
+
+      ^cp fd.bash ($bash_completions_dir | path join "fd")
+      ^cp fd.fish ($fish_completions_dir | path join "fd.fish")
+      ^cp contrib/completion/_fd ($zsh_completions_dir | path join "_fd")
+      ^cp doc/fd.1 ($man_dir | path join "fd.1")
+
+      ^cargo bundle-licenses --format yaml --output thirdpartylicenses.yaml
+      # --previous missing-licenses.yaml --check-previous
 
 requirements:
   build:
+    - nushell
     - rust
     - cargo-bundle-licenses
 
 tests:
-  - script: |
-      mkdir -p trial
-      cd trial
-      touch foo_file
-      touch test_file
-      test "$(fd test)" = "test_file"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^mkdir -p trial
+        cd trial
+        ^touch foo_file
+        ^touch test_file
+        let result = (^fd test | str trim)
+        if $result != "test_file" { exit 1 }
 
 about:
   homepage: https://github.com/sharkdp/fd

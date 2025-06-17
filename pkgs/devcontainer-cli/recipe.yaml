@@ -55,11 +55,16 @@ requirements:
     - nodejs
 
 tests:
-  - script: |
-      devcontainer --help
-      # stderr:
-      #   contains: "Please create a configuration file"
-      # exit: 2
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^devcontainer --help
+        # stderr:
+        #   contains: "Please create a configuration file"
+        # exit: 2
 
 about:
   homepage: https://containers.dev/

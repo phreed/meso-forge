@@ -32,9 +32,13 @@ requirements:
     - widgetsnbextension >=4.0.10,<4.1.0
 
 tests:
-  - python:
-      imports:
-        - ipywidgets
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^python -c "import ipywidgets"
 
 about:
   homepage: https://github.com/ipython/ipywidgets

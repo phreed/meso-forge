@@ -180,7 +180,10 @@ tests:
         - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}ConfigVersion.cmake
 
   # Test 3: Compile a simple test program using nushell
-  - script:
+  - requirements:
+      build:
+        - nushell
+    script:
       interpreter: nu
       content: |
         print "Testing header-only library compilation..."
@@ -235,9 +238,14 @@ tests:
   # Test 4: Verify pkg-config (Unix only)
   - if: unix
     then:
+      requirements:
+        build:
+          - nushell
       script:
-        - pkg-config --exists ${{ name }}
-        - pkg-config --modversion ${{ name }}
+        interpreter: nu
+        content:
+          - ^pkg-config --exists ${{ name }}
+          - ^pkg-config --modversion ${{ name }}
 
 about:
   homepage: https://github.com/example/${{ name }} # TODO: Update URL

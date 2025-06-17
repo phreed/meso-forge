@@ -164,11 +164,16 @@ requirements:
 
 tests:
   # Test 1: Basic NiFi command execution
-  - script:
-      # Test NiFi status command (should work without starting NiFi)
-      - nifi status
-      # Test help command
-      - nifi --help || nifi help
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test NiFi status command (should work without starting NiFi)
+        - ^nifi status
+        # Test help command
+        - try { ^nifi --help } catch { ^nifi help }
 
   # Test 2: Java version compatibility
   - script:

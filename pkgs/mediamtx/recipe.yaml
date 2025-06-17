@@ -70,10 +70,15 @@ requirements:
     - go-licenses
 
 tests:
-  - script:
-      # Test that the binary works
-      - mediamtx --version
-      - mediamtx --help
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test that the binary works
+        - ^mediamtx --version
+        - ^mediamtx --help
 
 about:
   homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md

@@ -28,9 +28,14 @@ requirements:
   run: []
 
 tests:
-  - script: |
-      # Test that the installed cargo subcommand can execute and show version
-      cargo-upgrade --version
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test that the installed cargo subcommand can execute and show version
+        - ^cargo-upgrade --version
 
 about:
   homepage: https://github.com/killercup/cargo-edit

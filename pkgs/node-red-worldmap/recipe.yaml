@@ -34,8 +34,13 @@ requirements:
     - nodejs
 
 tests:
-  - script:
-      - "echo 'not sure how to test'"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^echo 'not sure how to test'
 
 about:
   homepage: https://github.com/dceejay/RedMap#readme

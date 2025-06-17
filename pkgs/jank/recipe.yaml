@@ -14,24 +14,28 @@ source:
 
 build:
   number: 0
-  script: |
-    # Initialize and update git submodules
-    git submodule update --recursive --init
+  script:
+    interpreter: nu
+    content: |
+      # Initialize and update git submodules
+      ^git submodule update --recursive --init
 
-    # Set environment variables for clang
-    export CC=clang
-    export CXX=clang++
+      # Set environment variables for clang
+      $env.CC = "clang"
+      $env.CXX = "clang++"
 
-    cd compiler+runtime
-    ./bin/configure -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-ldl -pthread -Wl,--no-as-needed"
-    ./bin/compile
+      cd compiler+runtime
+      ^./bin/configure -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-ldl -pthread -Wl,--no-as-needed"
+      ^./bin/compile
 
-    # Install the binary
-    mkdir -p $PREFIX/bin
-    cp build/jank $PREFIX/bin/jank
+      # Install the binary
+      let bin_dir = ($env.PREFIX | path join "bin")
+      ^mkdir -p $bin_dir
+      ^cp build/jank ($bin_dir | path join "jank")
 
 requirements:
   build:
+    - nushell
     - clang
     - clangxx
     - binutils
@@ -70,8 +74,13 @@ requirements:
     - double-conversion
 
 tests:
-  - script:
-      - jank --help
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^jank --help
 
 about:
   license: MPL-2.0

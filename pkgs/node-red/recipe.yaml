@@ -43,9 +43,14 @@ requirements:
     - nodejs
 
 tests:
-  - script:
-      - find . -maxdepth 2
-        - echo "node-red --help"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^find . -maxdepth 2
+        - ^echo "node-red --help"
 
 about:
   homepage: https://nodered.org

@@ -111,8 +111,13 @@ requirements:
     - poco
 
 tests:
-  - script:
-      - "mumble --version"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^mumble --version
 
 about:
   homepage: https://www.mumble.info/

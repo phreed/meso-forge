@@ -14,13 +14,16 @@ source:
 
 build:
   number: 0
-  script: |
-    export LIBSQLITE3_SYS_USE_PKG_CONFIG="1"
-    export VERGEN_GIT_SHA=${{ env.get('CONDA_PREFIX') }}
-    cargo install --root $PREFIX --path .
+  script:
+    interpreter: nu
+    content: |
+      $env.LIBSQLITE3_SYS_USE_PKG_CONFIG = "1"
+      $env.VERGEN_GIT_SHA = "${{ env.get('CONDA_PREFIX') }}"
+      ^cargo install --root ($env.PREFIX) --path .
 
 requirements:
   build:
+    - nushell
     - pkgconf
     - rust
   host:
@@ -31,8 +34,13 @@ requirements:
         - openssl
 
 tests:
-  - script: |
-      iamb --version
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^iamb --version
 
 about:
   homepage: https://iamb.chat

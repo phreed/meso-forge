@@ -15,18 +15,17 @@ source:
 build:
   number: 0
   skip: win
-  script: |
-    autoreconf --force --install --verbose
-    ./configure \
-      --prefix=$PREFIX \
-        --disable-lzma \
-        --sysconfdir=/etc \
-        "MKDIR_P=mkdir -p"
-    make
-    make install
+  script:
+    interpreter: nu
+    content: |
+      ^autoreconf --force --install --verbose
+      ^./configure --prefix=($env.PREFIX) --disable-lzma --sysconfdir=/etc "MKDIR_P=mkdir -p"
+      ^make
+      ^make install
 
 requirements:
   build:
+    - nushell
     - ${{ compiler('c') }}
     # - ${{ stdlib("c") }}
     - make
@@ -34,6 +33,12 @@ requirements:
     - automake
     - libtool
     - pkg-config
+    - zlib
+    - bzip2
+    - lzo
+    - lz4
+    - zstd
+    - libgcrypt
   host:
     - bzip2
     - e2fsprogs
@@ -46,9 +51,14 @@ requirements:
     - zstd
 
 tests:
-  - script:
-      - ls
-        # - fsarchiver usage
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^ls
+        # - ^fsarchiver usage
 
 about:
   homepage: "https://www.fsarchiver.org"

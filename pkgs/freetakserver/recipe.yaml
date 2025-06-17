@@ -85,9 +85,10 @@ requirements:
     - pytest-asyncio 0.20.1.*
 
 tests:
-  - python:
-      imports:
-        - digitalpy
+  - script:
+      interpreter: python
+      content: |
+        import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/FreeTakServer

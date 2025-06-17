@@ -135,25 +135,29 @@ requirements:
     # Copy relevant system libraries from host section
 
 tests:
-  - script:
-      # Basic test to ensure package can be loaded
-      - if: unix
-        then: $R -e "library('packagename')"
-      - if: unix
-        then: $R -e "library('packagename'); packageVersion('packagename')"
-      - if: win
-        then: '"%R%" -e "library(''packagename'')"'
-      - if: win
-        then: '"%R%" -e "library(''packagename''); packageVersion(''packagename'')"'
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Basic test to ensure package can be loaded
+        - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename')" }
+        - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename'); packageVersion('packagename')" }
+        - if ($nu.os-info.name == "windows") { ^"%R%" -e "library('packagename')" }
+        - if ($nu.os-info.name == "windows") { ^"%R%" -e "library('packagename'); packageVersion('packagename')" }
 
-      # Additional tests can be added here
-      # - if: unix
-      #   then: $R -e "library('packagename'); packagename::some_function()"
+        # Additional tests can be added here
+        # - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename'); packagename::some_function()" }
 
   # Alternative: run package tests (if they exist and are fast)
-  # - script:
-  #     - if: unix
-  #       then: $R -e "library('testthat'); library('packagename'); test_check('packagename')"
+  # - requirements:
+  #     build:
+  #       - nushell
+  #   script:
+  #     interpreter: nu
+  #     content:
+  #       - if ($nu.os-info.name != "windows") { ^$R -e "library('testthat'); library('packagename'); test_check('packagename')" }
 
 about:
   # Update with actual package information

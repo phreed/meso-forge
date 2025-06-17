@@ -27,9 +27,14 @@ requirements:
     - ${{ pin_compatible('ruby', upper_bound='x.x') }}
 
 tests:
-  - script:
-    - ruby -r asciidoctor -e 'exit 0'
-    - asciidoctor -V
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^ruby -r asciidoctor -e 'exit 0'
+        - ^asciidoctor -V
 
 about:
   homepage: https://asciidoctor.org

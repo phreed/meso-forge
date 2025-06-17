@@ -21,8 +21,13 @@ requirements:
     - rust
 
 tests:
-  - script: |
-      podlet --help 2>&1  | grep "${{ version }}"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^podlet --help 2>&1 | ^grep "${{ version }}"
 
 about:
   homepage: https://crates.io/crates/podlet

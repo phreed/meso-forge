@@ -16,17 +16,20 @@ source:
 
 build:
   number: 0
-  script: |
-    autoreconf -i
-    find . -maxdepth 2
-    ./configure --disable-debug --disable-dependency-tracking \
-      --prefix=$PREFIX \
-        --mandir=$PREFIX/share/man
-    make
-    make install
+  script:
+    interpreter: nu
+    content: |
+      ^autoreconf -i
+      ^find . -maxdepth 2
+      let prefix_path = $env.PREFIX
+      let mandir_path = ($env.PREFIX | path join "share" "man")
+      ^./configure --disable-debug --disable-dependency-tracking --prefix=$prefix_path --mandir=$mandir_path
+      ^make
+      ^make install
 
 requirements:
   build:
+    - nushell
     - ${{ compiler('c') }}
     # - ${{ stdlib('c') }}
     - autoconf
@@ -34,8 +37,13 @@ requirements:
     - make
 
 tests:
-  - script:
-    - pwgen --secure 20 10
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^pwgen --secure 20 10
 
 about:
   homepage: https://pwgen.sourceforge.net/

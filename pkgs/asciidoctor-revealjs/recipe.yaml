@@ -28,9 +28,20 @@ requirements:
     - asciidoctor >=1.5.0
 
 tests:
-  - script:
-      - ruby -e "require 'asciidoctor-revealjs'"
-      - asciidoctor-revealjs --version
+  - requirements:
+      build:
+        - ruby
+    script:
+      interpreter: ruby
+      content: |
+        require 'asciidoctor-revealjs'
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^asciidoctor-revealjs --version
 
 about:
   homepage: https://github.com/asciidoctor/asciidoctor-reveal.js

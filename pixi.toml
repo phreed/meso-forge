@@ -268,6 +268,7 @@ cmd = [
     "{{ pkg }}",
     "--target-platform={{ tgt_platform }}",
 ]
+depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
 
 [tasks.test-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]

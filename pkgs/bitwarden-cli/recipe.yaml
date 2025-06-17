@@ -15,35 +15,43 @@ source:
 build:
   number: 0
   noarch: generic
-  script: |
-    # Remove problematic postinstall script from desktop app
-    sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/desktop/package.json
+  script:
+    interpreter: nu
+    content: |
+      # Remove problematic postinstall script from desktop app
+      ^sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/desktop/package.json
 
-    # Install dependencies following GitHub Actions workflow pattern
-    npm ci
+      # Install dependencies following GitHub Actions workflow pattern
+      ^npm ci
 
-    # Build CLI app (JavaScript files instead of bundled executable)
-    cd apps/cli
-    npm run build:oss:prod
+      # Build CLI app (JavaScript files instead of bundled executable)
+      cd apps/cli
+      ^npm run build:oss:prod
 
-    # Copy built JavaScript files and dependencies to package
-    mkdir -p $PREFIX/lib/bitwarden-cli
-    cp -r build/* $PREFIX/lib/bitwarden-cli/
+      # Copy built JavaScript files and dependencies to package
+      let lib_dir = ($env.PREFIX | path join "lib" "bitwarden-cli")
+      ^mkdir -p $lib_dir
+      ^cp -r build/* $lib_dir
 
-    # Copy required node_modules to the package
-    cd ../..
-    mkdir -p $PREFIX/lib/bitwarden-cli/node_modules
-    cp -r node_modules/* $PREFIX/lib/bitwarden-cli/node_modules/
+      # Copy required node_modules to the package
+      cd ../..
+      let node_modules_dir = ($lib_dir | path join "node_modules")
+      ^mkdir -p $node_modules_dir
+      ^cp -r node_modules/* $node_modules_dir
 
-    # Create wrapper script that sets NODE_PATH
-    mkdir -p $PREFIX/bin
-    echo '#!/bin/bash' > $PREFIX/bin/bw
-    echo 'export NODE_PATH="$PREFIX/lib/bitwarden-cli/node_modules:$NODE_PATH"' >> $PREFIX/bin/bw
-    echo 'exec node "$PREFIX/lib/bitwarden-cli/bw.js" "$@"' >> $PREFIX/bin/bw
-    chmod +x $PREFIX/bin/bw
+      # Create wrapper script that sets NODE_PATH
+      let bin_dir = ($env.PREFIX | path join "bin")
+      ^mkdir -p $bin_dir
+      let wrapper_script = ($bin_dir | path join "bw")
+
+      let script_content = "#!/bin/bash" + "\n" + "export NODE_PATH=\"$PREFIX/lib/bitwarden-cli/node_modules:$NODE_PATH\"" + "\n" + "exec node \"$PREFIX/lib/bitwarden-cli/bw.js\" \"$@\""
+
+      $script_content | save $wrapper_script
+      ^chmod +x $wrapper_script
 
 requirements:
   build:
+    - nushell
     - yarn
     - webpack-cli
   host:
@@ -54,8 +62,13 @@ requirements:
     - nodejs
 
 tests:
-  - script:
-      - bw --version
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^bw --version
 
 about:
   homepage: https://bitwarden.com/help/cli/

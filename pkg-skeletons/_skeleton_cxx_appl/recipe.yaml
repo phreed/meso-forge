@@ -317,12 +317,17 @@ requirements:
 tests:
   # Test 1: Basic executable functionality
   # NOTE: Use --version instead of --help because --help often exits with code 1
-  - script:
-      # TODO: Update with your actual executable names
-      - ${{ name }} --version
-      # Additional basic tests:
-      # - ${{ name }} --help 2>&1 || true  # Allow help to exit with code 1
-      # - which ${{ name }}                # Verify executable is in PATH
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # TODO: Update with your actual executable names
+        - ^${{ name }} --version
+        # Additional basic tests:
+        # - ^${{ name }} --help 2>&1 || true  # Allow help to exit with code 1
+        # - ^which ${{ name }}                # Verify executable is in PATH
 
   # Test 2: More comprehensive functionality test using nushell
   - script:

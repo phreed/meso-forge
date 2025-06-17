@@ -317,18 +317,23 @@ requirements:
 tests:
   # Test 1: Basic execution test
   # {% if package_type == "application" %}
-  - script:
-      # TODO: Update these tests for your specific application
-      # Version check
-      - ${{ binary_name }} --version
-      # Or if it uses different flag:
-      # - ${{ binary_name }} -V
-      # - java -jar $PREFIX/lib/${{ binary_name }}.jar --version
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # TODO: Update these tests for your specific application
+        # Version check
+        - ^${{ binary_name }} --version
+        # Or if it uses different flag:
+        # - ^${{ binary_name }} -V
+        # - ^java -jar $PREFIX/lib/${{ binary_name }}.jar --version
 
-      # Help check
-      - ${{ binary_name }} --help
-      # Or:
-      # - java -jar $PREFIX/lib/${{ binary_name }}.jar --help
+        # Help check
+        - ^${{ binary_name }} --help
+        # Or:
+        # - ^java -jar $PREFIX/lib/${{ binary_name }}.jar --help
   # {% endif %}
 
   # Test 2: Java version compatibility

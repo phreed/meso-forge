@@ -14,12 +14,15 @@ source:
 
 build:
   number: 0
-  script: |
-    cargo build
-    # cargo install --root $PREFIX --path .
+  script:
+    interpreter: nu
+    content: |
+      ^cargo build
+      # ^cargo install --root ($env.PREFIX) --path .
 
 requirements:
   build:
+    - nushell
     - pkgconf
     - rust
   run_exports:
@@ -27,8 +30,13 @@ requirements:
       - ${{ pin_subpackage("ratatui", upper_bound="x.x") }}
 
 tests:
-  - script: |
-      echo "how to test ratatui"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^echo "how to test ratatui"
 
 about:
   homepage: https://ratatui.rs

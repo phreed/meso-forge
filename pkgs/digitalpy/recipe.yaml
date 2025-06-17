@@ -59,9 +59,10 @@ requirements:
     - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
 
 tests:
-  - python:
-      imports:
-        - digitalpy
+  - script:
+      interpreter: python
+      content: |
+        import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/DigitalPy

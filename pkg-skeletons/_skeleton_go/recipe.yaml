@@ -145,27 +145,32 @@ requirements:
     # - cmake
 
 tests:
-  - script:
-      # TODO: Update these tests for your specific binary
-      # Basic functionality tests - focus on behavior, not strict version strings
-      # Many Go projects have version embedding issues in conda builds
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # TODO: Update these tests for your specific binary
+        # Basic functionality tests - focus on behavior, not strict version strings
+        # Many Go projects have version embedding issues in conda builds
 
-      # Test that version command works (doesn't crash)
-      - ${{ binary_name }} --version
+        # Test that version command works (doesn't crash)
+        - ^${{ binary_name }} --version
 
-      # Test help command works
-      - ${{ binary_name }} --help
+        # Test help command works
+        - ^${{ binary_name }} --help
 
-      # If you need to verify specific version content, be flexible:
-      # Check that version contains some expected pattern, not exact match
-      # - ${{ binary_name }} --version | grep -E "(v?[0-9]+\.[0-9]+\.[0-9]+|${{ version }})"
+        # If you need to verify specific version content, be flexible:
+        # Check that version contains some expected pattern, not exact match
+        # - ^${{ binary_name }} --version | ^grep -E "(v?[0-9]+\.[0-9]+\.[0-9]+|${{ version }})"
 
-      # Avoid overly strict version checks like this (learned from mediamtx):
-      # - test "$({{ binary_name }} --version)" != "v0.0.0"  # Too strict!
+        # Avoid overly strict version checks like this (learned from mediamtx):
+        # - test "$({{ binary_name }} --version)" != "v0.0.0"  # Too strict!
 
-      # TODO: Add functional tests that verify the program actually works
-      # - ${{ binary_name }} subcommand --flag
-      # - ${{ binary_name }} --config /dev/null --check-config
+        # TODO: Add functional tests that verify the program actually works
+        # - ^${{ binary_name }} subcommand --flag
+        # - ^${{ binary_name }} --config /dev/null --check-config
 
 about:
   # TODO: Update all metadata fields

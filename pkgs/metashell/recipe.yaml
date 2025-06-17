@@ -16,15 +16,18 @@ source:
 
 build:
   number: 0
-  script: |
-    cmake -S 3rd/templight/llvm -B build/templight -DLIBCLANG_BUILD_STATIC=ON -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_PROJECTS=clang ${{ CMAKE_ARGS }}
-    cmake --build build/templight --target templight
-    cmake -S . -B build/metashell ${{ CMAKE_ARGS }}
-    cmake --build build/metashell
-    cmake --install build/metashell
+  script:
+    interpreter: nu
+    content: |
+      ^cmake -S 3rd/templight/llvm -B build/templight -DLIBCLANG_BUILD_STATIC=ON -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_PROJECTS=clang ${{ CMAKE_ARGS }}
+      ^cmake --build build/templight --target templight
+      ^cmake -S . -B build/metashell ${{ CMAKE_ARGS }}
+      ^cmake --build build/metashell
+      ^cmake --install build/metashell
 
 requirements:
   build:
+    - nushell
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
     # - ${{ stdlib('c') }}
@@ -38,12 +41,15 @@ requirements:
         - readline
 
 tests:
-  - script: |
-      cat << EOF > test.hpp
-      template <class T> struct add_const { using type = const T; };
-      add_const<int>::type
-      EOF
-      ${{ PREFIX }}/bin/metashell -H < test.hpp | grep "const int"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        "template <class T> struct add_const { using type = const T; };
+        add_const<int>::type" | save test.hpp
+        ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
 
 about:
   homepage: http://metashell.org

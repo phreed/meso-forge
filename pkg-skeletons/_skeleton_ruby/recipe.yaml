@@ -50,13 +50,18 @@ requirements:
     # - rb-nokogiri >=1.10,<2.0
 
 tests:
-  - script:
-      # Test gem can be required
-      - ruby -r gemname -e 'exit 0'
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test gem can be required
+        - ^ruby -r gemname -e 'exit 0'
 
-      # Test CLI tools if gem provides them (CLI tools are automatically created by gem install -n)
-      # - gemname --version
-      # - gemname --help
+        # Test CLI tools if gem provides them (CLI tools are automatically created by gem install -n)
+        # - ^gemname --version
+        # - ^gemname --help
 
 about:
   homepage: https://github.com/username/gemname

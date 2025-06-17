@@ -38,9 +38,13 @@ requirements:
     - packaging
 
 tests:
-  - python:
-      imports:
-        - testresources
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^python -c "import testresources"
 
 about:
   summary: Testresources, a pyunit extension for managing expensive test resources

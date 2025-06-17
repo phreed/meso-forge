@@ -14,14 +14,26 @@ source:
 
 build:
   noarch: generic
-  script: |
-    mkdir -p $PREFIX/etc/profile.d
-    cp bash-preexec.sh $PREFIX/etc/profile.d/
+  script:
+    interpreter: nu
+    content: |
+      let profile_dir = ($env.PREFIX | path join "etc" "profile.d")
+      ^mkdir -p $profile_dir
+      ^cp bash-preexec.sh $profile_dir
   number: 0
 
+requirements:
+  build:
+    - nushell
+
 tests:
-  - script: |
-      test -f $PREFIX/etc/profile.d/bash-preexec.sh
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^test -f ($env.PREFIX | path join "etc" "profile.d" "bash-preexec.sh")
 
 about:
   homepage: https://github.com/rcaloras/bash-preexec

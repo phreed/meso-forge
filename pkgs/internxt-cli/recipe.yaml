@@ -15,23 +15,26 @@ source:
 build:
   number: 0
   noarch: generic
-  script: |
-    # Install dependencies first (required for prepack script)
-    yarn install
+  script:
+    interpreter: nu
+    content: |
+      # Install dependencies first (required for prepack script)
+      ^yarn install
 
-    # Create tarball from the current project, similar to `npm pack`
-    yarn pack
+      # Create tarball from the current project, similar to `npm pack`
+      ^yarn pack
 
-    # Install the tarball to the conda environment prefix
-    npm install --prefix="${PREFIX}" --global "${SRC_DIR}/package.tgz"
+      # Install the tarball to the conda environment prefix
+      ^npm install --prefix=($env.PREFIX) --global ($env.SRC_DIR | path join "package.tgz")
 
-    # Create license report for dependencies
-    # First install with pnpm to generate lockfile
-    pnpm install
-    pnpm-licenses generate-disclaimer --prod --output-file=third-party-licenses.txt
+      # Create license report for dependencies
+      # First install with pnpm to generate lockfile
+      ^pnpm install
+      ^pnpm-licenses generate-disclaimer --prod --output-file=third-party-licenses.txt
 
 requirements:
   build:
+    - nushell
     - nodejs
     - grunt
     - pnpm
@@ -48,10 +51,14 @@ requirements:
     - nodejs
 
 tests:
-  - script:
-      - internxt --help
-      - internxt --version
-        # - "find . -maxdepth 2"
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^internxt --help
+        - ^internxt --version
 
 about:
   homepage: https://github.com/internxt/cli/blob/main/README.md
