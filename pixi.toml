@@ -154,16 +154,7 @@ depends-on = [{ task = "build", args = ["nifi", "{{ tgt_platform }}"] }]
 
 [tasks.build-wip]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
-depends-on = [
-    { task = "build", args = [
-        "jank",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "metashell",
-        "{{ tgt_platform }}",
-    ] },
-]
+depends-on = [{ task = "build", args = ["metashell", "{{ tgt_platform }}"] }]
 
 [tasks.build-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
@@ -226,6 +217,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "internxt-cli",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "jank",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
