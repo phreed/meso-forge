@@ -14,24 +14,36 @@ source:
 
 build:
   number: 0
-  script: |
-    yarn
-    yarn compile
+  script:
+    interpreter: nu
+    content: |
+      $env.YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
+      ^yarn
+      ^yarn compile
 
-    # Install the CLI entry point
-    mkdir -p $PREFIX/bin
-    cp devcontainer.js $PREFIX/bin/devcontainer
-    chmod +x $PREFIX/bin/devcontainer
+      # Install the CLI entry point
+      let bin_dir = ($env.PREFIX | path join "bin")
+      ^mkdir -p $bin_dir
+      ^cp devcontainer.js ($bin_dir | path join "devcontainer")
+      ^chmod +x ($bin_dir | path join "devcontainer")
 
-    # Install the compiled distribution files
-    mkdir -p $PREFIX/lib/devcontainer-cli
-    cp -r dist $PREFIX/lib/devcontainer-cli/
+      # Install the compiled distribution files
+      let lib_dir = ($env.PREFIX | path join "lib" "devcontainer-cli")
+      ^mkdir -p $lib_dir
+      ^cp -r dist $lib_dir
 
-    # Update the entry point to use the installed location
-    sed -i "s|require('./dist/spec-node/devContainersSpecCLI')|require('$PREFIX/lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI')|" $PREFIX/bin/devcontainer
+      # Update the entry point to use the installed location
+      let devcontainer_path = ($bin_dir | path join "devcontainer")
+      let old_require = "require('./dist/spec-node/devContainersSpecCLI')"
+      let prefix_path = $env.PREFIX
+      let new_require = ("require('" + $prefix_path + "/lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI')")
+      let content = (open $devcontainer_path)
+      let new_content = ($content | str replace $old_require $new_require)
+      $new_content | save --force $devcontainer_path
 
 requirements:
   build:
+    - nushell
     - yarn
     - python
     - make
