@@ -13,18 +13,24 @@ source:
   sha256: 46670295e2323fc2f826750cdcfb2692fbdbea87122fe530a07c50c8dba1d3d7
 
 build:
-  script:
-    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml  # !(1)
-    - $BUILD_PREFIX/bin/cargo install --locked --bins --root ${PREFIX} --path .
+  number: 0
+  script: |
+    # Bundle third-party licenses for compliance
+    cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
+    # Install the package using cargo
+    cargo install --locked --bins --root ${PREFIX} --path .
 
 requirements:
   build:
     - ${{ compiler('rust') }}
     - cargo-bundle-licenses
+  host: []
+  run: []
 
 tests:
-  - script:
-    - cargo-upgrade --help # !(2)
+  - script: |
+      # Test that the installed cargo subcommand can execute and show version
+      cargo-upgrade --version
 
 about:
   homepage: https://github.com/killercup/cargo-edit
@@ -38,3 +44,10 @@ about:
 extra:
   recipe-maintainers:
     - maintainer
+  # Notes for Rust packages:
+  # - Use cargo install for installation (preferred over manual compilation)
+  # - Include cargo-bundle-licenses for license compliance
+  # - Test with --version to avoid network/functionality dependencies
+  # - Keep host/run requirements minimal unless specific system deps needed
+  # - Version numbers cannot contain dashes, use underscores instead
+  # - Remove conflicting dependencies that might override Cargo.toml versions

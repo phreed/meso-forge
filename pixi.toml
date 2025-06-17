@@ -5,7 +5,7 @@ name = "meso-forge"
 version = "0.1.0"
 description = "Packages needed by my projects"
 authors = ["Fred Eisele <fred.eisele@vanderbilt.edu>"]
-channels = ["conda-forge"]
+channels = ["conda-forge", "https://prefix.dev/meso-forge"]
 platforms = [
     # "osx-arm64",
     "linux-64",
@@ -156,19 +156,11 @@ depends-on = [{ task = "build", args = ["nifi", "{{ tgt_platform }}"] }]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
-        "iamb",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "internxt-cli",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "jank",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "kombose",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
@@ -241,6 +233,10 @@ depends-on = [
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
+        "iamb",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
         "mediamtx",
         "{{ tgt_platform }}",
     ] },
@@ -254,6 +250,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "node-red-worldmap",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "podlet",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [

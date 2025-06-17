@@ -2,15 +2,15 @@
 schema_version: 1
 
 context:
-  version: "0.0.10"
+  version: "0.0.11_alpha.1"
 
 package:
   name: iamb
   version: ${{ version }}
 
 source:
-  url: https://github.com/ulyssa/iamb/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: f628cfbd9eba9e8881902b970e9432fec815044ec9bea901a8562ea3ef8f4615
+  url: https://github.com/ulyssa/iamb/archive/refs/heads/main.tar.gz
+  sha256: 6be8c76aaca45f7971bcb542b1d12f26cd5f2c6266202de6433d768034e62fc7
 
 build:
   number: 0
@@ -25,7 +25,6 @@ requirements:
     - rust
   host:
     - sqlite
-    - ratatui
   run:
     - if: linux
       then:
@@ -33,10 +32,7 @@ requirements:
 
 tests:
   - script: |
-      iamb
-    # stderr:
-    #   contains: "Please create a configuration file"
-    # exit: 2
+      iamb --version
 
 about:
   homepage: https://iamb.chat

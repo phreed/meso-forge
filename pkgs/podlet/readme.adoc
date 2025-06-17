@@ -1,20 +1,20 @@
-= kompose
+= podlet
 :version: 1.35.0
 
 
 // GENERATED CONTENT START
 
-Kompose is a conversion tool for Docker Compose to container orchestrators
+podlet is a conversion tool for Docker Compose to container orchestrators
 
 == Description
 
-Kompose is a conversion tool for Docker Compose to container orchestrators such as Kubernetes or OpenShift.
+podlet is a conversion tool for Docker Compose to container orchestrators such as Kubernetes or OpenShift.
 
 == Links
 
-* Homepage: https://kompose.io/
-* Repository: https://github.com/kubernetes/kompose
-* Documentation: https://kompose.io/user-guide/
+* Homepage: https://podlet.io/
+* Repository: https://github.com/kubernetes/podlet
+* Documentation: https://podlet.io/user-guide/
 
 == Package Information
 
@@ -35,7 +35,7 @@ This package is built using rattler-build and can be installed using mamba or co
 
 [source,bash]
 ----
-pixi global install -c meso-forge kompose
+pixi global install -c meso-forge podlet
 ----
 
 == Maintainers
@@ -50,10 +50,10 @@ _Last updated: 2025-06-11_
 
 // GENERATED CONTENT END
 
-`kompose` is an go package.
+`podlet` is an go package.
 
-* https://github.com/kubernetes/kompose/archive/refs/tags/v1.35.0.tar.gz
-* https://kompose.io/
+* https://github.com/kubernetes/podlet/archive/refs/tags/v1.35.0.tar.gz
+* https://podlet.io/
 
 
 == V1 recipe format
