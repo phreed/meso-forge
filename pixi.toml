@@ -156,23 +156,11 @@ depends-on = [{ task = "build", args = ["nifi", "{{ tgt_platform }}"] }]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
-        "internxt-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
         "jank",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [
         "metashell",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "neovide",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "systemd-pixi-generator",
         "{{ tgt_platform }}",
     ] },
 ]
@@ -234,6 +222,10 @@ depends-on = [
     ] },
     { task = "build", args = [
         "iamb",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build", args = [
+        "internxt-cli",
         "{{ tgt_platform }}",
     ] },
     { task = "build", args = [

@@ -9,24 +9,26 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://github.com/internxt/cli/archive/refs/tags/v{{ version }}.tar.gz
-    sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
+  - url: https://github.com/internxt/cli/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: ee91c9fce279cdf6c63130bd13b7a8f06fa59013ac0659d22f203f7818d55b9f
 
 build:
   number: 0
   noarch: generic
   script: |
-    # Create tarball from the current project, similar to `npm pack`
-    pnpm pack --ignore-scripts
+    # Install dependencies first (required for prepack script)
+    yarn install
 
-    # Install the tarball globally and from source
-    export npm_config_build_from_source=true
-    pnpm add --global "${SRC_DIR}/${PKG_NAME}-${PKG_VERSION}.tgz"
+    # Create tarball from the current project, similar to `npm pack`
+    yarn pack
+
+    # Install the tarball to the conda environment prefix
+    npm install --prefix="${PREFIX}" --global "${SRC_DIR}/package.tgz"
 
     # Create license report for dependencies
+    # First install with pnpm to generate lockfile
     pnpm install
     pnpm-licenses generate-disclaimer --prod --output-file=third-party-licenses.txt
-
 
 requirements:
   build:
@@ -34,6 +36,11 @@ requirements:
     - grunt
     - pnpm
     - pnpm-licenses
+    - yarn
+    - python
+    - setuptools
+    - ${{ compiler('cxx') }}
+    - make
   host:
     - nodejs
     - grunt
@@ -42,9 +49,9 @@ requirements:
 
 tests:
   - script:
-    - ls
-      # - "find . -maxdepth 2"
-      # - "internxt --help 2>&1"
+      - internxt --help
+      - internxt --version
+        # - "find . -maxdepth 2"
 
 about:
   homepage: https://github.com/internxt/cli/blob/main/README.md
