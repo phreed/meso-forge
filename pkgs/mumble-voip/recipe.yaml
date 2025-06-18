@@ -3,7 +3,7 @@ schema_version: 1
 
 # Much of the information is available via:
 context:
-  version: "SpeexDSP-1.2.1"
+  version: "1.5.735"
   nprocs: 4
 
 package:
@@ -165,3 +165,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)

@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: 2025.2.0
+  version: "2025.5.0"
 
 package:
   name: bitwarden-cli
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/bitwarden/clients/archive/refs/tags/cli-v${{ version }}.tar.gz
-  sha256: 2c31f8f66e197d5bcbc656c258d4556c97e49a940cabad3ec76ff3742b5252c7
+  sha256: 247ca881c8a9f407c494977f7e8555fe11beff017d0cfda6a6d437ec0c0978d6
 
 build:
   number: 0
@@ -95,5 +95,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
-  version-pattern:
-    - ^(\d+\.\d+\.\d+)
+  version:
+    github-release:
+      - ^cli-v(\d+\.\d+\.\d+)

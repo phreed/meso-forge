@@ -110,3 +110,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)

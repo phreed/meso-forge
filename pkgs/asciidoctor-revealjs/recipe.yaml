@@ -66,3 +66,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version:
+    rubygems:
+      - ^(\d+\.\d+\.\d+)

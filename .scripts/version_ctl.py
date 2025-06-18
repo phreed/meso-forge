@@ -33,6 +33,7 @@ import argparse
 import asyncio
 import hashlib
 import os
+import re
 import sys
 import tempfile
 import yaml
@@ -209,9 +210,13 @@ async def get_conda_forge_versions(package_name: str) -> List[str]:
         return []
 
 
-def get_github_latest_release(owner: str, repo: str, package_name: str, quiet: bool = False) -> Optional[str]:
-    """Get latest release version from GitHub."""
-    api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+def get_github_latest_release(owner: str, repo: str, package_name: str, version_patterns: Optional[List[str]] = None, quiet: bool = False) -> Optional[str]:
+    """Get latest release version from GitHub using releases API with version pattern filtering."""
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/releases"
+
+    # Default version pattern if none provided
+    if not version_patterns:
+        version_patterns = [r'^(\d+\.\d+\.\d+)']
 
     # Use GitHub token if available
     token = os.getenv('GITHUB_TOKEN')
@@ -222,21 +227,65 @@ def get_github_latest_release(owner: str, repo: str, package_name: str, quiet: b
     try:
         response = requests.get(api_url, headers=headers, timeout=30)
         if response.status_code == 200:
-            resp_json = response.json()
-            tag_name = resp_json.get('tag_name', '')
+            releases = response.json()
 
-            if not tag_name:
+            if not releases:
                 if not quiet:
-                    print(f"({package_name}) No tag_name in GitHub response")
+                    print(f"({package_name}) No releases found for {owner}/{repo}")
                 return None
 
-            # Clean up tag name
-            if tag_name.startswith(package_name):
-                tag_name = tag_name[len(package_name)+1:]
-            if tag_name.startswith('v'):
-                tag_name = tag_name[1:]
+            valid_versions = []
 
-            return tag_name
+            for release in releases:
+                # Skip drafts and pre-releases
+                if release.get('draft', False) or release.get('prerelease', False):
+                    continue
+
+                tag_name = release.get('tag_name', '')
+                if not tag_name:
+                    continue
+
+                # Clean up tag name
+                cleaned_tag = tag_name
+                if cleaned_tag.startswith(package_name):
+                    cleaned_tag = cleaned_tag[len(package_name)+1:]
+                if cleaned_tag.startswith('v'):
+                    cleaned_tag = cleaned_tag[1:]
+
+                # Check if version matches any of the patterns
+                for pattern in version_patterns:
+                    try:
+                        match = re.match(pattern, cleaned_tag)
+                        if match:
+                            # Extract the version (first capture group or full match)
+                            version = match.group(1) if match.groups() else match.group(0)
+                            valid_versions.append((version, tag_name))
+                            break
+                    except re.error as e:
+                        if not quiet:
+                            print(f"({package_name}) Invalid regex pattern '{pattern}': {e}")
+                        continue
+
+            if not valid_versions:
+                if not quiet:
+                    print(f"({package_name}) No releases match version patterns: {version_patterns}")
+                return None
+
+            # Sort versions and return the latest
+            try:
+                # Sort by semantic version
+                valid_versions.sort(key=lambda x: semver.VersionInfo.parse(x[0]), reverse=True)
+                latest_version = valid_versions[0][0]
+                if not quiet:
+                    print(f"({package_name}) Found {len(valid_versions)} matching releases, latest: {latest_version}")
+                return latest_version
+            except (ValueError, TypeError) as e:
+                if not quiet:
+                    print(f"({package_name}) Error parsing semantic versions, using string sort: {e}")
+                # Fallback to string sort
+                valid_versions.sort(key=lambda x: x[0], reverse=True)
+                return valid_versions[0][0]
+
         elif response.status_code == 404:
             if not quiet:
                 print(f"({package_name}) No releases found for {owner}/{repo}")
@@ -245,20 +294,24 @@ def get_github_latest_release(owner: str, repo: str, package_name: str, quiet: b
                 print(f"({package_name}) Could not fetch releases: {response.status_code}")
     except requests.exceptions.Timeout:
         if not quiet:
-            print(f"({package_name}) Timeout fetching GitHub release")
+            print(f"({package_name}) Timeout fetching GitHub releases")
     except requests.exceptions.ConnectionError:
         if not quiet:
-            print(f"({package_name}) Connection error fetching GitHub release")
+            print(f"({package_name}) Connection error fetching GitHub releases")
     except Exception as e:
         if not quiet:
-            print(f"({package_name}) Error fetching GitHub release: {e}")
+            print(f"({package_name}) Error fetching GitHub releases: {e}")
 
     return None
 
 
-def get_github_latest_tag(owner: str, repo: str, package_name: str, quiet: bool = False) -> Optional[str]:
-    """Get latest tagged version from GitHub."""
+def get_github_latest_tag(owner: str, repo: str, package_name: str, version_patterns: Optional[List[str]] = None, quiet: bool = False) -> Optional[str]:
+    """Get latest tagged version from GitHub with version pattern filtering."""
     api_url = f"https://api.github.com/repos/{owner}/{repo}/tags"
+
+    # Default version pattern if none provided
+    if not version_patterns:
+        version_patterns = [r'^(\d+\.\d+\.\d+)']
 
     token = os.getenv('GITHUB_TOKEN')
     headers = {}
@@ -268,38 +321,67 @@ def get_github_latest_tag(owner: str, repo: str, package_name: str, quiet: bool 
     try:
         response = requests.get(api_url, headers=headers, timeout=30)
         if response.status_code == 200:
-            latest_version = None
-            resp_json = response.json()
+            tags = response.json()
 
-            if not isinstance(resp_json, list):
+            if not isinstance(tags, list):
                 if not quiet:
                     print(f"({package_name}) Unexpected GitHub tags response format")
                 return None
 
-            for tag in resp_json:
+            if not tags:
+                if not quiet:
+                    print(f"({package_name}) No tags found for {owner}/{repo}")
+                return None
+
+            valid_versions = []
+
+            for tag in tags:
                 if not isinstance(tag, dict) or 'name' not in tag:
                     continue
 
-                candidate = tag['name']
+                tag_name = tag['name']
 
                 # Clean up tag name
-                if candidate.startswith(package_name):
-                    candidate = candidate[len(package_name)+1:]
-                if candidate.startswith('v'):
-                    candidate = candidate[1:]
+                cleaned_tag = tag_name
+                if cleaned_tag.startswith(package_name):
+                    cleaned_tag = cleaned_tag[len(package_name)+1:]
+                if cleaned_tag.startswith('v'):
+                    cleaned_tag = cleaned_tag[1:]
 
-                if latest_version is None:
-                    latest_version = candidate
-                else:
+                # Check if version matches any of the patterns
+                for pattern in version_patterns:
                     try:
-                        if semver.compare(candidate, latest_version) > 0:
-                            latest_version = candidate
-                    except:
-                        # Fallback to string comparison if semver fails
-                        if candidate > latest_version:
-                            latest_version = candidate
+                        match = re.match(pattern, cleaned_tag)
+                        if match:
+                            # Extract the version (first capture group or full match)
+                            version = match.group(1) if match.groups() else match.group(0)
+                            valid_versions.append((version, tag_name))
+                            break
+                    except re.error as e:
+                        if not quiet:
+                            print(f"({package_name}) Invalid regex pattern '{pattern}': {e}")
+                        continue
 
-            return latest_version
+            if not valid_versions:
+                if not quiet:
+                    print(f"({package_name}) No tags match version patterns: {version_patterns}")
+                return None
+
+            # Sort versions and return the latest
+            try:
+                # Sort by semantic version
+                valid_versions.sort(key=lambda x: semver.VersionInfo.parse(x[0]), reverse=True)
+                latest_version = valid_versions[0][0]
+                if not quiet:
+                    print(f"({package_name}) Found {len(valid_versions)} matching tags, latest: {latest_version}")
+                return latest_version
+            except (ValueError, TypeError) as e:
+                if not quiet:
+                    print(f"({package_name}) Error parsing semantic versions, using string sort: {e}")
+                # Fallback to string sort
+                valid_versions.sort(key=lambda x: x[0], reverse=True)
+                return valid_versions[0][0]
+
         else:
             if not quiet:
                 print(f"({package_name}) Could not fetch tags: {response.status_code}")
@@ -312,6 +394,94 @@ def get_github_latest_tag(owner: str, repo: str, package_name: str, quiet: bool 
     except Exception as e:
         if not quiet:
             print(f"({package_name}) Error fetching GitHub tags: {e}")
+
+    return None
+
+
+def get_rubygems_latest_release(gem_name: str, package_name: str, version_patterns: Optional[List[str]] = None, quiet: bool = False) -> Optional[str]:
+    """Get latest gem version from RubyGems API with version pattern filtering."""
+    api_url = f"https://rubygems.org/api/v1/versions/{gem_name}.json"
+
+    # Default version pattern if none provided
+    if not version_patterns:
+        version_patterns = [r'^(\d+\.\d+\.\d+)']
+
+    try:
+        response = requests.get(api_url, timeout=30)
+        if response.status_code == 200:
+            versions_data = response.json()
+
+            if not isinstance(versions_data, list):
+                if not quiet:
+                    print(f"({package_name}) Unexpected RubyGems API response format")
+                return None
+
+            if not versions_data:
+                if not quiet:
+                    print(f"({package_name}) No versions found for gem: {gem_name}")
+                return None
+
+            valid_versions = []
+
+            for version_info in versions_data:
+                if not isinstance(version_info, dict) or 'number' not in version_info:
+                    continue
+
+                # Skip prerelease versions
+                if version_info.get('prerelease', False):
+                    continue
+
+                version_number = version_info['number']
+
+                # Check if version matches any of the patterns
+                for pattern in version_patterns:
+                    try:
+                        match = re.match(pattern, version_number)
+                        if match:
+                            # Extract the version (first capture group or full match)
+                            version = match.group(1) if match.groups() else match.group(0)
+                            valid_versions.append((version, version_number))
+                            break
+                    except re.error as e:
+                        if not quiet:
+                            print(f"({package_name}) Invalid regex pattern '{pattern}': {e}")
+                        continue
+
+            if not valid_versions:
+                if not quiet:
+                    print(f"({package_name}) No gem versions match version patterns: {version_patterns}")
+                return None
+
+            # Sort versions and return the latest
+            try:
+                # Sort by semantic version
+                valid_versions.sort(key=lambda x: semver.VersionInfo.parse(x[0]), reverse=True)
+                latest_version = valid_versions[0][0]
+                if not quiet:
+                    print(f"({package_name}) Found {len(valid_versions)} matching gem versions, latest: {latest_version}")
+                return latest_version
+            except (ValueError, TypeError) as e:
+                if not quiet:
+                    print(f"({package_name}) Error parsing semantic versions, using string sort: {e}")
+                # Fallback to string sort
+                valid_versions.sort(key=lambda x: x[0], reverse=True)
+                return valid_versions[0][0]
+
+        elif response.status_code == 404:
+            if not quiet:
+                print(f"({package_name}) Gem not found: {gem_name}")
+        else:
+            if not quiet:
+                print(f"({package_name}) Could not fetch gem versions: {response.status_code}")
+    except requests.exceptions.Timeout:
+        if not quiet:
+            print(f"({package_name}) Timeout fetching RubyGems data")
+    except requests.exceptions.ConnectionError:
+        if not quiet:
+            print(f"({package_name}) Connection error fetching RubyGems data")
+    except Exception as e:
+        if not quiet:
+            print(f"({package_name}) Error fetching RubyGems data: {e}")
 
     return None
 
@@ -330,30 +500,71 @@ async def check_package_on_conda_forge(package_name: str, current_version: str) 
     return result
 
 
-async def get_upstream_latest_version(source_url: str, package_name: str, quiet: bool = False) -> Optional[str]:
+async def get_upstream_latest_version(source_url: str, package_name: str, version_patterns: Optional[List[str]] = None, mode: Optional[str] = None, mode_explicit: bool = False, quiet: bool = False) -> Optional[str]:
     """Get the latest version from upstream source."""
-    if 'github.com' in source_url:
+    # Determine the mode from URL if not explicitly provided
+    if mode is None:
+        if 'github.com' in source_url:
+            mode = 'github'
+        elif 'rubygems.org' in source_url:
+            mode = 'rubygems'
+        elif 'pypi.org' in source_url:
+            mode = 'pypi'
+        elif 'registry.npmjs.org' in source_url:
+            mode = 'npm'
+        else:
+            if not quiet:
+                print(f"({package_name}) Unable to determine mode from URL: {source_url}")
+            return None
+
+    if mode == 'github':
+        if 'github.com' not in source_url:
+            if not quiet:
+                print(f"({package_name}) GitHub mode specified but URL is not GitHub: {source_url}")
+            return None
+
         # Extract owner/repo from GitHub URL
         try:
             parts = source_url.split('github.com/')[1].split('/')
             owner, repo = parts[0], parts[1]
 
-            # Try releases first, then tags
-            version = get_github_latest_release(owner, repo, package_name, quiet)
-            if version is None:
-                version = get_github_latest_tag(owner, repo, package_name, quiet)
+            # Try releases first, then tags as fallback only for auto-detected mode
+            version = get_github_latest_release(owner, repo, package_name, version_patterns, quiet)
+            if version is None and not mode_explicit:
+                if not quiet:
+                    print(f"({package_name}) No matching releases found, trying tags...")
+                version = get_github_latest_tag(owner, repo, package_name, version_patterns, quiet)
 
             return version
         except Exception as e:
             if not quiet:
                 print(f"({package_name}) Error parsing GitHub URL {source_url}: {e}")
 
-    elif 'pypi.org' in source_url:
-        print(f"({package_name}) PyPI support not yet implemented")
-    elif 'registry.npmjs.org' in source_url:
-        print(f"({package_name}) npm registry support not yet implemented")
+    elif mode == 'rubygems':
+        # Extract gem name from URL or use package name
+        gem_name = package_name
+        if 'rubygems.org' in source_url:
+            try:
+                # Try to extract gem name from URL like https://rubygems.org/gems/gem-name
+                if '/gems/' in source_url:
+                    gem_name = source_url.split('/gems/')[1].split('/')[0]
+                    if not quiet:
+                        print(f"({package_name}) Extracted gem name from URL: {gem_name}")
+            except Exception as e:
+                if not quiet:
+                    print(f"({package_name}) Using package name as gem name due to URL parsing error: {e}")
+
+        return get_rubygems_latest_release(gem_name, package_name, version_patterns, quiet)
+
+    elif mode == 'pypi':
+        if not quiet:
+            print(f"({package_name}) PyPI support not yet implemented")
+    elif mode == 'npm':
+        if not quiet:
+            print(f"({package_name}) npm registry support not yet implemented")
     else:
-        print(f"({package_name}) Unsupported source URL format: {source_url}")
+        if not quiet:
+            print(f"({package_name}) Unsupported mode: {mode}")
 
     return None
 
@@ -412,9 +623,47 @@ async def update_recipe_source(recipe_path: Path, recipe: Dict[str, Any],
             print(f"({package_name}) No source URL found")
         return False
 
+    # Extract version patterns and mode from recipe extra section
+    version_patterns = None
+    mode = None
+    mode_explicit = False
+    if 'extra' in recipe:
+        # New structured format: extra.version.{mode}: [patterns]
+        if 'version' in recipe['extra']:
+            version_config = recipe['extra']['version']
+            if isinstance(version_config, dict):
+                for mode_key, patterns in version_config.items():
+                    if patterns:  # Use the first non-empty mode found
+                        # Map structured mode names to internal API mode names
+                        mode_mapping = {
+                            'github-release': 'github',
+                            'github-tags': 'github',
+                            'rubygems-api': 'rubygems',
+                            'pypi-api': 'pypi',
+                            'npm-api': 'npm'
+                        }
+                        mode = mode_mapping.get(mode_key, mode_key)
+                        version_patterns = patterns if isinstance(patterns, list) else [patterns]
+                        mode_explicit = True
+                        break
+                if not quiet and mode:
+                    print(f"({package_name}) Using mode: {mode}")
+                    print(f"({package_name}) Using version patterns: {version_patterns}")
+
+        # Backward compatibility with old syntax
+        elif 'version-pattern' in recipe['extra']:
+            version_patterns = recipe['extra']['version-pattern']
+            if not quiet:
+                print(f"({package_name}) Using version patterns: {version_patterns}")
+            if 'mode' in recipe['extra']:
+                mode = recipe['extra']['mode']
+                mode_explicit = True
+                if not quiet:
+                    print(f"({package_name}) Using mode: {mode}")
+
     if not quiet:
         print(f"({package_name}) Checking upstream for latest version...")
-    upstream_version = await get_upstream_latest_version(source_url, package_name, quiet)
+    upstream_version = await get_upstream_latest_version(source_url, package_name, version_patterns, mode, mode_explicit, quiet)
 
     if not upstream_version:
         if not quiet:

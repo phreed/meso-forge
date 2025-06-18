@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: 1.11.3
+  version: "1.12.3"
 
 package:
   version: ${{ version }}
@@ -10,7 +10,7 @@ package:
 
 source:
   - url: https://github.com/bluenviron/mediamtx/archive/refs/tags/v${{ version }}.tar.gz
-    sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
+    sha256: 0059f748ad37cbc467b6370caddeb661c152e304f4eb2fd51d2b0dc8d2e72554
     target_directory: src/mediamtx
   - if: linux
     then:

@@ -2,7 +2,6 @@
 schema_version: 1
 
 context:
-  name: nifi
   version: "2.4.0"
   github_org: apache
   github_repo: nifi
@@ -14,7 +13,7 @@ context:
   java_version: 21
 
 package:
-  name: ${{ name }}
+  name: nifi
   version: ${{ version }}
 
 source:
