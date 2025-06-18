@@ -1,0 +1,622 @@
+= Package Retract Script
+
+The `package_retract.nu` script allows you to remove published packages from conda repositories. This is useful for retracting packages that have issues, are deprecated, or need to be removed for other reasons.
+
+== Overview
+
+This nushell script provides a safe and controlled way to retract (delete) published conda packages from repositories. It supports both prefix.dev and S3-based repositories and includes safety features like confirmation prompts and dry-run mode.
+
+== Usage
+
+[source,bash]
+----
+nu package_retract.nu <package> --channel <channel> --versions <versions> [options]
+----
+
+=== Required Parameters
+
+- `package`: The name of the package to retract
+- `--channel`: The channel name where the package is published
+- `--versions`: Version specification (see Version Formats below)
+
+=== Optional Parameters
+
+- `--method <pd|s3>`: Publishing method (default: "pd")
+  - `pd`: prefix.dev repository
+  - `s3`: S3-compatible repository
+- `--target-platform <platform>`: Target platform (default: "linux-64")
+- `--url <url>`: Custom endpoint URL for S3 repositories
+- `--manifest <path>`: Path to manifest file (default: "./pkgs-out/conda-manifest.json")
+- `--dry-run`: Show commands without executing them
+- `--verbose`: Enable verbose output
+- `--force`: Skip confirmation prompt
+
+== Version Formats
+
+The `--versions` parameter supports multiple formats:
+
+=== Single Version
+[source,bash]
+----
+--versions "1.0.0"
+----
+
+=== Multiple Versions (Comma-separated)
+[source,bash]
+----
+--versions "1.0.0,1.1.0,1.2.0"
+----
+
+=== Version Range
+[source,bash]
+----
+--versions "1.0.0-1.2.0"
+----
+*Note: Range expansion is simplified in the current implementation*
+
+== Examples
+
+=== Basic Usage
+
+Retract a specific version from prefix.dev:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0"
+----
+
+=== Multiple Versions
+
+Retract multiple versions:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0,1.1.0,1.2.0"
+----
+
+=== S3 Repository
+
+Retract from S3-based repository:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --method s3
+----
+
+=== Dry Run
+
+Preview what would be deleted without actually deleting:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --dry-run
+----
+
+=== Force Retraction
+
+Skip confirmation prompt:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --force
+----
+
+=== Different Platform
+
+Retract packages for a different platform:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --target-platform "osx-64"
+----
+
+=== Verbose Output
+
+Get detailed information about the retraction process:
+[source,bash]
+----
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --verbose
+----
+
+=== Complete Workflow Example
+
+Here's a complete example showing how to retract a problematic package version:
+
+[source,bash]
+----
+# 1. Set up authentication (do this once) - choose one method:
+
+# Method A: Environment variable
+export PREFIX_API_TOKEN=pfx_your_actual_api_token_here
+
+# Method B: RATTLER_AUTH_FILE (recommended)
+export RATTLER_AUTH_FILE=~/.rattler/auth.json
+# Ensure auth.json contains: {"https://prefix.dev": {"BearerToken": "pfx_your_token"}}
+
+# Method C: Use default auth file locations (no setup needed)
+
+# 2. First, do a dry run to see what would be deleted
+nu package_retract.nu my-problematic-package \
+  --channel my-channel \
+  --versions "2.1.0" \
+  --dry-run \
+  --verbose
+
+# Output will show:
+# 🗑️  Retracting package: my-problematic-package from channel: my-channel via pd
+#    Platform: linux-64
+#    Versions: 2.1.0
+#
+# 📋 Parsed versions: 2.1.0
+# 📄 Using manifest file: ./pkgs-out/conda-manifest.json
+# 🌐 Retracting from prefix.dev channel: my-channel
+# API URL: https://prefix.dev/api/v1/delete/my-channel/linux-64/my-problematic-package-2.1.0-linux-64.conda
+# Command: curl -X DELETE -H "Authorization: Bearer [REDACTED]" https://prefix.dev/api/v1/delete/my-channel/linux-64/my-problematic-package-2.1.0-linux-64.conda
+
+# 3. If the dry run looks correct, perform the actual deletion
+nu package_retract.nu my-problematic-package \
+  --channel my-channel \
+  --versions "2.1.0" \
+  --force
+
+# Output will show:
+# 🗑️  Deleting: my-problematic-package-2.1.0-linux-64.conda
+# ✅ Successfully deleted: my-problematic-package-2.1.0-linux-64.conda
+
+# 4. For multiple versions at once
+nu package_retract.nu my-problematic-package \
+  --channel my-channel \
+  --versions "2.1.0,2.1.1,2.1.2" \
+  --verbose
+----
+
+== Pixi Tasks
+
+For convenience, meso-forge provides pre-configured pixi tasks for common retraction scenarios. These tasks provide a higher-level interface to the `package_retract.nu` script with sensible defaults and streamlined parameter handling.
+
+=== ⚠️ Important Warning
+
+*Package retraction is permanent and irreversible.* Always use dry-run tasks first to preview what will be deleted.
+
+=== Available Tasks
+
+==== Production Tasks
+
+===== `pixi run retract-pd`
+Retract packages from prefix.dev channels.
+
+*Parameters:*
+- `pkg` - Package name (default: "_skeleton_python")
+- `channel` - Channel name (default: "meso-forge")
+- `versions` - Version specification (default: "1.0.0")
+- `tgt_platform` - Target platform (default: "linux-64")
+- `force` - Skip confirmation prompt (default: "")
+
+===== `pixi run retract-s3`
+Retract packages from S3-based conda channels.
+
+*Parameters:*
+- `pkg` - Package name (default: "_skeleton_python")
+- `channel` - S3 channel URL (default: "s3://pixi/meso-forge")
+- `versions` - Version specification (default: "1.0.0")
+- `tgt_platform` - Target platform (default: "linux-64")
+- `url` - S3 endpoint URL (default: "https://minio.isis.vanderbilt.edu")
+- `force` - Skip confirmation prompt (default: "")
+
+===== `pixi run retract-s3-local`
+Retract packages from local S3-based conda channels.
+
+*Parameters:*
+- `pkg` - Package name (default: "_skeleton_python")
+- `channel` - Local S3 channel URL (default: "s3://pixi-local/meso-forge")
+- `versions` - Version specification (default: "1.0.0")
+- `tgt_platform` - Target platform (default: "linux-64")
+- `force` - Skip confirmation prompt (default: "")
+
+==== Dry Run Tasks
+
+===== `pixi run retract-pd-dry`
+Preview what would be retracted from prefix.dev without actually deleting.
+
+===== `pixi run retract-s3-dry`
+Preview what would be retracted from S3 without actually deleting.
+
+=== Pixi Task Usage Examples
+
+==== Basic Retraction
+
+Retract a single version from prefix.dev:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0"
+----
+
+Retract from S3:
+[source,bash]
+----
+pixi run retract-s3 --pkg mypackage --channel "s3://my-bucket/mychannel" --versions "1.0.0"
+----
+
+==== Multiple Versions
+
+Retract multiple specific versions:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0,1.0.1,1.0.2"
+----
+
+==== Different Platforms
+
+Retract packages for macOS:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --tgt_platform "osx-64"
+----
+
+Retract packages for Windows:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --tgt_platform "win-64"
+----
+
+==== Dry Run (Recommended First Step)
+
+Always preview changes before executing:
+[source,bash]
+----
+# Preview what will be deleted
+pixi run retract-pd-dry --pkg mypackage --channel mychannel --versions "1.0.0"
+
+# If the preview looks correct, run the actual retraction
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0"
+----
+
+==== Force Mode (Skip Confirmation)
+
+For automated scenarios:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --force "true"
+----
+
+==== Custom S3 Endpoints
+
+For private S3-compatible services:
+[source,bash]
+----
+pixi run retract-s3 --pkg mypackage \
+  --channel "s3://my-private-bucket/conda" \
+  --url "https://s3.my-company.com" \
+  --versions "1.0.0"
+----
+
+=== Common Scenarios with Pixi Tasks
+
+==== Emergency Package Recall
+
+When you need to quickly remove a problematic package:
+
+[source,bash]
+----
+# 1. Quick dry run to verify
+pixi run retract-pd-dry --pkg problematic-package --channel mychannel --versions "2.1.0"
+
+# 2. Force retraction without manual confirmation
+pixi run retract-pd --pkg problematic-package --channel mychannel --versions "2.1.0" --force "true"
+----
+
+==== Cleaning Up Development Versions
+
+Remove multiple development versions:
+[source,bash]
+----
+pixi run retract-pd --pkg mypackage --channel dev-channel --versions "0.1.0-dev,0.1.1-dev,0.1.2-dev"
+----
+
+==== Multi-Platform Cleanup
+
+Remove packages from all platforms:
+[source,bash]
+----
+# Linux
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --tgt_platform "linux-64"
+
+# macOS
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --tgt_platform "osx-64"
+
+# Windows
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --tgt_platform "win-64"
+----
+
+==== Private Channel Management
+
+Retract from private prefix.dev channels:
+[source,bash]
+----
+pixi run retract-pd --pkg internal-tool --channel company-private --versions "1.0.0"
+----
+
+=== Best Practices for Pixi Tasks
+
+==== 1. Always Use Dry Run First
+[source,bash]
+----
+# ✅ Good: Preview first
+pixi run retract-pd-dry --pkg mypackage --channel mychannel --versions "1.0.0"
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0"
+
+# ❌ Bad: Direct retraction without preview
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0" --force "true"
+----
+
+==== 2. Version Specification Accuracy
+[source,bash]
+----
+# ✅ Good: Specific versions
+--versions "1.0.0,1.0.1,1.0.2"
+
+# ⚠️ Caution: Range specification (simplified implementation)
+--versions "1.0.0-1.2.0"
+----
+
+==== 3. Documentation
+Document why packages were retracted:
+[source,bash]
+----
+# Keep a log of retractions
+echo "$(date): Retracted mypackage v1.0.0 from mychannel - Reason: Critical security vulnerability" >> retraction.log
+pixi run retract-pd --pkg mypackage --channel mychannel --versions "1.0.0"
+----
+
+==== 4. Channel Verification
+Double-check channel names:
+[source,bash]
+----
+# ✅ Good: Verify channel exists and is correct
+pixi run retract-pd-dry --pkg mypackage --channel mychannel --versions "1.0.0"
+
+# Review output carefully before proceeding
+----
+
+=== Pixi Task Parameter Reference
+
+==== Common Parameters
+
+[cols="1,3,2,2"]
+|===
+|Parameter |Description |Default |Example
+
+|`pkg`
+|Package name to retract
+|"_skeleton_python"
+|"mypackage"
+
+|`channel`
+|Channel name or URL
+|varies by task
+|"mychannel"
+
+|`versions`
+|Version specification
+|"1.0.0"
+|"1.0.0,1.1.0"
+
+|`tgt_platform`
+|Target platform
+|"linux-64"
+|"osx-64"
+
+|`force`
+|Skip confirmation
+|""
+|"true"
+|===
+
+==== S3-Specific Parameters
+
+[cols="1,3,2,2"]
+|===
+|Parameter |Description |Default |Example
+
+|`url`
+|S3 endpoint URL
+|varies by task
+|"https://s3.amazonaws.com"
+|===
+
+=== Integration with CI/CD
+
+Example GitHub Actions workflow for emergency package retraction:
+[source,yaml]
+----
+name: Emergency Package Retraction
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package name to retract'
+        required: true
+      versions:
+        description: 'Versions to retract (comma-separated)'
+        required: true
+      channel:
+        description: 'Channel name'
+        required: true
+
+jobs:
+  retract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.4.1
+      - name: Retract package
+        env:
+          PREFIX_API_TOKEN: ${{ secrets.PREFIX_API_TOKEN }}
+        run: |
+          pixi run retract-pd-dry --pkg "${{ github.event.inputs.package }}" --channel "${{ github.event.inputs.channel }}" --versions "${{ github.event.inputs.versions }}"
+          pixi run retract-pd --pkg "${{ github.event.inputs.package }}" --channel "${{ github.event.inputs.channel }}" --versions "${{ github.event.inputs.versions }}" --force "true"
+----
+
+== API Details
+
+=== prefix.dev API
+
+The script uses the prefix.dev DELETE API endpoint to remove packages:
+
+----
+DELETE /api/v1/delete/:channel/:subdir/:package_file_name
+----
+
+==== Example API Call
+For a package named `mypackage` version `1.0.0` on `linux-64` platform in channel `mychannel`:
+
+[source,bash]
+----
+curl -X DELETE \
+  -H "Authorization: Bearer pfx_YOUR_API_TOKEN" \
+  https://prefix.dev/api/v1/delete/mychannel/linux-64/mypackage-1.0.0-linux-64.conda
+----
+
+==== HTTP Response Codes
+- `200` or `204`: Success - package deleted
+- `401`: Authentication failed - check your API token
+- `403`: Permission denied - insufficient permissions for the channel
+- `404`: Package not found - may already be deleted or never existed
+
+=== S3 API
+
+For S3-based repositories, the script uses the AWS CLI to remove package files:
+
+[source,bash]
+----
+aws s3 rm s3://bucket-name/channel/platform/package-file.conda
+----
+
+== Safety Features
+
+=== Confirmation Prompt
+By default, the script will show a confirmation prompt before deleting packages:
+----
+⚠️  WARNING: This will permanently delete the following packages:
+   Package: mypackage
+   Channel: mychannel
+   Platform: linux-64
+   Versions: 1.0.0
+
+Are you sure you want to continue? (yes/no):
+----
+
+=== Dry Run Mode
+Use `--dry-run` to preview what would be deleted without actually performing the deletion.
+
+=== Validation
+The script validates:
+- Required parameters are provided
+- Method is supported
+- Version format is valid
+
+== Prerequisites
+
+=== For prefix.dev (method: pd)
+- `curl` command-line tool installed
+- Authentication configured via one of:
+  - `PREFIX_API_TOKEN` environment variable
+  - `RATTLER_AUTH_FILE` (recommended for conda/mamba ecosystem integration)
+  - Default auth file locations
+
+==== Setting up prefix.dev Authentication
+
+*Option 1: Environment Variable*
+[source,bash]
+----
+export PREFIX_API_TOKEN=pfx_your_api_token_here
+----
+
+*Option 2: RATTLER_AUTH_FILE (Recommended)*
+[source,bash]
+----
+export RATTLER_AUTH_FILE=~/.rattler/auth.json
+----
+
+The auth file should contain your prefix.dev token in JSON format:
+[source,json]
+----
+{
+  "https://prefix.dev": {
+    "BearerToken": "pfx_your_api_token_here"
+  }
+}
+----
+
+*Option 3: Default Locations*
+The script will automatically check these locations:
+- `~/.rattler/auth.json`
+- `~/.conda/auth.json`
+- `~/.config/rattler/auth.json`
+
+You can obtain your API token from your prefix.dev account settings (User Icon → Settings → API Keys).
+Prefix.dev API tokens always start with `pfx_`.
+
+=== For S3 (method: s3)
+- AWS CLI installed and configured
+- Access to the S3 bucket containing the conda packages
+- Environment variable `CONDA_S3_URL` set (optional, can be overridden with `--url`)
+
+== Error Handling
+
+The script provides clear error messages for common issues:
+- Missing required parameters
+- Invalid method specification
+- Authentication failures
+- Network connectivity issues
+- Package not found
+
+== Limitations
+
+1. *Version Range Expansion*: The current implementation of version ranges is simplified and may not cover all semantic versioning scenarios.
+
+2. *Metadata Updates*: For S3 repositories, automatic metadata updates are noted but not fully implemented. You may need to manually update repository metadata after package deletion.
+
+3. *Platform Support*: The script assumes standard conda package naming conventions.
+
+== Security Considerations
+
+- *Irreversible Action*: Package retraction is permanent. Deleted packages cannot be recovered.
+- *Channel Access*: Ensure you have proper permissions for the target channel.
+- *Backup*: Consider backing up packages before retraction if recovery might be needed.
+
+== Troubleshooting
+
+=== Common Issues
+
+1. *Authentication Errors*:
+   - For prefix.dev: Ensure authentication is configured via `PREFIX_API_TOKEN`, `RATTLER_AUTH_FILE`, or default auth file locations
+   - For S3: Ensure AWS credentials are properly configured
+
+2. *Package Not Found*: Verify the package name, version, and platform are correct.
+
+3. *Network Issues*: Check connectivity to the repository.
+
+4. *Missing API Token*: If you see "No API token found for prefix.dev", configure authentication as described in the Prerequisites section using either environment variables or auth files.
+
+5. *Invalid API Token Format*: If you see a warning about the API token format, ensure your token starts with `pfx_` as issued by prefix.dev.
+
+6. *Auth File Issues*: If using `RATTLER_AUTH_FILE`, ensure the JSON format is correct and the file is readable. Use `--verbose` to see which auth files are being checked.
+
+=== Getting Help
+
+Use the `--verbose` flag to get detailed information about what the script is doing and any errors encountered.
+
+== Related Scripts and Tasks
+
+=== Scripts
+- `package_publish.nu`: For publishing packages to repositories
+- `manifest_utils.nu`: Utilities for working with conda manifests
+- `check_package_exists.nu`: For verifying package existence
+
+=== Pixi Tasks
+- `pixi run retract-pd`: Convenient retraction from prefix.dev
+- `pixi run retract-s3`: Convenient retraction from S3
+- `pixi run retract-*-dry`: Dry run versions of all retract tasks
+
+=== Documentation
+- link:authentication.adoc[AUTHENTICATION]: Authentication setup guide
+
+== Contributing
+
+If you encounter issues or have suggestions for improvements, please consider contributing to the project.

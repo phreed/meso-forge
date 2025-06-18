@@ -95,3 +95,5 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version-pattern:
+    - ^(\d+\.\d+\.\d+)

@@ -3,7 +3,7 @@ schema_version: 1
 
 # Much of the information is available via:
 context:
-  version: 1.5.735
+  version: "SpeexDSP-1.2.1"
   nprocs: 4
 
 package:

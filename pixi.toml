@@ -222,7 +222,7 @@ args = [
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/package_publish.nu",
     "{{ pkg }}",
     "--method=pd",
     "--target-platform={{ tgt_platform }}",
@@ -237,7 +237,7 @@ args = [
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/package_publish.nu",
     "{{ pkg }}",
     "--method=s3",
     "--channel=s3://pixi/meso-forge",
@@ -260,7 +260,7 @@ args = [
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/package_publish.nu",
     "{{ pkg }}",
     "--method=s3",
     "--channel=s3://pixi-local/meso-forge",
@@ -276,14 +276,14 @@ depends-on = [
 ]
 
 [tasks.publish-status]
-cmd = ["nu", "-c", "use .scripts/publish_package.nu *; publish-status"]
+cmd = ["nu", "-c", "use .scripts/package_publish.nu *; publish-status"]
 
 [tasks.publish-pd-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
     "-c",
-    "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error",
+    "use .scripts/package_publish.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error",
 ]
 
 [tasks.publish-s3-all]
@@ -291,7 +291,7 @@ args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
     "-c",
-    "use .scripts/publish_package.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error",
+    "use .scripts/package_publish.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error",
 ]
 
 [tasks.publish-pd-dry]
@@ -302,7 +302,7 @@ args = [
 ]
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/package_publish.nu",
     "{{ pkg }}",
     "--method=pd",
     "--target-platform={{ tgt_platform }}",
@@ -317,7 +317,7 @@ args = [
 ]
 cmd = [
     "nu",
-    ".scripts/publish_package.nu",
+    ".scripts/package_publish.nu",
     "{{ pkg }}",
     "--method=s3",
     "--target-platform={{ tgt_platform }}",
@@ -329,7 +329,7 @@ args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
     "-c",
-    "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error --dry-run",
+    "use .scripts/package_publish.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error --dry-run",
 ]
 
 [tasks.publish-s3-dry-all]
@@ -337,7 +337,113 @@ args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
     "-c",
-    "use .scripts/publish_package.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error --dry-run",
+    "use .scripts/package_publish.nu *; publish-all --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error --dry-run",
+]
+
+# Package retraction tasks
+[tasks.retract-pd]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "channel", default = "meso-forge" },
+    { arg = "versions", default = "1.0.0" },
+    { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "" },
+]
+# the retraction expects the RATTLER_AUTH_FILE variable to be set
+cmd = [
+    "nu",
+    ".scripts/package_retract.nu",
+    "{{ pkg }}",
+    "--channel={{ channel }}",
+    "--versions={{ versions }}",
+    "--method=pd",
+    "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
+]
+
+[tasks.retract-s3]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "channel", default = "s3://pixi/meso-forge" },
+    { arg = "versions", default = "1.0.0" },
+    { arg = "tgt_platform", default = "linux-64" },
+    { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+    { arg = "force", default = "" },
+]
+# the retraction expects AWS credentials to be configured
+cmd = [
+    "nu",
+    ".scripts/package_retract.nu",
+    "{{ pkg }}",
+    "--channel={{ channel }}",
+    "--versions={{ versions }}",
+    "--method=s3",
+    "--url={{ url }}",
+    "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
+]
+
+[tasks.retract-s3-local]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "channel", default = "s3://pixi-local/meso-forge" },
+    { arg = "versions", default = "1.0.0" },
+    { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "" },
+]
+# the retraction expects AWS credentials to be configured
+cmd = [
+    "nu",
+    ".scripts/package_retract.nu",
+    "{{ pkg }}",
+    "--channel={{ channel }}",
+    "--versions={{ versions }}",
+    "--method=s3",
+    "--url=http://127.0.0.1",
+    "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
+]
+
+[tasks.retract-pd-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "channel", default = "meso-forge" },
+    { arg = "versions", default = "1.0.0" },
+    { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "" },
+]
+cmd = [
+    "nu",
+    ".scripts/package_retract.nu",
+    "{{ pkg }}",
+    "--channel={{ channel }}",
+    "--versions={{ versions }}",
+    "--method=pd",
+    "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
+    "--dry-run",
+]
+
+[tasks.retract-s3-dry]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "channel", default = "s3://pixi/meso-forge" },
+    { arg = "versions", default = "1.0.0" },
+    { arg = "tgt_platform", default = "linux-64" },
+    { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+    { arg = "force", default = "" },
+]
+cmd = [
+    "nu",
+    ".scripts/package_retract.nu",
+    "{{ pkg }}",
+    "--channel={{ channel }}",
+    "--versions={{ versions }}",
+    "--method=s3",
+    "--url={{ url }}",
+    "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
+    "--dry-run",
 ]
 
 
@@ -377,6 +483,9 @@ py-rattler = ">=0.1.0"
 
 [feature.version-ctl.tasks.update-version]
 cmd = ["python", ".scripts/version_ctl.py", "--update"]
+
+[feature.version-ctl.tasks.update-version-all]
+cmd = ["python", ".scripts/version_ctl.py", "--update", "--all"]
 
 [environments.update]
 features = ["version-ctl"]

@@ -2,8 +2,6 @@
 schema_version: 1
 
 context:
-  group: bluenviron
-  name: mediamtx
   version: 1.11.3
 
 package:
@@ -11,7 +9,7 @@ package:
   name: mediamtx
 
 source:
-  - url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
+  - url: https://github.com/bluenviron/mediamtx/archive/refs/tags/v${{ version }}.tar.gz
     sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
     target_directory: src/mediamtx
   - if: linux

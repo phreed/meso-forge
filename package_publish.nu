@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 # Publish built packages using the conda manifest
-# Usage: nu publish_package.nu <package> [--method <pd|s3>] [--target-platform <platform>]
+# Usage: nu package_publish.nu <package> [--method <pd|s3>] [--target-platform <platform>]
 
 use manifest_utils.nu *
 use std repeat
@@ -205,19 +205,19 @@ export def publish-all [
         # Call the publish script directly
         let publish_cmd = if $dry_run {
             if ($channel | is-empty) {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
             } else if ($method == "s3" and not ($url | is-empty)) {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--channel", $channel, "--url", $url, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--channel", $channel, "--url", $url, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
             } else {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--channel", $channel, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--channel", $channel, "--target-platform", $platform, "--manifest", $manifest, "--dry-run"]
             }
         } else {
             if ($channel | is-empty) {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--target-platform", $platform, "--manifest", $manifest]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--target-platform", $platform, "--manifest", $manifest]
             } else if ($method == "s3" and not ($url | is-empty)) {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--channel", $channel, "--url", $url, "--target-platform", $platform, "--manifest", $manifest]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--channel", $channel, "--url", $url, "--target-platform", $platform, "--manifest", $manifest]
             } else {
-                ["nu", ".scripts/publish_package.nu", $pkg.package, "--method", $method, "--channel", $channel, "--target-platform", $platform, "--manifest", $manifest]
+                ["nu", ".scripts/package_publish.nu", $pkg.package, "--method", $method, "--channel", $channel, "--target-platform", $platform, "--manifest", $manifest]
             }
         }
 
@@ -445,7 +445,7 @@ export def publish-help [] {
     print "  RATTLER_AUTH_FILE - Path to rattler authentication file"
     print ""
     print "Example usage:"
-    print "  use .scripts/publish_package.nu *"
+    print "  use .scripts/package_publish.nu *"
     print "  main pwgen --method pd"
     print "  main fd --method s3 --dry-run"
     print "  publish-all --method pd --channel meso-forge --continue-on-error"
