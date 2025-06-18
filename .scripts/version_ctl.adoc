@@ -1,0 +1,332 @@
+= Version Update System for meso-forge
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+
+== Overview
+
+The meso-forge project includes an intelligent version update system that uses link:https://conda.github.io/rattler/py-rattler/[py-rattler] to check package versions across both conda-forge and upstream sources. This system helps maintain up-to-date package recipes while making informed decisions about when updates are beneficial.
+
+=== Key Features
+
+* 🔍 **conda-forge Integration**: Checks conda-forge first using py-rattler
+* 🧠 **Intelligent Decision Making**: Only updates when beneficial
+* 📊 **Comprehensive Reporting**: Detailed statistics and summaries
+* 🛡️ **Robust Error Handling**: Graceful handling of edge cases
+* 🚀 **Multiple Interfaces**: Command-line tools for different use cases
+
+== Quick Start
+
+=== Check All Packages
+[source,bash]
+----
+# Recommended: Use the unified script
+pixi run -e update python .scripts/version_ctl.py --all
+
+# Or use the main script directly
+pixi run -e update update-ver
+----
+
+=== Check Specific Package
+[source,bash]
+----
+# Check one package
+pixi run -e update python .scripts/version_ctl.py --package fd
+
+# Check conda-forge status only
+pixi run -e update python .scripts/version_ctl.py --package fd --conda-forge-only
+----
+
+=== Test Integration
+[source,bash]
+----
+# Verify py-rattler is working
+pixi run -e update python .scripts/test_py_rattler.py
+----
+
+== System Architecture
+
+=== How It Works
+
+The version update system follows this intelligent workflow:
+
+[source]
+----
+1. Load & Validate Recipe Files
+         ↓
+2. Query conda-forge (py-rattler)
+         ↓
+3. Analyze Available Versions
+         ↓
+4. Check Upstream Sources (GitHub)
+         ↓
+5. Make Update Decision
+         ↓
+6. Update Files (if beneficial)
+         ↓
+7. Generate Reports
+----
+
+=== Decision Logic
+
+The system makes intelligent decisions based on:
+
+* **conda-forge availability**: Is the package already available?
+* **Version comparison**: Is upstream newer than current?
+* **Ecosystem context**: Would this update be beneficial?
+
+== Available Tools
+
+=== Core Scripts
+
+[cols="1,2,3"]
+|===
+|Script |Purpose |Usage
+
+|`version_ctl.py`
+|Unified version control script
+|`pixi run -e update python .scripts/version_ctl.py --all`
+
+|`update-ver` task
+|Convenience task for updates
+|`pixi run -e update update-ver`
+
+|`test_py_rattler.py`
+|Integration testing
+|`pixi run -e update python .scripts/test_py_rattler.py`
+
+|`example_py_rattler_usage.py`
+|Demonstration script
+|`pixi run -e update python .scripts/example_py_rattler_usage.py`
+|===
+
+=== Command Options
+
+The `version_ctl.py` unified script provides convenient options:
+
+[source,bash]
+----
+# Package selection
+--all                    # Check all packages
+--package NAME           # Check specific package(s)
+--list-packages          # List available packages
+
+# Operation modes
+--dry-run               # Show what would be updated
+--conda-forge-only      # Only check conda-forge status
+--newer-only            # Only show packages with updates
+
+# Output control
+--quiet                 # Reduce verbosity
+--verbose               # Increase verbosity
+--json                  # JSON output format
+----
+
+== Output Examples
+
+=== Standard Output
+[source]
+----
+============================================================
+Processing fd (current version: 10.2.0)
+============================================================
+(fd) Checking conda-forge availability...
+(fd) Package exists on conda-forge with 4 versions
+(fd) Latest on conda-forge: 8.40.2
+(fd) Current version 10.2.0 is NOT available on conda-forge
+(fd) Checking upstream for latest version...
+(fd) Current: 10.2.0, Upstream: 10.2.0
+(fd) Already at latest upstream version
+----
+
+=== Summary Statistics
+[source]
+----
+🏁 UPDATE SUMMARY
+================================================================================
+📦 Total packages processed: 27
+
+🌐 Conda-forge Status:
+   ✅ Found on conda-forge: 5
+   ❌ Not found on conda-forge: 22
+
+🔄 Update Status:
+   🆙 Packages updated: 2
+   ✅ Already up-to-date: 23
+   📈 Upstream has newer version: 2
+
+📊 Success rate: 92.6% (25/27)
+================================================================================
+----
+
+== Dependencies and Setup
+
+=== Required Dependencies
+The system requires these dependencies (automatically managed by pixi):
+
+[source,toml]
+----
+[feature.update-ver.dependencies]
+python = "3.12.*"
+requests = ">=2.32.3,<3"
+pyyaml = ">=6.0.2,<7"
+semver = ">=3.0.2,<4"
+py-rattler = ">=0.1.0"  # Key new dependency
+----
+
+=== Environment Activation
+[source,bash]
+----
+# Activate the update environment
+pixi shell -e update
+
+# Or run commands directly
+pixi run -e update python .scripts/version_ctl.py --help
+----
+
+=== Optional GitHub Token
+For better GitHub API rate limits:
+
+[source,bash]
+----
+export GITHUB_TOKEN=your_github_token_here
+----
+
+== Common Use Cases
+
+=== Daily Monitoring
+[source,bash]
+----
+# Quick status check
+pixi run -e update python .scripts/version_ctl.py --all --quiet
+
+# Show only packages with updates available
+pixi run -e update python .scripts/version_ctl.py --all --newer-only
+----
+
+=== Before Adding New Packages
+[source,bash]
+----
+# Check if package already exists on conda-forge
+pixi run -e update python .scripts/version_ctl.py --package NEW_PACKAGE --conda-forge-only
+----
+
+=== Bulk Updates with Safety
+[source,bash]
+----
+# See what would be updated (dry run)
+pixi run -e update python .scripts/version_ctl.py --all --dry-run
+
+# Perform actual updates
+pixi run -e update python .scripts/version_ctl.py --update --all
+----
+
+== Troubleshooting
+
+=== Common Issues
+
+**py-rattler import errors:**
+[source,bash]
+----
+# Reinstall dependencies
+pixi install
+
+# Test integration
+pixi run -e update python .scripts/test_py_rattler.py
+----
+
+**Cache/storage issues:**
+[source,bash]
+----
+# Clear cache
+rm -rf .cache/py-rattler/
+
+# Check disk space
+df -h .cache/
+----
+
+**GitHub rate limits:**
+[source,bash]
+----
+# Set up token for better limits
+export GITHUB_TOKEN=your_token_here
+----
+
+== Documentation
+
+=== Complete Documentation Set
+
+[cols="1,3"]
+|===
+|Document |Description
+
+|link:README_update_versions.adoc[README_update_versions.adoc]
+|Technical documentation and API details
+
+|link:USAGE_GUIDE.adoc[USAGE_GUIDE.adoc]
+|Comprehensive user guide with examples
+
+|link:IMPLEMENTATION_SUMMARY.adoc[IMPLEMENTATION_SUMMARY.adoc]
+|Implementation details and development summary
+
+|This document
+|Main overview and quick reference
+|===
+
+=== Getting Help
+
+1. Check the link:USAGE_GUIDE.adoc[Usage Guide] for detailed examples
+2. Review link:README_update_versions.adoc[technical documentation] for API details
+3. Run test script to verify py-rattler integration
+4. Use `--verbose` mode for debugging information
+
+== Migration from Legacy System
+
+=== What Changed
+
+* **Before**: GitHub-only version checking
+* **After**: conda-forge aware with py-rattler integration
+* **Benefit**: Intelligent decisions based on conda ecosystem context
+
+=== Backward Compatibility
+
+* ✅ All existing recipes work unchanged
+* ✅ Same command interface (`pixi run -e update update-ver`)
+* ✅ Enhanced output with more information
+* ✅ Better error handling and reporting
+
+== Contributing
+
+When modifying the version update system:
+
+1. Test with `test_py_rattler.py` first
+2. Ensure backward compatibility
+3. Update relevant documentation
+4. Test with various package types
+5. Follow the established patterns
+
+== Future Roadmap
+
+=== Planned Enhancements
+
+* **PyPI integration** for Python packages
+* **npm registry support** for Node.js packages
+* **Enhanced git source handling**
+* **Configuration file support**
+* **Integration with rattler-build** for testing
+
+=== Extension Points
+
+The py-rattler based architecture makes it easy to add:
+
+* Additional package registries
+* Custom update policies
+* Automated testing workflows
+* CI/CD integration
+
+---
+
+For detailed usage instructions, see link:USAGE_GUIDE.adoc[USAGE_GUIDE.adoc].
+
+For technical implementation details, see link:IMPLEMENTATION_SUMMARY.adoc[IMPLEMENTATION_SUMMARY.adoc].

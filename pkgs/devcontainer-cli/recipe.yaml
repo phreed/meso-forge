@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "0.75.0"
+  version: "0.77.0"
 
 package:
   name: devcontainer-cli
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/devcontainers/cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 3b7c20f403645d25238562813818de5746d38128415fab08f2423dc754425eec
+  sha256: d625d0006dfb8b626b9ff692ede931a5a4a89013e9115d9ce7a5a1a471c3ecf0
 
 build:
   number: 0

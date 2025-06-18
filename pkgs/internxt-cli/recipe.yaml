@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: 1.5.1
+  version: "1.5.3"
 
 package:
   name: internxt-cli
@@ -10,7 +10,7 @@ package:
 
 source:
   - url: https://github.com/internxt/cli/archive/refs/tags/v${{ version }}.tar.gz
-    sha256: ee91c9fce279cdf6c63130bd13b7a8f06fa59013ac0659d22f203f7818d55b9f
+    sha256: 6fe81124c50163c0d74be88019ef22a0068537c0169be4b315c69be3e873c611
 
 build:
   number: 0

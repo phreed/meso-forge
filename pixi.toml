@@ -438,9 +438,10 @@ python = "3.12.*"
 requests = ">=2.32.3,<3"
 pyyaml = ">=6.0.2,<7"
 semver = ">=3.0.2,<4"
+py-rattler = ">=0.1.0"
 
 [feature.update-ver.tasks.update-ver]
-cmd = ["python", ".scripts/update_versions.py"]
+cmd = ["python", ".scripts/version_ctl.py", "--update"]
 
 [environments.update]
-features = ["update-ver"]
+features = ["update-version"]

@@ -1,6 +1,7 @@
 .DS_Store
 pkgs-out/
 wip-out/
+.cache/
 
 # Something created by rust?
 graph.json

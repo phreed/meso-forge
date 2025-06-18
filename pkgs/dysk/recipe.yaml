@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: 2.10.0
+  version: "2.10.1"
 
 package:
   name: dysk
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/Canop/dysk/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: af6a19493f3ca1d471605cd3e40016aaf89d383c87705f6c32d8232b7e433c14
+  sha256: 3b7576b700b11052123a91780a6af26fbbd2560ad31fef917af8df8fcceffa04
 
 build:
   number: 0
