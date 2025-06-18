@@ -53,4 +53,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - maintainer
+    - phreed
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)

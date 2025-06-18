@@ -101,3 +101,10 @@ about:
     It improves GtkTextView by implementing syntax highlighting and other features
     typical of a source code editor.
     This package provides the development files for building applications that use GtkSourceView.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    gnome:
+      - ^(\d+\.\d+\.\d+)

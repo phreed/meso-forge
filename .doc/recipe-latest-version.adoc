@@ -175,7 +175,7 @@ Will check versions for `different-gem-name` gem, not `my-package`.
 
 == How It Works
 
-The version pattern matching process varies by mode:
+The version pattern matching process varies by mode. When a recipe has multiple sources, only the first source is used for version checking and updates.
 
 === GitHub Mode
 1. **Fetches all releases** from the GitHub repository using the `/releases` API
@@ -187,6 +187,8 @@ The version pattern matching process varies by mode:
 7. **Sorts versions** semantically and returns the latest
 
 **Note:** Tags fallback only occurs when no `extra: version:` configuration is provided and the mode is auto-detected from github.com URLs. When `github-release` is explicitly specified, it will not fall back to tags.
+
+**Multiple Sources:** When a recipe has multiple sources (e.g., main source + local files), only the first source is used for version detection. Additional sources are ignored for version checking purposes.
 
 === RubyGems Mode
 1. **Fetches all versions** using RubyGems API `/api/v1/versions/:gem-name.json`
@@ -310,6 +312,12 @@ Consider what happens if no versions match your pattern:
 - **RubyGems mode**: Reports an error if no gem versions match
 - **Other modes**: Report an error if no versions match
 
+=== 5. Multiple Sources
+When your recipe has multiple sources, only the first source is used for version checking:
+- **Primary source**: Used for version detection and updates
+- **Additional sources**: Ignored for version purposes (typically local files or patches)
+- **Best practice**: Ensure your primary version source is listed first
+
 == Troubleshooting
 
 === No Matching Versions
@@ -427,7 +435,8 @@ Before committing your pattern:
 3. ✅ **Verify against actual versions**: Visit source (GitHub releases or RubyGems) to confirm format
 4. ✅ **Test edge cases**: Consider what happens with pre-releases, different prefixes
 5. ✅ **Verify mode**: Ensure correct API mode is configured or auto-detected
-6. ✅ **Document complex patterns**: Add comments for future maintainers
+6. ✅ **Multiple sources**: If using multiple sources, ensure the version source is first
+7. ✅ **Document complex patterns**: Add comments for future maintainers
 
 == Related Documentation
 

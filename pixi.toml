@@ -162,7 +162,7 @@ depends-on = [
     { task = "build", args = ["asciidoctor-revealjs", "{{ tgt_platform }}"] },
     { task = "build", args = ["asyncio", "{{ tgt_platform }}"] },
     { task = "build", args = ["bash-preexec", "{{ tgt_platform }}"] },
-    # { task = "build", args = ["ble-sh", "{{ tgt_platform }}" ] },
+    { task = "build", args = ["ble-sh", "{{ tgt_platform }}"] },
     { task = "build", args = ["bitwarden-cli", "{{ tgt_platform }}"] },
     { task = "build", args = ["devcontainer-cli", "{{ tgt_platform }}"] },
     { task = "build", args = ["digitalpy", "{{ tgt_platform }}"] },

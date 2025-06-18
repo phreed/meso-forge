@@ -779,13 +779,21 @@ async def update_recipe(recipe_path: Path, stats: UpdateStats, dry_run: bool = F
         if isinstance(sources, dict):
             await update_recipe_source(recipe_path, recipe, current_version, package_name, sources, stats, dry_run, quiet)
         elif isinstance(sources, list):
-            for source in sources:
-                if isinstance(source, dict):
-                    await update_recipe_source(recipe_path, recipe, current_version, package_name, source, stats, dry_run, quiet)
-                else:
-                    if not quiet:
-                        print(f"({package_name}) Non-dict source item: {type(source)}")
-                    stats.add_error(package_name, f"Non-dict source item: {type(source)}")
+            if not sources:
+                if not quiet:
+                    print(f"({package_name}) Empty sources list")
+                return
+
+            # Only process the first source for version checking
+            first_source = sources[0]
+            if isinstance(first_source, dict):
+                if len(sources) > 1 and not quiet:
+                    print(f"({package_name}) Multiple sources found, only checking version for first source")
+                await update_recipe_source(recipe_path, recipe, current_version, package_name, first_source, stats, dry_run, quiet)
+            else:
+                if not quiet:
+                    print(f"({package_name}) First source is not a dict: {type(first_source)}")
+                stats.add_error(package_name, f"First source is not a dict: {type(first_source)}")
         else:
             if not quiet:
                 print(f"({package_name}) Unsupported source format: {type(sources)}")
