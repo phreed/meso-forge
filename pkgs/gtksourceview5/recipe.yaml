@@ -74,13 +74,11 @@ tests:
   - package_contents:
       files:
         # GtkSourceView5 library files
-        - ${{ "Library/" if win }}lib/libgtksourceview-5${{ ".dll" if win else ".so*" }}
+        - ${{ "Library/" if win }}lib64/libgtksourceview-5${{ ".dll" if win else ".so*" }}
         # Header files
-        - ${{ "Library/" if win }}include/gtksourceview-5/
+        - ${{ "Library/" if win }}include/gtksourceview-5/gtksourceview/gtksourceview.h
         # pkg-config files
-        - ${{ "Library/" if win }}lib/pkgconfig/gtksourceview-5.pc
-        # GObject Introspection files
-        - ${{ "Library/" if win }}lib/girepository-1.0/GtkSource-5.typelib
+        - ${{ "Library/" if win }}lib64/pkgconfig/gtksourceview-5.pc
 
   # Test 2: Functional tests
   - requirements:

@@ -58,7 +58,7 @@ tests:
         # Internxt CLI binary
         - ${{ "Library/" if win }}bin/internxt${{ ".cmd" if win }}
         # Node.js package files
-        - ${{ "Library/" if win }}lib/node_modules/@internxt/cli/
+        - ${{ "Library/" if win }}lib/node_modules/@internxt/cli/package.json
 
   # Test 2: Functional tests
   - requirements:

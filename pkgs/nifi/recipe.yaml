@@ -198,8 +198,8 @@ tests:
         - ${{ "Library/" if win }}bin/nifi${{ ".bat" if win }}
         - ${{ "Library/" if win }}libexec/nifi/bin/nifi.sh
         - ${{ "Library/" if win }}libexec/nifi/conf/nifi.properties
-        - ${{ "Library/" if win }}libexec/nifi/lib/
-        - ${{ "Library/" if win }}share/nifi/
+        - ${{ "Library/" if win }}libexec/nifi/lib/nifi-api-*.jar
+        - ${{ "Library/" if win }}share/nifi/README
 
   # Test 4: NiFi configuration validation
   - script:

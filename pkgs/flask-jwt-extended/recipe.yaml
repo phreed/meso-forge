@@ -37,7 +37,7 @@ tests:
   - package_contents:
       files:
         # Python library package
-        - site-packages/flask_jwt_extended/
+        - site-packages/flask_jwt_extended/__init__.py
 
   # Test 2: Python import tests
   - script:

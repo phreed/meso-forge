@@ -14,7 +14,8 @@ def main [
     --target-platform: string = "linux-64",  # Target platform
     --manifest: string = "./pkgs-out/conda-manifest.json",  # Path to manifest file
     --dry-run,                              # Show command without executing
-    --verbose                               # Enable verbose output
+    --verbose,                              # Enable verbose output
+    --force                                 # Force upload, overwriting existing packages
 ] {
     print $"📦 Publishing package: ($package) via ($method) for platform: ($target_platform)"
     print ""
@@ -78,7 +79,8 @@ def main [
     let cmd = if $method == "pd" {
         let verbosity = if $verbose { "-vvv" } else { "-v" }
         let channel_name = if ($channel | is-empty) { "meso-forge" } else { $channel }
-        $"rattler-build upload prefix --skip-existing ($verbosity) --channel ($channel_name) ($conda_file)"
+        let skip_existing = if $force { "" } else { "--skip-existing" }
+        $"rattler-build upload prefix ($skip_existing) ($verbosity) --channel ($channel_name) ($conda_file)"
     } else if $method == "s3" {
         let verbosity = if $verbose { "-vvv" } else { "-v" }
         let endpoint_url = if ($url | is-empty) { "https://minio.isis.vanderbilt.edu" } else { $url }
@@ -176,7 +178,8 @@ export def publish-all [
     --platform: string = "linux-64",         # Target platform
     --manifest: string = "./pkgs-out/conda-manifest.json",  # Path to manifest file
     --continue-on-error,                     # Continue publishing even if some fail
-    --dry-run                               # Show what would be published without executing
+    --dry-run,                              # Show what would be published without executing
+    --force                                 # Force upload, overwriting existing packages
 ] {
     let packages = list-packages --platform $platform --manifest $manifest
 
@@ -319,7 +322,8 @@ export def publish-directory [
     --recursive,                             # Scan directory recursively
     --dry-run,                               # Show what would be published without executing
     --continue-on-error,                     # Continue publishing even if some fail
-    --verbose                                # Enable verbose output
+    --verbose,                               # Enable verbose output
+    --force                                  # Force upload, overwriting existing packages
 ] {
     print $"📦 Publishing all conda files from ($directory) via ($method)"
     if $dry_run {
@@ -360,11 +364,11 @@ export def publish-directory [
         let filename = $conda_file | path basename
         print $"Publishing ($filename)..."
 
-        # Build the publish command
         let cmd = if $method == "pd" {
             let verbosity = if $verbose { "-vvv" } else { "-v" }
             let channel_name = if ($channel | is-empty) { "meso-forge" } else { $channel }
-            $"rattler-build upload prefix --skip-existing ($verbosity) --channel ($channel_name) ($conda_file)"
+            let skip_existing = if $force { "" } else { "--skip-existing" }
+            $"rattler-build upload prefix ($skip_existing) ($verbosity) --channel ($channel_name) ($conda_file)"
         } else if $method == "s3" {
             let verbosity = if $verbose { "-vvv" } else { "-v" }
             let endpoint_url = if ($url | is-empty) { "https://minio.isis.vanderbilt.edu" } else { $url }

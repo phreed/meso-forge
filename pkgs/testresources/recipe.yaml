@@ -42,7 +42,7 @@ tests:
   - package_contents:
       files:
         # Python library package
-        - site-packages/testresources/
+        - site-packages/testresources/__init__.py
 
   # Test 2: Python import test
   - script:

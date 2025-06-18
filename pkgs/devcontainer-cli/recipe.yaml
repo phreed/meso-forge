@@ -61,7 +61,7 @@ tests:
         # Devcontainer CLI binary
         - ${{ "Library/" if win }}bin/devcontainer${{ ".cmd" if win }}
         # JavaScript application files
-        - ${{ "Library/" if win }}lib/devcontainer-cli/dist/
+        - ${{ "Library/" if win }}lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI.js
 
   # Test 2: Functional tests
   - requirements:

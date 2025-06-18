@@ -63,7 +63,7 @@ tests:
   - package_contents:
       files:
         # Python library package
-        - site-packages/digitalpy/
+        - site-packages/digitalpy/__init__.py
 
   # Test 2: Python import test
   - script:

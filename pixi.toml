@@ -159,102 +159,33 @@ depends-on = [{ task = "build", args = ["metashell", "{{ tgt_platform }}"] }]
 [tasks.build-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
-    { task = "build", args = [
-        "asciidoctor-revealjs",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "asyncio",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "bash-preexec",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "bitwarden-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "devcontainer-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "digitalpy",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "dysk",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "fd",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "flask-jwt-extended",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "freetakserver",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "freetakserver-ui",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "fsarchiver",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "gtksourceview5",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "iamb",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "internxt-cli",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "jank",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "mediamtx",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "mumble-voip",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "node-red",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "node-red-worldmap",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "podlet",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "pwgen",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "ratatui",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "build", args = [
-        "testresources",
-        "{{ tgt_platform }}",
-    ] },
+    { task = "build", args = ["asciidoctor-revealjs", "{{ tgt_platform }}"] },
+    { task = "build", args = ["asyncio", "{{ tgt_platform }}"] },
+    { task = "build", args = ["bash-preexec", "{{ tgt_platform }}"] },
+    # { task = "build", args = ["ble-sh", "{{ tgt_platform }}" ] },
+    { task = "build", args = ["bitwarden-cli", "{{ tgt_platform }}"] },
+    { task = "build", args = ["devcontainer-cli", "{{ tgt_platform }}"] },
+    { task = "build", args = ["digitalpy", "{{ tgt_platform }}"] },
+    { task = "build", args = ["dysk", "{{ tgt_platform }}"] },
+    { task = "build", args = ["fd", "{{ tgt_platform }}"] },
+    { task = "build", args = ["flask-jwt-extended", "{{ tgt_platform }}"] },
+    { task = "build", args = ["freetakserver", "{{ tgt_platform }}"] },
+    { task = "build", args = ["freetakserver-ui", "{{ tgt_platform }}"] },
+    { task = "build", args = ["fsarchiver", "{{ tgt_platform }}"] },
+    # { task = "build", args = ["gitql", "{{ tgt_platform }}" ] },
+    { task = "build", args = ["gtksourceview5", "{{ tgt_platform }}"] },
+    { task = "build", args = ["iamb", "{{ tgt_platform }}"] },
+    { task = "build", args = ["internxt-cli", "{{ tgt_platform }}"] },
+    { task = "build", args = ["jank", "{{ tgt_platform }}"] },
+    { task = "build", args = ["mediamtx", "{{ tgt_platform }}"] },
+    { task = "build", args = ["mumble-voip", "{{ tgt_platform }}"] },
+    { task = "build", args = ["node-red", "{{ tgt_platform }}"] },
+    { task = "build", args = ["node-red-worldmap", "{{ tgt_platform }}"] },
+    { task = "build", args = ["podlet", "{{ tgt_platform }}"] },
+    { task = "build", args = ["pwgen", "{{ tgt_platform }}"] },
+    { task = "build", args = ["ratatui", "{{ tgt_platform }}"] },
+    { task = "build", args = ["testresources", "{{ tgt_platform }}"] },
+    # { task = "build", args = ["trippy", "{{ tgt_platform }}" ] },
 ]
 
 [tasks.test]
@@ -286,6 +217,7 @@ cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "" },
 ]
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
@@ -294,6 +226,7 @@ cmd = [
     "{{ pkg }}",
     "--method=pd",
     "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
 ]
 
 [tasks.publish-s3]
@@ -365,6 +298,7 @@ cmd = [
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "" },
 ]
 cmd = [
     "nu",
@@ -372,6 +306,7 @@ cmd = [
     "{{ pkg }}",
     "--method=pd",
     "--target-platform={{ tgt_platform }}",
+    "{{ '--force' if force != '' else '' }}",
     "--dry-run",
 ]
 
@@ -433,15 +368,15 @@ depends-on = [
 ]
 
 
-[feature.update-ver.dependencies]
+[feature.version-ctl.dependencies]
 python = "3.12.*"
 requests = ">=2.32.3,<3"
 pyyaml = ">=6.0.2,<7"
 semver = ">=3.0.2,<4"
 py-rattler = ">=0.1.0"
 
-[feature.update-ver.tasks.update-ver]
+[feature.version-ctl.tasks.update-version]
 cmd = ["python", ".scripts/version_ctl.py", "--update"]
 
 [environments.update]
-features = ["update-version"]
+features = ["version-ctl"]

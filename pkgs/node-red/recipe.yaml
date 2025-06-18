@@ -34,14 +34,24 @@ build:
       $"building ($env.PKG_NAME)!"
       npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
 
+      # Create node-red binary wrapper
+      let bin_dir = $"($env.PREFIX)/bin"
+      mkdir $bin_dir
+      let node_red_script = $"($env.PREFIX)/lib/node_modules/node-red/packages/node_modules/node-red/red.js"
+      let node_red_bin = $"($bin_dir)/node-red"
+
+      let wrapper_content = $"#!/bin/bash\nexec node \"($node_red_script)\" \"$@\""
+      $wrapper_content | save $node_red_bin
+      chmod +x $node_red_bin
+
       # Install systemd unit file and setup script on Linux
       if ($nu.os-info.name == "linux") {
         print "Installing systemd unit file and setup script..."
         let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
         let bin_dir = $"($env.PREFIX)/bin"
         mkdir $systemd_dir
-        cp $"($env.SRC_DIR)/systemd/node-red.service" $"($systemd_dir)/node-red.service"
-        cp $"($env.SRC_DIR)/systemd/node-red-setup.sh" $"($bin_dir)/node-red-setup.sh"
+        cp $"($env.SRC_DIR)/systemd/node-red.service/node-red.service" $"($systemd_dir)/node-red.service"
+        cp $"($env.SRC_DIR)/systemd/node-red-setup.sh/node-red-setup.sh" $"($bin_dir)/node-red-setup.sh"
         chmod +x $"($bin_dir)/node-red-setup.sh"
       }
 
@@ -63,7 +73,7 @@ tests:
   - package_contents:
       files:
         # Node-RED Node.js package
-        - ${{ "Library/" if win }}lib/node_modules/node-red/
+        - ${{ "Library/" if win }}lib/node_modules/node-red/package.json
         # Binary/executable
         - ${{ "Library/" if win }}bin/node-red${{ ".cmd" if win }}
         # Systemd files (Linux only)

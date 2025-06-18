@@ -35,9 +35,7 @@ build:
 
       # Copy required node_modules to the package
       cd ../..
-      let node_modules_dir = ($lib_dir | path join "node_modules")
-      ^mkdir -p $node_modules_dir
-      ^cp -r node_modules/* $node_modules_dir
+      ^cp -r node_modules $lib_dir
 
       # Create wrapper script that sets NODE_PATH
       let bin_dir = ($env.PREFIX | path join "bin")
@@ -69,7 +67,7 @@ tests:
         - ${{ "Library/" if win }}bin/bw${{ ".bat" if win }}
         # JavaScript application files
         - ${{ "Library/" if win }}lib/bitwarden-cli/bw.js
-        - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/
+        - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/.bin/acorn
 
   # Test 2: Functional tests
   - requirements:

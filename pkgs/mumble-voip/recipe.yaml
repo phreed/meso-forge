@@ -74,8 +74,8 @@ build:
         let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
         let bin_dir = $"($env.PREFIX)/bin"
         mkdir $systemd_dir
-        cp $"($env.SRC_DIR)/systemd/mumble-server.service" $"($systemd_dir)/mumble-server.service"
-        cp $"($env.SRC_DIR)/systemd/mumble-server-setup.sh" $"($bin_dir)/mumble-server-setup.sh"
+        cp $"($env.SRC_DIR)/systemd/mumble-server.service/mumble-server.service" $"($systemd_dir)/mumble-server.service"
+        cp $"($env.SRC_DIR)/systemd/mumble-server-setup.sh/mumble-server-setup.sh" $"($bin_dir)/mumble-server-setup.sh"
         chmod +x $"($bin_dir)/mumble-server-setup.sh"
       }
 

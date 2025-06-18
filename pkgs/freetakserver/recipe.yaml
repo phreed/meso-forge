@@ -15,11 +15,11 @@ source:
   - if: linux
     then:
       path: systemd/freetakserver.service
-      target_directory: systemd/freetakserver.service
+      target_directory: systemd
   - if: linux
     then:
       path: systemd/freetakserver-setup.sh
-      target_directory: systemd/freetakserver-setup.sh
+      target_directory: systemd
 
 build:
   number: 0
@@ -38,9 +38,6 @@ build:
         cp "$SRC_DIR/systemd/freetakserver-setup.sh" "$PREFIX/bin/freetakserver-setup.sh"
         chmod +x "$PREFIX/bin/freetakserver-setup.sh"
       fi
-  python:
-    entry_points:
-      - fts_server=swagger_server.__main__:main
 
 requirements:
   host:
@@ -110,12 +107,10 @@ tests:
   - package_contents:
       files:
         # Python package files
-        - site-packages/FreeTAKServer/
-        # Entry point scripts
-        - ${{ "Library/" if win }}bin/fts_server${{ ".exe" if win }}
+        - site-packages/FreeTAKServer/__init__.py
         # Systemd files (Linux only)
         - ${{ "lib/systemd/system/freetakserver.service" if linux }}
-        - ${{ "bin/freetakserver-setup.sh" if linux }}
+        - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
 
   # Test 2: Python import test
   - script:

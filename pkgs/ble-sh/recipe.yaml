@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "0.4.0-devel3"
+
+package:
+  name: ble-sh
+  version: ${{ version }}
+
+source:
+  url: https://github.com/akinomyoga/ble.sh/releases/download/v${{ version }}/ble-${{ version }}.tar.xz
+  sha256: c8612ee612bc6b10dbfd6e85c6cbdfd7caf152a12d1f9de22ea0a9d735b3080c
+
+build:
+  noarch: generic
+  script:
+    interpreter: nu
+    content: |
+      let profile_dir = ($env.PREFIX | path join "etc" "profile.d")
+      let blesh_dir = ($env.PREFIX | path join "share" "blesh")
+      ^mkdir -p $profile_dir
+      ^mkdir -p $blesh_dir
+      ^cp -r * $blesh_dir
+
+      # Create a profile script that sources ble.sh
+      let profile_script = $"# Bash Line Editor (ble.sh) initialization
+      # Source this in your ~/.bashrc with:
+      [[ $- == *i* ]] && source ($env.PREFIX)/etc/profile.d/ble.sh --attach=none
+      [[ \${BLE_VERSION-} ]] && ble-attach
+
+      if [[ $- == *i* ]]; then
+        source ($env.PREFIX)/share/blesh/ble.sh --attach=none
+      fi"
+
+      $profile_script | save ($profile_dir | path join "ble.sh")
+
+requirements:
+  build:
+    - nushell
+  run:
+    - bash >=3.0
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Main ble.sh installation
+        - share/blesh/ble.sh
+        # Profile script
+        - etc/profile.d/ble.sh
+
+  # Test 2: Functional test
+  - requirements:
+      build:
+        - nushell
+        - bash
+    script:
+      interpreter: nu
+      content: |
+        ^test -f ($env.PREFIX | path join "share" "blesh" "ble.sh")
+        ^test -f ($env.PREFIX | path join "etc" "profile.d" "ble.sh")
+
+about:
+  homepage: https://github.com/akinomyoga/ble.sh
+  license: BSD-3-Clause
+  license_file: LICENSE.md
+  summary: Bash Line Editor with syntax highlighting, auto suggestions, vim modes, etc.
+  description: |
+    ble.sh (Bash Line Editor) is a command line editor written in pure Bash
+    which replaces the default GNU Readline. It provides syntax highlighting,
+    auto suggestions, vim modes, and many other advanced features for Bash
+    interactive sessions. It requires only Bash 3.0+ and basic POSIX utilities.
+
+extra:
+  recipe-maintainers:
+    - phreed

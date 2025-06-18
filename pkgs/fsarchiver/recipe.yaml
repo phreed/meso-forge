@@ -55,7 +55,7 @@ tests:
   - package_contents:
       files:
         # FSArchiver binary
-        - ${{ "Library/" if win }}bin/fsarchiver${{ ".exe" if win }}
+        - ${{ "Library/" if win }}sbin/fsarchiver${{ ".exe" if win }}
         # Man page
         - ${{ "Library/" if win }}share/man/man8/fsarchiver.8
 

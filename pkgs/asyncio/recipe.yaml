@@ -31,7 +31,7 @@ tests:
   - package_contents:
       files:
         # Python library package
-        - site-packages/asyncio/
+        - site-packages/asyncio/__init__.py
 
   # Test 2: Python import test
   - script:

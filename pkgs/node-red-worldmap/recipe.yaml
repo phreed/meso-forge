@@ -21,7 +21,15 @@ build:
     interpreter: nu
     content: |
       $"building ($env.PKG_NAME)!"
-      npm install -g ./node-red-worldmap --prefix ${{ PREFIX }}
+
+      # Install dependencies in the source directory
+      cd node-red-worldmap
+      npm install
+
+      # Create target directory and copy files
+      let target_dir = $"($env.PREFIX)/lib/node_modules/node-red-contrib-web-worldmap"
+      mkdir $target_dir
+      cp -r * $target_dir
 
 requirements:
   build:
@@ -38,7 +46,7 @@ tests:
   - package_contents:
       files:
         # Node-RED Worldmap Node.js package
-        - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/
+        - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/package.json
 
   # Test 2: Functional test
   - requirements:

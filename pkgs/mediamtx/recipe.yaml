@@ -57,8 +57,8 @@ build:
         let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
         let bin_dir = $"($env.PREFIX)/bin"
         mkdir $systemd_dir
-        cp $"($env.SRC_DIR)/systemd/mediamtx.service" $"($systemd_dir)/mediamtx.service"
-        cp $"($env.SRC_DIR)/systemd/mediamtx-setup.sh" $"($bin_dir)/mediamtx-setup.sh"
+        cp $"($env.SRC_DIR)/systemd/mediamtx.service/mediamtx.service" $"($systemd_dir)/mediamtx.service"
+        cp $"($env.SRC_DIR)/systemd/mediamtx-setup.sh/mediamtx-setup.sh" $"($bin_dir)/mediamtx-setup.sh"
         chmod +x $"($bin_dir)/mediamtx-setup.sh"
       }
 
