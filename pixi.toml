@@ -345,7 +345,7 @@ depends-on = [
 [tasks.publish-status]
 cmd = ["nu", "-c", "use .scripts/publish_package.nu *; publish-status"]
 
-[tasks.publish-all-pd]
+[tasks.publish-pd-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
@@ -353,7 +353,7 @@ cmd = [
     "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error",
 ]
 
-[tasks.publish-all-s3]
+[tasks.publish-s3-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
@@ -389,7 +389,7 @@ cmd = [
     "--dry-run",
 ]
 
-[tasks.publish-all-pd-dry]
+[tasks.publish-pd-dry-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",
@@ -397,7 +397,7 @@ cmd = [
     "use .scripts/publish_package.nu *; publish-all --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error --dry-run",
 ]
 
-[tasks.publish-all-s3-dry]
+[tasks.publish-s3-dry-all]
 args = [{ arg = "tgt_platform", default = "linux-64" }]
 cmd = [
     "nu",

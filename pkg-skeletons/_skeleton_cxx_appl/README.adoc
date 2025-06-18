@@ -2,7 +2,9 @@
 :toc:
 :toc-placement!:
 
-This skeleton provides a template for packaging C++ applications using https://rattler.build[rattler-build] with https://www.nushell.sh[nushell] for cross-platform builds.
+This skeleton provides a template for packaging C++ applications using
+link:https://rattler.build[rattler-build] with
+link:https://www.nushell.sh[nushell] for cross-platform builds.
 
 toc::[]
 

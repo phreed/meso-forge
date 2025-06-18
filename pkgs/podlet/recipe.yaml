@@ -14,10 +14,16 @@ source:
 
 build:
   number: 0
-  script: cargo build --release
+  script:
+    interpreter: nu
+    content: |
+      cargo build --release
+      mkdir ($env.PREFIX | path join "bin")
+      cp target/release/podlet ($env.PREFIX | path join "bin" "podlet")
 
 requirements:
   build:
+    - nushell
     - rust
 
 tests:
@@ -27,7 +33,14 @@ tests:
     script:
       interpreter: nu
       content:
-        - ^podlet --help 2>&1 | ^grep "${{ version }}"
+        # Test that binary exists and is executable
+        - ^which podlet
+        # Test version output contains expected version
+        - ^podlet --version | ^grep "${{ version }}"
+        # Test help command works
+        - ^podlet --help | ^grep -i "usage"
+        # Test that binary can show subcommands
+        - ^podlet --help | ^grep -i "command"
 
 about:
   homepage: https://crates.io/crates/podlet

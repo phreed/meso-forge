@@ -19,13 +19,56 @@ build:
   script:
     interpreter: nu
     content: |
+      print "Starting pwgen build process..."
+
+      # Run autoreconf
+      print "Running autoreconf..."
       ^autoreconf -i
+
+      # Show directory contents for debugging
+      print "Directory contents after autoreconf:"
       ^find . -maxdepth 2
+
+      # Configure the build
       let prefix_path = $env.PREFIX
       let mandir_path = ($env.PREFIX | path join "share" "man")
+      print $"Configuring with prefix: ($prefix_path)"
       ^./configure --disable-debug --disable-dependency-tracking --prefix=$prefix_path --mandir=$mandir_path
+
+      # Build the binary
+      print "Building pwgen..."
       ^make
-      ^make install
+
+      # Verify the binary was built
+      if not ("pwgen" | path exists) {
+        print "Error: pwgen binary not found after make"
+        exit 1
+      }
+
+      # Test the binary works
+      print "Testing built binary..."
+      let test_result = (^./pwgen --help | complete)
+      if $test_result.exit_code > 1 {
+        print "Warning: pwgen --help returned unexpected exit code, but continuing..."
+      }
+
+      # Manual installation (make install doesn't work properly)
+      print "Installing pwgen manually..."
+      mkdir ($env.PREFIX | path join "bin")
+      mkdir ($env.PREFIX | path join "share" "man" "man1")
+      cp pwgen ($env.PREFIX | path join "bin" "pwgen")
+      if ("pwgen.1" | path exists) {
+        cp pwgen.1 ($env.PREFIX | path join "share" "man" "man1" "pwgen.1")
+      }
+
+      # Verify installation
+      let installed_binary = ($env.PREFIX | path join "bin" "pwgen")
+      if not ($installed_binary | path exists) {
+        print "Error: pwgen binary not found in installation directory"
+        exit 1
+      }
+
+      print "pwgen installation completed successfully"
 
 requirements:
   build:

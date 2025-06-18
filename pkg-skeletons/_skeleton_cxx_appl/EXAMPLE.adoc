@@ -2,13 +2,15 @@
 :toc:
 :toc-placement!:
 
-This example demonstrates how to use the C++ application skeleton to package https://ccache.dev[ccache], a fast C/C++ compiler cache.
+This example demonstrates how to use the C++ application skeleton to package
+link:https://ccache.dev[ccache], a fast C/C++ compiler cache.
 
 toc::[]
 
 == Overview
 
-ccache is a compiler cache that speeds up recompilation by caching previous compilations. It's an excellent example because it:
+ccache is a compiler cache that speeds up recompilation by caching previous compilations.
+It's an excellent example because it:
 
 * Is a pure C++ application
 * Uses CMake as its build system
