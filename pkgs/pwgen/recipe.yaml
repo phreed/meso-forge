@@ -80,6 +80,13 @@ requirements:
     - make
 
 tests:
+  # Test 1: Verify binary and documentation are included in package
+  - package_contents:
+      files:
+        - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
+        - ${{ "Library/" if win }}share/man/man1/pwgen.1
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

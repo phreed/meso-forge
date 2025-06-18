@@ -28,6 +28,13 @@ requirements:
     - asciidoctor >=1.5.0
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Asciidoctor Reveal.js binary
+        - ${{ "Library/" if win }}bin/asciidoctor-revealjs${{ ".exe" if win }}
+
+  # Test 2: Ruby import test
   - requirements:
       build:
         - ruby
@@ -35,6 +42,8 @@ tests:
       interpreter: ruby
       content: |
         require 'asciidoctor-revealjs'
+
+  # Test 3: Functional test
   - requirements:
       build:
         - nushell

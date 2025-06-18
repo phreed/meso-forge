@@ -135,6 +135,13 @@ requirements:
     # Copy relevant system libraries from host section
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # R library package
+        - ${{ "Library/" if win }}lib/R/library/packagename/
+
+  # Test 2: R library loading test
   - requirements:
       build:
         - nushell

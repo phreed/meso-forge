@@ -27,9 +27,16 @@ requirements:
     - rust
 
 tests:
+  # Test 1: Verify binary is included in package
+  - package_contents:
+      files:
+        - ${{ "Library/" if win }}bin/podlet${{ ".exe" if win }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell
+        - rust
     script:
       interpreter: nu
       content:

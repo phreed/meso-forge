@@ -27,6 +27,13 @@ requirements:
     - nushell
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Bash preexec profile script
+        - etc/profile.d/bash-preexec.sh
+
+  # Test 2: Functional test
   - requirements:
       build:
         - nushell

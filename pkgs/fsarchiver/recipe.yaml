@@ -51,6 +51,15 @@ requirements:
     - zstd
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # FSArchiver binary
+        - ${{ "Library/" if win }}bin/fsarchiver${{ ".exe" if win }}
+        # Man page
+        - ${{ "Library/" if win }}share/man/man8/fsarchiver.8
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

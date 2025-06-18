@@ -130,6 +130,16 @@ requirements:
     - poco
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Mumble binary
+        - ${{ "Library/" if win }}bin/mumble${{ ".exe" if win }}
+        # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/mumble-server.service" if linux }}
+        - ${{ "bin/mumble-server-setup.sh" if linux }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

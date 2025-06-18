@@ -23,6 +23,13 @@ requirements:
     - cargo-bundle-licenses
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # OpenDAL oli binary
+        - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
+
+  # Test 2: Functional test
   - requirements:
       build:
         - nushell

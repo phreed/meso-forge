@@ -27,6 +27,13 @@ requirements:
     - python >=3.11
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python library package
+        - site-packages/asyncio/
+
+  # Test 2: Python import test
   - script:
       interpreter: python
       content: |

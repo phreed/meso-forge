@@ -89,6 +89,16 @@ requirements:
     - go-licenses
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # MediaMTX binary
+        - ${{ "Library/" if win }}bin/mediamtx${{ ".exe" if win }}
+        # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/mediamtx.service" if linux }}
+        - ${{ "bin/mediamtx-setup.sh" if linux }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

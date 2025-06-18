@@ -33,22 +33,17 @@ requirements:
       - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
 
 tests:
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^python -c "import flask_jwt_extended"
-  - requirements:
-      build:
-        - nushell
-      run:
-        - python ${{ python_min }}
-    script:
-      interpreter: nu
-      content:
-        - ^python -c "import flask_jwt_extended"
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python library package
+        - site-packages/flask_jwt_extended/
+
+  # Test 2: Python import tests
+  - script:
+      interpreter: python
+      content: |
+        import flask_jwt_extended
 
 about:
   homepage: https://github.com/vimalloc/flask-jwt-extended

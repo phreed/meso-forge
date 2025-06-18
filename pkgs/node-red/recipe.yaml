@@ -59,6 +59,18 @@ requirements:
     - nodejs
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Node-RED Node.js package
+        - ${{ "Library/" if win }}lib/node_modules/node-red/
+        # Binary/executable
+        - ${{ "Library/" if win }}bin/node-red${{ ".cmd" if win }}
+        # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/node-red.service" if linux }}
+        - ${{ "bin/node-red-setup.sh" if linux }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

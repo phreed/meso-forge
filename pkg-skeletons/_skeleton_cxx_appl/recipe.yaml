@@ -315,7 +315,14 @@ requirements:
     # TODO: Add any runtime-only dependencies
 
 tests:
-  # Test 1: Basic executable functionality
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Executables location differs on Windows
+        - ${{ "Library/" if win }}bin/${{ name }}${{ ".exe" if win }}
+        # TODO: Add any other executables or support files
+
+  # Test 2: Basic executable functionality
   # NOTE: Use --version instead of --help because --help often exits with code 1
   - requirements:
       build:
@@ -329,7 +336,7 @@ tests:
         # - ^${{ name }} --help 2>&1 || true  # Allow help to exit with code 1
         # - ^which ${{ name }}                # Verify executable is in PATH
 
-  # Test 2: More comprehensive functionality test using nushell
+  # Test 3: More comprehensive functionality test using nushell
   - script:
       interpreter: nu
       content: |
@@ -381,13 +388,6 @@ tests:
         # }
 
         print "All tests passed!"
-
-  # Test 3: Check for required files
-  - package_contents:
-      files:
-        # Executables location differs on Windows
-        - ${{ "Library/" if win }}bin/${{ name }}${{ ".exe" if win }}
-        # TODO: Add any other executables or support files
 
 about:
   homepage: https://github.com/example/${{ name }} # TODO: Update URL

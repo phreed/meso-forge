@@ -145,6 +145,13 @@ requirements:
     # - cmake
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Go binary
+        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".exe" if win }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

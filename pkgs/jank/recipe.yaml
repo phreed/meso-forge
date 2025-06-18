@@ -74,6 +74,13 @@ requirements:
     - double-conversion
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # jank binary
+        - ${{ "Library/" if win }}bin/jank${{ ".exe" if win }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

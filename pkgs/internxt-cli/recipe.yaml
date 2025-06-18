@@ -52,6 +52,15 @@ requirements:
     - nodejs
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Internxt CLI binary
+        - ${{ "Library/" if win }}bin/internxt${{ ".cmd" if win }}
+        # Node.js package files
+        - ${{ "Library/" if win }}lib/node_modules/@internxt/cli/
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

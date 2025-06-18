@@ -34,6 +34,13 @@ requirements:
         - openssl
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # iamb binary
+        - ${{ "Library/" if win }}bin/iamb${{ ".exe" if win }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

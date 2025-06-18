@@ -50,6 +50,19 @@ requirements:
     - cargo-bundle-licenses
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # fd binary
+        - ${{ "Library/" if win }}bin/fd${{ ".exe" if win }}
+        # Shell completions
+        - ${{ "Library/" if win }}share/bash-completion/completions/fd
+        - ${{ "Library/" if win }}share/fish/vendor_completions.d/fd.fish
+        - ${{ "Library/" if win }}share/zsh/site-functions/_fd
+        # Man page
+        - ${{ "Library/" if win }}share/man/man1/fd.1
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

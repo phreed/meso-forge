@@ -50,6 +50,13 @@ requirements:
     # - rb-nokogiri >=1.10,<2.0
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Ruby gem binary (if it provides CLI)
+        - ${{ "Library/" if win }}bin/gemname${{ ".exe" if win }}
+
+  # Test 2: Ruby import test
   - requirements:
       build:
         - nushell

@@ -31,6 +31,13 @@ requirements:
     #     - linux-only-dependency
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Dysk binary
+        - ${{ "Library/" if win }}bin/dysk${{ ".exe" if win }}
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

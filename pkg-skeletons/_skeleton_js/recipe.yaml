@@ -131,6 +131,15 @@ requirements:
     # - git                 # If package needs git at runtime
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Node.js CLI binary
+        - ${{ "Library/" if win }}bin/${{ PACKAGE_NAME }}${{ ".cmd" if win }}
+        # Node.js application files
+        - ${{ "Library/" if win }}lib/node_modules/${{ PACKAGE_NAME }}/
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

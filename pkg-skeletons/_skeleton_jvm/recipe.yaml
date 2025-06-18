@@ -315,7 +315,19 @@ requirements:
     # Most JVM dependencies are bundled in the JAR, but add external ones here
 
 tests:
-  # Test 1: Basic execution test
+  # Test 1: Package contents validation
+  - package_contents:
+      files:
+        # {% if package_type == "application" %}
+        # Application files
+        - ${{ "Library/" if win }}lib/${{ binary_name }}.jar
+        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".bat" if win }}
+        # {% else %}
+        # # Library files
+        # - ${{ "Library/" if win }}lib/*.jar
+        # {% endif %}
+
+  # Test 2: Basic execution test
   # {% if package_type == "application" %}
   - requirements:
       build:
@@ -336,7 +348,7 @@ tests:
         # - ^java -jar $PREFIX/lib/${{ binary_name }}.jar --help
   # {% endif %}
 
-  # Test 2: Java version compatibility
+  # Test 3: Java version compatibility
   - script:
       interpreter: nu
       content: |
@@ -356,18 +368,6 @@ tests:
         {% endif %}
 
         print "Java compatibility test passed!"
-
-  # Test 3: Package contents validation
-  - package_contents:
-      files:
-        # {% if package_type == "application" %}
-        # Application files
-        - ${{ "Library/" if win }}lib/${{ binary_name }}.jar
-        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".bat" if win }}
-        # {% else %}
-        # # Library files
-        # - ${{ "Library/" if win }}lib/*.jar
-        # {% endif %}
 
   # TODO: Add more specific functionality tests
   # - script:

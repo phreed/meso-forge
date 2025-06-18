@@ -34,6 +34,13 @@ requirements:
     - nodejs
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Node-RED Worldmap Node.js package
+        - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/
+
+  # Test 2: Functional test
   - requirements:
       build:
         - nushell

@@ -62,6 +62,16 @@ requirements:
     - nodejs
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Bitwarden CLI wrapper script
+        - ${{ "Library/" if win }}bin/bw${{ ".bat" if win }}
+        # JavaScript application files
+        - ${{ "Library/" if win }}lib/bitwarden-cli/bw.js
+        - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell

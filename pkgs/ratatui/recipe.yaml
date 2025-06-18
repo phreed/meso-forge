@@ -35,6 +35,12 @@ requirements:
     - pkgconf
 
 tests:
+  # Test 1: Verify package marker file is included
+  - package_contents:
+      files:
+        - share/ratatui-info.txt
+
+  # Test 2: Functional validation
   - requirements:
       build:
         - nushell

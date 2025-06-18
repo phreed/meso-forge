@@ -106,6 +106,18 @@ requirements:
     - pytest-asyncio 0.20.1.*
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python package files
+        - site-packages/FreeTAKServer/
+        # Entry point scripts
+        - ${{ "Library/" if win }}bin/fts_server${{ ".exe" if win }}
+        # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/freetakserver.service" if linux }}
+        - ${{ "bin/freetakserver-setup.sh" if linux }}
+
+  # Test 2: Python import test
   - script:
       interpreter: python
       content: |

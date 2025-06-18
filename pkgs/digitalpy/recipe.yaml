@@ -59,6 +59,13 @@ requirements:
     - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python library package
+        - site-packages/digitalpy/
+
+  # Test 2: Python import test
   - script:
       interpreter: python
       content: |

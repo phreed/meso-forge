@@ -41,6 +41,13 @@ requirements:
         - readline
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Metashell binary
+        - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
+
+  # Test 2: Functional test
   - requirements:
       build:
         - nushell

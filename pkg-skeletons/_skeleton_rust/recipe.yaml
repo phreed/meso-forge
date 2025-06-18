@@ -28,6 +28,13 @@ requirements:
   run: []
 
 tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Rust binary
+        - ${{ "Library/" if win }}bin/cargo-edit${{ ".exe" if win }}
+
+  # Test 2: Functional test
   - requirements:
       build:
         - nushell
