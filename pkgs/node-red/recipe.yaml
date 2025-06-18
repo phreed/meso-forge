@@ -18,6 +18,10 @@ source:
     then:
       path: systemd/node-red.service
       target_directory: systemd/node-red.service
+  - if: linux
+    then:
+      path: systemd/node-red-setup.sh
+      target_directory: systemd/node-red-setup.sh
   - if: win
     then:
       path: bin/node-red.cmd
@@ -29,6 +33,18 @@ build:
     content: |
       $"building ($env.PKG_NAME)!"
       npm install -g ./node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
+
+      # Install systemd unit file and setup script on Linux
+      if ($nu.os-info.name == "linux") {
+        print "Installing systemd unit file and setup script..."
+        let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
+        let bin_dir = $"($env.PREFIX)/bin"
+        mkdir $systemd_dir
+        cp $"($env.SRC_DIR)/systemd/node-red.service" $"($systemd_dir)/node-red.service"
+        cp $"($env.SRC_DIR)/systemd/node-red-setup.sh" $"($bin_dir)/node-red-setup.sh"
+        chmod +x $"($bin_dir)/node-red-setup.sh"
+      }
+
       source npm_licenses.nu
       main | save license_summary.txt
 

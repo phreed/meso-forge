@@ -11,9 +11,17 @@ package:
   name: mediamtx
 
 source:
-  url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
-  target_directory: src/mediamtx
+  - url: https://github.com/${{ group }}/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: cdd46bbbfe2be95057df8eb5016b88328063255c38e0e42d27abccd7d3ebbad6
+    target_directory: src/mediamtx
+  - if: linux
+    then:
+      path: systemd/mediamtx.service
+      target_directory: systemd/mediamtx.service
+  - if: linux
+    then:
+      path: systemd/mediamtx-setup.sh
+      target_directory: systemd/mediamtx-setup.sh
 
 build:
   number: 0
@@ -42,6 +50,17 @@ build:
       $env.CGO_ENABLED = "0"
       let output_path = $"($env.PREFIX)/bin/mediamtx"
       go build -ldflags $ldflags_str -o $output_path .
+
+      # Install systemd unit file and setup script on Linux
+      if ($nu.os-info.name == "linux") {
+        print "Installing systemd unit file and setup script..."
+        let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
+        let bin_dir = $"($env.PREFIX)/bin"
+        mkdir $systemd_dir
+        cp $"($env.SRC_DIR)/systemd/mediamtx.service" $"($systemd_dir)/mediamtx.service"
+        cp $"($env.SRC_DIR)/systemd/mediamtx-setup.sh" $"($bin_dir)/mediamtx-setup.sh"
+        chmod +x $"($bin_dir)/mediamtx-setup.sh"
+      }
 
       # Collect licenses from all dependencies
       print "Collecting dependency licenses..."

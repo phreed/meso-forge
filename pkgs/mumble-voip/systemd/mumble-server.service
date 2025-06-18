@@ -1,31 +1,27 @@
 [Unit]
-Description=Node-RED - Low-code programming for event-driven applications
-Documentation=https://nodered.org/docs/
+Description=Mumble VoIP Server (Murmur)
+Documentation=https://www.mumble.info/documentation/
 After=network.target network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=nodered
-Group=nodered
-ExecStart=/opt/conda/bin/node-red --userDir /var/lib/node-red
-WorkingDirectory=/var/lib/node-red
+User=mumble
+Group=mumble
+ExecStart=/opt/conda/bin/murmur -ini /etc/mumble/murmur.ini
+ExecReload=/bin/kill -HUP $MAINPID
+WorkingDirectory=/var/lib/mumble
 Restart=on-failure
 RestartSec=5
 StartLimitInterval=60s
 StartLimitBurst=3
 
-# Environment variables
-Environment=NODE_ENV=production
-Environment=NODE_RED_OPTIONS=-v
-Environment=NODE_PATH=/opt/conda/lib/node_modules
-
 # Security settings
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/node-red
-ReadWritePaths=/var/log/node-red
+ReadWritePaths=/var/lib/mumble
+ReadWritePaths=/var/log/mumble
 PrivateTmp=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
@@ -34,7 +30,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 MemoryDenyWriteExecute=true
 
-# Network settings - Node-RED typically uses port 1880
+# Network settings - Mumble typically uses port 64738
 IPAddressDeny=any
 IPAddressAllow=localhost
 IPAddressAllow=10.0.0.0/8
@@ -48,7 +44,8 @@ LimitNPROC=32768
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=node-red
+SyslogIdentifier=mumble-server
 
 [Install]
 WantedBy=multi-user.target
+Alias=murmur.service

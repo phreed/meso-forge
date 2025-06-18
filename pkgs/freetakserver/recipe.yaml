@@ -10,13 +10,34 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 14a16adb3260b82b097807596d69002322522ebc43e40c382a54bdc6f9f61a8b
+  - url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: 14a16adb3260b82b097807596d69002322522ebc43e40c382a54bdc6f9f61a8b
+  - if: linux
+    then:
+      path: systemd/freetakserver.service
+      target_directory: systemd/freetakserver.service
+  - if: linux
+    then:
+      path: systemd/freetakserver-setup.sh
+      target_directory: systemd/freetakserver-setup.sh
 
 build:
   number: 0
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: bash
+    content: |
+      pip install . -v
+
+      # Install systemd unit file and setup script on Linux
+      if [[ "$OSTYPE" == "linux"* ]]; then
+        echo "Installing systemd unit file and setup script..."
+        mkdir -p "$PREFIX/lib/systemd/system"
+        mkdir -p "$PREFIX/bin"
+        cp "$SRC_DIR/systemd/freetakserver.service" "$PREFIX/lib/systemd/system/freetakserver.service"
+        cp "$SRC_DIR/systemd/freetakserver-setup.sh" "$PREFIX/bin/freetakserver-setup.sh"
+        chmod +x "$PREFIX/bin/freetakserver-setup.sh"
+      fi
   python:
     entry_points:
       - fts_server=swagger_server.__main__:main
