@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/python/asyncio/archive/refs/tags/${{ version }}.tar.gz
-  sha256: b22225680ea04c3528b7fa03e9c6d152470173dd3873996b8cb29fcb37799f1b
+  url: https://api.github.com/repos/python/asyncio/tarball/refs/tags/3.4.3
+  sha256: 016209c887f8d4fbb3c8f7721ccd460dad9765734c457bf87236a859d32de562
 
 build:
   noarch: python
@@ -19,25 +19,25 @@ build:
 requirements:
   # there is no build section
   host:
-    - pip
-    - python >=3.11
-    - setuptools
-    - wheel
+  - pip
+  - python >=3.11
+  - setuptools
+  - wheel
   run:
-    - python >=3.11
+  - python >=3.11
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Python library package
-        - site-packages/asyncio/__init__.py
+    - site-packages/asyncio/__init__.py
 
   # Test 2: Python import test
-  - script:
-      interpreter: python
-      content: |
-        import asyncio
+- script:
+    interpreter: python
+    content: |
+      import asyncio
 
 about:
   homepage: https://www.python.org/dev/peps/pep-3156/
@@ -54,4 +54,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

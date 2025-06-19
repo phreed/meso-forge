@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/devcontainers/cli/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: d625d0006dfb8b626b9ff692ede931a5a4a89013e9115d9ce7a5a1a471c3ecf0
+  url: https://api.github.com/repos/devcontainers/cli/tarball/refs/tags/v0.77.0
+  sha256: cbcad77510c3f075179798ae7bd8604bf8d89a95e0d9aaf8549f308b927f9552
 
 build:
   number: 0
@@ -43,43 +43,43 @@ build:
 
 requirements:
   build:
-    - nushell
-    - yarn
-    - python
-    - make
-    - ${{ compiler('cxx') }}
-    - pkg-config
+  - nushell
+  - yarn
+  - python
+  - make
+  - ${{ compiler('cxx') }}
+  - pkg-config
   host:
-    - nodejs
+  - nodejs
   run:
-    - nodejs
+  - nodejs
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Devcontainer CLI binary
-        - ${{ "Library/" if win }}bin/devcontainer${{ ".cmd" if win }}
+    - ${{ "Library/" if win }}bin/devcontainer${{ ".cmd" if win }}
         # JavaScript application files
-        - ${{ "Library/" if win }}lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI.js
+    - ${{ "Library/" if win }}lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI.js
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        ^devcontainer --help
-        # stderr:
-        #   contains: "Please create a configuration file"
-        # exit: 2
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content: |
+      ^devcontainer --help
+      # stderr:
+      #   contains: "Please create a configuration file"
+      # exit: 2
 
 about:
   homepage: https://containers.dev/
   license: MIT
   license_file:
-    - LICENSE.txt
+  - LICENSE.txt
   summary: Configure Devcontainer CLI
   description: |
     A reference implementation for the specification that
@@ -88,4 +88,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

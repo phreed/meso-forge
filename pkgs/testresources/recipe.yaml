@@ -10,8 +10,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/testing-cabal/testresources/archive/refs/tags/${{ version }}.tar.gz
-  sha256: f1cbba61e1e1f720220857f42dc3ee67cfc862ee8c21a2286bb07e46d7a7fc6d
+  url: https://api.github.com/repos/testing-cabal/testresources/tarball/refs/tags/2.0.2
+  sha256: bb10c9350e4e5ec62371fda2d364e39299f80955223985c6f01186b173eded52
 
 build:
   noarch: python
@@ -19,36 +19,36 @@ build:
 
 requirements:
   host:
-    - pip
-    - python ==${{ python_min }}
-    - setuptools
-    - wheel
-    - docutils
-    - testtools
-    - fixtures
-    - cryptography
-    - jinja2
-    - packaging
-    - pyyaml
+  - pip
+  - python ==${{ python_min }}
+  - setuptools
+  - wheel
+  - docutils
+  - testtools
+  - fixtures
+  - cryptography
+  - jinja2
+  - packaging
+  - pyyaml
   run:
-    - python >=${{ python_min }},<4.0.0
-    - pbr >=1.8
-    - cryptography
-    - jinja2
-    - packaging
+  - python >=${{ python_min }},<4.0.0
+  - pbr >=1.8
+  - cryptography
+  - jinja2
+  - packaging
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Python library package
-        - site-packages/testresources/__init__.py
+    - site-packages/testresources/__init__.py
 
   # Test 2: Python import test
-  - script:
-      interpreter: python
-      content: |
-        import testresources
+- script:
+    interpreter: python
+    content: |
+      import testresources
 
 about:
   summary: Testresources, a pyunit extension for managing expensive test resources
@@ -59,7 +59,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+)
+    - ^(\d+\.\d+\.\d+)

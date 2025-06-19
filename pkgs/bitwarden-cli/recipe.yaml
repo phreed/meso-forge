@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/bitwarden/clients/archive/refs/tags/cli-v${{ version }}.tar.gz
-  sha256: 247ca881c8a9f407c494977f7e8555fe11beff017d0cfda6a6d437ec0c0978d6
+  url: https://api.github.com/repos/bitwarden/clients/tarball/cli-v2025.5.0
+  sha256: f48e0d908c31dbce4fb08ed8fb40741889bee89aba0bab9c973194d520c6726d
 
 build:
   number: 0
@@ -49,34 +49,34 @@ build:
 
 requirements:
   build:
-    - nushell
-    - yarn
-    - webpack-cli
+  - nushell
+  - yarn
+  - webpack-cli
   host:
-    - nodejs
-    - jest
+  - nodejs
+  - jest
 
   run:
-    - nodejs
+  - nodejs
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Bitwarden CLI wrapper script
-        - ${{ "Library/" if win }}bin/bw${{ ".bat" if win }}
+    - ${{ "Library/" if win }}bin/bw${{ ".bat" if win }}
         # JavaScript application files
-        - ${{ "Library/" if win }}lib/bitwarden-cli/bw.js
-        - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/.bin/acorn
+    - ${{ "Library/" if win }}lib/bitwarden-cli/bw.js
+    - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/.bin/acorn
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^bw --version
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^bw --version
 
 about:
   homepage: https://bitwarden.com/help/cli/
@@ -94,7 +94,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-release:
-      - ^cli-v(\d+\.\d+\.\d+)
+    - ^cli-v(\d+\.\d+\.\d+)

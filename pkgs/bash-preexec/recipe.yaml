@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/rcaloras/bash-preexec/archive/refs/tags/${{ version }}.tar.gz
-  sha256: 23c589cd1da209c0598f92fac8d81bb11632ba1b2e68ccaf4ad2c4f3204b877c
+  url: https://api.github.com/repos/rcaloras/bash-preexec/tarball/refs/tags/0.5.0
+  sha256: d30ffb4c0b355da22526532196c20e871569fdedb26d1372094199e4fb42f437
 
 build:
   noarch: generic
@@ -24,23 +24,23 @@ build:
 
 requirements:
   build:
-    - nushell
+  - nushell
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Bash preexec profile script
-        - etc/profile.d/bash-preexec.sh
+    - etc/profile.d/bash-preexec.sh
 
   # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        ^test -f ($env.PREFIX | path join "etc" "profile.d" "bash-preexec.sh")
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content: |
+      ^test -f ($env.PREFIX | path join "etc" "profile.d" "bash-preexec.sh")
 
 about:
   homepage: https://github.com/rcaloras/bash-preexec
@@ -54,4 +54,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

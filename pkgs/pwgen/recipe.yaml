@@ -9,10 +9,10 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/tytso/pwgen/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 8d6e94f28655e61d6126290e3eafad4d17d7fba0d0d354239522a740a270bb2f
+  url: https://api.github.com/repos/tytso/pwgen/tarball/refs/tags/v2.08
+  sha256: 4df811e5ee1e35e8bb81f1a9c07b99e8ecde10047a758e48ae7634780ea5ebc4
   patches:
-    - ./patches/10-run-autoupdate.patch
+  - ./patches/10-run-autoupdate.patch
 
 build:
   number: 0
@@ -72,34 +72,34 @@ build:
 
 requirements:
   build:
-    - nushell
-    - ${{ compiler('c') }}
+  - nushell
+  - ${{ compiler('c') }}
     # - ${{ stdlib('c') }}
-    - autoconf
-    - automake
-    - make
+  - autoconf
+  - automake
+  - make
 
 tests:
   # Test 1: Verify binary and documentation are included in package
-  - package_contents:
-      files:
-        - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
-        - ${{ "Library/" if win }}share/man/man1/pwgen.1
+- package_contents:
+    files:
+    - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
+    - ${{ "Library/" if win }}share/man/man1/pwgen.1
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^pwgen --secure 20 10
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^pwgen --secure 20 10
 
 about:
   homepage: https://pwgen.sourceforge.net/
   license: GPL-2.0-only
   license_file:
-    - debian/copyright
+  - debian/copyright
   summary: Password generator
   description: |
     pwgen generates random, meaningless but pronounceable passwords.
@@ -109,7 +109,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+)
+    - ^(\d+\.\d+)

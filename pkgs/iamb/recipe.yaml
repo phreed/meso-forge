@@ -40,7 +40,7 @@ tests:
         # iamb binary
         - ${{ "Library/" if win }}bin/iamb${{ ".exe" if win }}
 
-  # Test 2: Functional tests
+    # Test 2: Functional tests
   - requirements:
       build:
         - nushell
@@ -62,3 +62,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+.*)

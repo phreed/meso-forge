@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/Canop/dysk/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 3b7576b700b11052123a91780a6af26fbbd2560ad31fef917af8df8fcceffa04
+  url: https://api.github.com/repos/Canop/dysk/tarball/refs/tags/v2.10.1
+  sha256: ac77cd0ed28bef37826feee9adc770a8af9b8f410397d9dd0370dd8797266ead
 
 build:
   number: 0
@@ -21,10 +21,10 @@ build:
 
 requirements:
   build:
-    - nushell
-    - rust
+  - nushell
+  - rust
   host:
-    - rust
+  - rust
   run:
     # - if: linux
     #   then:
@@ -32,20 +32,20 @@ requirements:
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Dysk binary
-        - ${{ "Library/" if win }}bin/dysk${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/dysk${{ ".exe" if win }}
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        ^dysk -s free-d | ^grep "filesystem"
-        ^dysk --version | ^grep ${{ version }}
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content: |
+      ^dysk -s free-d | ^grep "filesystem"
+      ^dysk --version | ^grep ${{ version }}
 
 about:
   homepage: https://dystroy.org/dysk/
@@ -56,4 +56,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

@@ -9,10 +9,10 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/metashell/metashell/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 028e37be072ec4e85d18ead234a208d07225cf335c0bb1c98d4d4c3e30c71f0e
+  url: https://api.github.com/repos/metashell/metashell/tarball/v5.0.0
+  sha256: 3d07c8d90f456dff9091f72903fe2127b2e3e32346f40e6afcbac4b034ec1d3c
   patches:
-    - ./patches/01-include-missiong-cstddef.patch
+  - ./patches/01-include-missiong-cstddef.patch
 
 build:
   number: 0
@@ -27,36 +27,36 @@ build:
 
 requirements:
   build:
-    - nushell
-    - ${{ compiler('c') }}
-    - ${{ compiler('cxx') }}
+  - nushell
+  - ${{ compiler('c') }}
+  - ${{ compiler('cxx') }}
     # - ${{ stdlib('c') }}
-    - cmake
+  - cmake
   host:
-    - if: linux
-      then:
-        - libedit
-        - libxml2
-        - zlib
-        - readline
+  - if: linux
+    then:
+    - libedit
+    - libxml2
+    - zlib
+    - readline
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Metashell binary
-        - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
 
   # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        "template <class T> struct add_const { using type = const T; };
-        add_const<int>::type" | save test.hpp
-        ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content: |
+      "template <class T> struct add_const { using type = const T; };
+      add_const<int>::type" | save test.hpp
+      ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
 
 about:
   homepage: http://metashell.org
@@ -66,4 +66,4 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed

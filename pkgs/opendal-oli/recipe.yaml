@@ -9,41 +9,41 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/apache/opendal/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 3e0f17600e7d7c542d915ce9f6f68e547a79aef6c2771e94a4d8bf382f406ace
+  url: https://api.github.com/repos/apache/opendal/tarball/refs/tags/v0.53.3
+  sha256: 9406070cdcfed6acf55d4c3802e82a1e51fa715cac2cbf74d6f7277a8b56c876
 
 build:
   script:
-    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml # !(1)
-    - $BUILD_PREFIX/bin/cargo install --locked --bins --root ${PREFIX} --path .
+  - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml   # !(1)
+  - $BUILD_PREFIX/bin/cargo install --locked --bins --root ${PREFIX} --path .
 
 requirements:
   build:
-    - ${{ compiler('rust') }}
-    - cargo-bundle-licenses
+  - ${{ compiler('rust') }}
+  - cargo-bundle-licenses
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # OpenDAL oli binary
-        - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
 
   # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^oli --help # !(2)
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^oli --help     # !(2)
 
 about:
   homepage: https://opendal.apache.org/apps/oli/
   license: Apache-2.0
   license_file:
-    - LICENSE
-    - THIRDPARTY.yml
+  - LICENSE
+  - THIRDPARTY.yml
   summary: Apache OpenDAL™ Oli
   description: |
     oli stands for OpenDAL Command Line Interface
@@ -53,7 +53,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+)
+    - ^(\d+\.\d+\.\d+)

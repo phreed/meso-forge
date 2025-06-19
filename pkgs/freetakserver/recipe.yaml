@@ -10,16 +10,16 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v${{ version }}.tar.gz
-    sha256: 14a16adb3260b82b097807596d69002322522ebc43e40c382a54bdc6f9f61a8b
-  - if: linux
-    then:
-      path: systemd/freetakserver.service
-      target_directory: systemd
-  - if: linux
-    then:
-      path: systemd/freetakserver-setup.sh
-      target_directory: systemd
+- url: https://api.github.com/repos/FreeTAKTeam/FreeTakServer/tarball/refs/tags/v2.2.1
+  sha256: 6c333442ae890b271de6d6d4733ddb49f5a359937b0d880de9cf8d3a8b52acb4
+- if: linux
+  then:
+    path: systemd/freetakserver.service
+    target_directory: systemd
+- if: linux
+  then:
+    path: systemd/freetakserver-setup.sh
+    target_directory: systemd
 
 build:
   number: 0
@@ -41,82 +41,82 @@ build:
 
 requirements:
   host:
-    - pip
-    - python >=${{ python_min }}
-    - poetry-core
+  - pip
+  - python >=${{ python_min }}
+  - poetry-core
   run:
-    - python >=${{ python_min }},<4.0.0
+  - python >=${{ python_min }},<4.0.0
     # - asyncio 3.4.3.*
-    - bcrypt
-    - bitarray
-    - click >=8.1.3
-    - colorama >= 0.4.6
-    - connexion >= 2.6.0
-    - connexion-with-swagger-ui >= 2.6.0
-    - cryptography
-    - defusedxml 0.7.1.*
-    - digitalpy # 0.3.13.7.*
-    - dnspython
-    - eventlet 0.35.2.*
-    - flask 3.0.2.*
-    - flask-cors 4.0.0.*
-    - flask-httpauth 4.8.0.*
-    - flask-login 0.6.3.*
-    - flask-socketio 5.3.6.*
-    - flask-sqlalchemy 3.1.1.*
-    - geographiclib 1.52.*
-    - geopy 2.2.0.*
-    - greenlet 3.1.1.*
-    - itsdangerous >=2.0.1
-    - jinja2 3.1.3.*
-    - lxml
-    - markupsafe 2.1.5.*
-    - monotonic 1.6.*
-    - opentelemetry-sdk
-    - pathlib2 2.3.7.post1.*
-    - pillow 11.0.0.*
-    - protobuf
-    - psutil 6.1.1.*
-    - pyjwt
-    - pykml 0.2.0.*
-    - pyopenssl
-    - python-dateutil 2.7.0.*
-    - python-engineio 4.11.2.*
-    - python-socketio 5.11.1.*
-    - pyyaml 6.0.2.*
-    - pyzmq
-    - qrcode 7.3.1.*
-    - ruamel.yaml 0.18.10.*
-    - ruamel.yaml.clib 0.2.8.*
-    - six 1.16.0.*
-    - sqlalchemy 2.0.38.*
-    - swagger-ui-bundle >=0.0.2
-    - tabulate 0.8.7.*
-    - testresources 2.0.2.*
-    - werkzeug 3.0.1.*
-    - wtforms 2.3.3.*
-    - xmltodict
+  - bcrypt
+  - bitarray
+  - click >=8.1.3
+  - colorama >= 0.4.6
+  - connexion >= 2.6.0
+  - connexion-with-swagger-ui >= 2.6.0
+  - cryptography
+  - defusedxml 0.7.1.*
+  - digitalpy   # 0.3.13.7.*
+  - dnspython
+  - eventlet 0.35.2.*
+  - flask 3.0.2.*
+  - flask-cors 4.0.0.*
+  - flask-httpauth 4.8.0.*
+  - flask-login 0.6.3.*
+  - flask-socketio 5.3.6.*
+  - flask-sqlalchemy 3.1.1.*
+  - geographiclib 1.52.*
+  - geopy 2.2.0.*
+  - greenlet 3.1.1.*
+  - itsdangerous >=2.0.1
+  - jinja2 3.1.3.*
+  - lxml
+  - markupsafe 2.1.5.*
+  - monotonic 1.6.*
+  - opentelemetry-sdk
+  - pathlib2 2.3.7.post1.*
+  - pillow 11.0.0.*
+  - protobuf
+  - psutil 6.1.1.*
+  - pyjwt
+  - pykml 0.2.0.*
+  - pyopenssl
+  - python-dateutil 2.7.0.*
+  - python-engineio 4.11.2.*
+  - python-socketio 5.11.1.*
+  - pyyaml 6.0.2.*
+  - pyzmq
+  - qrcode 7.3.1.*
+  - ruamel.yaml 0.18.10.*
+  - ruamel.yaml.clib 0.2.8.*
+  - six 1.16.0.*
+  - sqlalchemy 2.0.38.*
+  - swagger-ui-bundle >=0.0.2
+  - tabulate 0.8.7.*
+  - testresources 2.0.2.*
+  - werkzeug 3.0.1.*
+  - wtforms 2.3.3.*
+  - xmltodict
   run_constraints:
-    - freetakserver-ui 2.2.1.*
-    - pytak 5.4.1.*
-    - pytest 7.2.0.*
-    - pytest-asyncio 0.20.1.*
+  - freetakserver-ui 2.2.1.*
+  - pytak 5.4.1.*
+  - pytest 7.2.0.*
+  - pytest-asyncio 0.20.1.*
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Python package files
-        - site-packages/FreeTAKServer/__init__.py
+    - site-packages/FreeTAKServer/__init__.py
         # Systemd files (Linux only)
-        - ${{ "lib/systemd/system/freetakserver.service" if linux }}
-        - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
+    - ${{ "lib/systemd/system/freetakserver.service" if linux }}
+    - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
 
   # Test 2: Python import test
-  - script:
-      interpreter: python
-      content: |
-        import digitalpy
+- script:
+    interpreter: python
+    content: |
+      import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/FreeTakServer
@@ -127,10 +127,13 @@ about:
     It is used by civilian and military organization for planning.
   license: EPL-2.0
   license_file:
-    - LICENSE
+  - LICENSE
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/FreeTakServer
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

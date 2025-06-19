@@ -11,8 +11,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
+  url: https://api.github.com/repos/FreeTAKTeam/DigitalPy/tarball/refs/tags/v0.3.15
+  sha256: 86b36fd8983866f9a19813594a7144fa693613f38db5e7b78a833864b7536052
 
 build:
   noarch: python
@@ -20,56 +20,56 @@ build:
 
 requirements:
   host:
-    - pip
-    - python >=${{ python_min }},<${{ python_max }}
-    - setuptools
-    - wheel
-    - poetry-core
-    - flask-cors
-    - flask-jwt-extended
-    - lxml
-    - opentelemetry-sdk
-    - psutil
-    - requests
-    - ruamel.yaml
-    - sqlalchemy
-    - xmltodict
-    - cryptography
-    - jinja2
-    - packaging
-    - pyyaml
+  - pip
+  - python >=${{ python_min }},<${{ python_max }}
+  - setuptools
+  - wheel
+  - poetry-core
+  - flask-cors
+  - flask-jwt-extended
+  - lxml
+  - opentelemetry-sdk
+  - psutil
+  - requests
+  - ruamel.yaml
+  - sqlalchemy
+  - xmltodict
+  - cryptography
+  - jinja2
+  - packaging
+  - pyyaml
   run:
-    - python >=${{ python_min }},<${{ python_max }}
-    - rule-engine
-    - cryptography
-    - packaging
-    - pyyaml
-    - pyzmq
-    - flask-cors
-    - flask-jwt-extended
-    - lxml
-    - opentelemetry-sdk
-    - psutil
-    - requests
-    - ruamel.yaml
-    - setuptools
-    - sqlalchemy
-    - xmltodict
+  - python >=${{ python_min }},<${{ python_max }}
+  - rule-engine
+  - cryptography
+  - packaging
+  - pyyaml
+  - pyzmq
+  - flask-cors
+  - flask-jwt-extended
+  - lxml
+  - opentelemetry-sdk
+  - psutil
+  - requests
+  - ruamel.yaml
+  - setuptools
+  - sqlalchemy
+  - xmltodict
   run_exports:
-    - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
+  - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Python library package
-        - site-packages/digitalpy/__init__.py
+    - site-packages/digitalpy/__init__.py
 
   # Test 2: Python import test
-  - script:
-      interpreter: python
-      content: |
-        import digitalpy
+- script:
+    interpreter: python
+    content: |
+      import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/DigitalPy
@@ -82,4 +82,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

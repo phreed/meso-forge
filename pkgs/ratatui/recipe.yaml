@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/ratatui/ratatui/archive/refs/tags/ratatui-v${{ version }}-alpha.2.tar.gz
-  sha256: 047398b1b54f790ac084eb3be33864110d59fde8010e06a6b5d96578e37845f6
+  url: https://api.github.com/repos/ratatui/ratatui/tarball/ratatui-v0.30.0-alpha.4
+  sha256: e0c177d5830559cba0a73100a10810f596572ea4d4550bccc9e5d1437e9e1fd7
 
 build:
   number: 0
@@ -30,33 +30,33 @@ build:
 
 requirements:
   build:
-    - nushell
-    - rust
-    - pkgconf
+  - nushell
+  - rust
+  - pkgconf
 
 tests:
   # Test 1: Verify package marker file is included
-  - package_contents:
-      files:
-        - share/ratatui-info.txt
+- package_contents:
+    files:
+    - share/ratatui-info.txt
 
   # Test 2: Functional validation
-  - requirements:
-      build:
-        - nushell
-        - rust
-    script:
-      interpreter: nu
-      content:
+- requirements:
+    build:
+    - nushell
+    - rust
+  script:
+    interpreter: nu
+    content:
         # Simple validation test
-        - if ($env.PREFIX | path join "share" "ratatui-info.txt" | path exists) { echo "✓ Package marker found" } else { exit 1 }
-        - echo "✓ Ratatui package test passed"
+    - if ($env.PREFIX | path join "share" "ratatui-info.txt" | path exists) { echo "✓ Package marker found" } else { exit 1 }
+    - echo "✓ Ratatui package test passed"
 
 about:
   homepage: https://ratatui.rs
   license: MIT
   license_file:
-    - LICENSE
+  - LICENSE
   summary: A Rust crate for cooking TUIs
   description: |
     Ratatui is a Rust crate for cooking up terminal user interfaces (TUIs).
@@ -69,4 +69,4 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed

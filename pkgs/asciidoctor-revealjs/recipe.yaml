@@ -9,48 +9,48 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://rubygems.org/downloads/asciidoctor-revealjs-${{ version }}.gem
-    sha256: 3504a5e7eaf2c91de37f96189314ffb1e6bf94dad9d646d5c9a24c6691bf6ae2
+- url: https://rubygems.org/downloads/asciidoctor-revealjs-${{ version }}.gem
+  sha256: 3504a5e7eaf2c91de37f96189314ffb1e6bf94dad9d646d5c9a24c6691bf6ae2
 
 build:
   number: 0
   noarch: generic
   script:
-    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-revealjs-${{ version }}.gem
-    - gem unpack asciidoctor-revealjs-${{ version }}.gem
-    - cp asciidoctor-revealjs-${{ version }}/LICENSE.adoc LICENSE.adoc
+  - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-revealjs-${{ version }}.gem
+  - gem unpack asciidoctor-revealjs-${{ version }}.gem
+  - cp asciidoctor-revealjs-${{ version }}/LICENSE.adoc LICENSE.adoc
 
 requirements:
   host:
-    - ruby
+  - ruby
   run:
-    - ${{ pin_compatible('ruby', upper_bound='x.x') }}
-    - asciidoctor >=1.5.0
+  - ${{ pin_compatible('ruby', upper_bound='x.x') }}
+  - asciidoctor >=1.5.0
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Asciidoctor Reveal.js binary
-        - ${{ "Library/" if win }}bin/asciidoctor-revealjs${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/asciidoctor-revealjs${{ ".exe" if win }}
 
   # Test 2: Ruby import test
-  - requirements:
-      build:
-        - ruby
-    script:
-      interpreter: ruby
-      content: |
-        require 'asciidoctor-revealjs'
+- requirements:
+    build:
+    - ruby
+  script:
+    interpreter: ruby
+    content: |
+      require 'asciidoctor-revealjs'
 
   # Test 3: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^asciidoctor-revealjs --version
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^asciidoctor-revealjs --version
 
 about:
   homepage: https://github.com/asciidoctor/asciidoctor-reveal.js
@@ -65,7 +65,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     rubygems:
-      - ^(\d+\.\d+\.\d+)
+    - ^(\d+\.\d+\.\d+)

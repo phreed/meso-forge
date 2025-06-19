@@ -9,17 +9,17 @@ package:
   name: mediamtx
 
 source:
-  - url: https://github.com/bluenviron/mediamtx/archive/refs/tags/v${{ version }}.tar.gz
-    sha256: 0059f748ad37cbc467b6370caddeb661c152e304f4eb2fd51d2b0dc8d2e72554
-    target_directory: src/mediamtx
-  - if: linux
-    then:
-      path: systemd/mediamtx.service
-      target_directory: systemd/mediamtx.service
-  - if: linux
-    then:
-      path: systemd/mediamtx-setup.sh
-      target_directory: systemd/mediamtx-setup.sh
+- url: https://api.github.com/repos/bluenviron/mediamtx/tarball/v1.12.3
+  sha256: 8eabf02fd5c85628bcf5b789b3149b3f76de096905ce9a5d8718b1c7ca8a57f2
+  target_directory: src/mediamtx
+- if: linux
+  then:
+    path: systemd/mediamtx.service
+    target_directory: systemd/mediamtx.service
+- if: linux
+  then:
+    path: systemd/mediamtx-setup.sh
+    target_directory: systemd/mediamtx-setup.sh
 
 build:
   number: 0
@@ -81,31 +81,31 @@ build:
 
 requirements:
   build:
-    - nushell
+  - nushell
     # For static binaries without C dependencies
-    - ${{ compiler('go-nocgo') }}
-    - go-licenses
+  - ${{ compiler('go-nocgo') }}
+  - go-licenses
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # MediaMTX binary
-        - ${{ "Library/" if win }}bin/mediamtx${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/mediamtx${{ ".exe" if win }}
         # Systemd files (Linux only)
-        - ${{ "lib/systemd/system/mediamtx.service" if linux }}
-        - ${{ "bin/mediamtx-setup.sh" if linux }}
+    - ${{ "lib/systemd/system/mediamtx.service" if linux }}
+    - ${{ "bin/mediamtx-setup.sh" if linux }}
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
         # Test that the binary works
-        - ^mediamtx --version
-        - ^mediamtx --help
+    - ^mediamtx --version
+    - ^mediamtx --help
 
 about:
   homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md
@@ -116,11 +116,11 @@ about:
       It has been conceived as a "media router" that routes media streams from one end to the other.
   license: Apache-2.0
   license_file:
-    - src/mediamtx/LICENSE
-    - license-files/
+  - src/mediamtx/LICENSE
+  - license-files/
   documentation: https://github.com/bluenviron/mediamtx/blob/main/README.md
   repository: https://github.com/bluenviron/mediamtx
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed

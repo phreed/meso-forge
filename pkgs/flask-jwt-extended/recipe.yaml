@@ -10,8 +10,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/vimalloc/flask-jwt-extended/archive/refs/tags/${{ version }}.tar.gz
-  sha256: c5bba87248b2253537891511f928dd3b51faf74e8e5ec1746529a6a36d819b9a
+  url: https://api.github.com/repos/vimalloc/flask-jwt-extended/tarball/refs/tags/4.7.1
+  sha256: 99f1e7107d4593925e027854b5a2c7afd6b590a2a875474ecd7082db74a23fcd
 
 build:
   noarch: python
@@ -19,31 +19,31 @@ build:
 
 requirements:
   host:
-    - pip
-    - python ==${{ python_min }}
-    - setuptools
-    - wheel
+  - pip
+  - python ==${{ python_min }}
+  - setuptools
+  - wheel
   run:
-    - python >=${{ python_min }},<4.0.0
-    - flask >=2.0,<4.0
-    - pyjwt >=2.0,<3.0
-    - werkzeug >=0.14
+  - python >=${{ python_min }},<4.0.0
+  - flask >=2.0,<4.0
+  - pyjwt >=2.0,<3.0
+  - werkzeug >=0.14
   run_exports:
     weak:
-      - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
+    - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Python library package
-        - site-packages/flask_jwt_extended/__init__.py
+    - site-packages/flask_jwt_extended/__init__.py
 
   # Test 2: Python import tests
-  - script:
-      interpreter: python
-      content: |
-        import flask_jwt_extended
+- script:
+    interpreter: python
+    content: |
+      import flask_jwt_extended
 
 about:
   homepage: https://github.com/vimalloc/flask-jwt-extended
@@ -57,4 +57,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+  version:
+    github-tags:
+    - ^(\d+\.\d+\.\d+)$

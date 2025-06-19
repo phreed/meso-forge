@@ -18,8 +18,8 @@ package:
 
 source:
   # Source archive from GitHub release: https://github.com/apache/nifi/releases/tag/rel%2Fnifi-2.4.0
-  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/rel/nifi-${{ version }}.tar.gz
-  sha256: "d4da6800216eecf27246fe973b2f19fef961cf5125c6e14fbe1d7efdb295b21a"
+  url: https://api.github.com/repos/apache/nifi/tarball/refs/tags/rel/nifi-2.4.0
+  sha256: "10743a1a6c747d803acb46f8ad7779b86db394e819432301d65b58a8b84c8887"
   # GitHub archive extracts to nifi-rel-nifi-2.4.0 directory
   target_directory: nifi-rel-nifi-${{ version }}
 
@@ -145,88 +145,88 @@ build:
 
 requirements:
   build:
-    - nushell
-    - openjdk=${{ java_version }}
-    - maven >=3.6.0
+  - nushell
+  - openjdk=${{ java_version }}
+  - maven >=3.6.0
     # NiFi build requirements
-    - unzip # For extracting the assembly
-    - tar
-    - gzip
+  - unzip   # For extracting the assembly
+  - tar
+  - gzip
 
   host:
-    - openjdk=${{ java_version }}
+  - openjdk=${{ java_version }}
 
   run:
-    - openjdk=${{ java_version }}
+  - openjdk=${{ java_version }}
     # NiFi runtime requirements
-    - which # Used by NiFi scripts
+  - which   # Used by NiFi scripts
 
 tests:
   # Test 1: Basic NiFi command execution
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
         # Test NiFi status command (should work without starting NiFi)
-        - ^nifi status
+    - ^nifi status
         # Test help command
-        - try { ^nifi --help } catch { ^nifi help }
+    - try { ^nifi --help } catch { ^nifi help }
 
   # Test 2: Java version compatibility
-  - script:
-      interpreter: nu
-      content: |
-        print "Testing Java version compatibility..."
+- script:
+    interpreter: nu
+    content: |
+      print "Testing Java version compatibility..."
 
-        let java_version = (java -version 2>&1 | lines | first | parse 'version "{version}"' | get version.0)
-        print $"Java version: ($java_version)"
+      let java_version = (java -version 2>&1 | lines | first | parse 'version "{version}"' | get version.0)
+      print $"Java version: ($java_version)"
 
-        # Verify it's Java 21
-        if not ($java_version | str starts-with "21") {
-            error make {msg: $"Expected Java 21, got ($java_version)"}
-        }
+      # Verify it's Java 21
+      if not ($java_version | str starts-with "21") {
+          error make {msg: $"Expected Java 21, got ($java_version)"}
+      }
 
-        print "Java compatibility test passed!"
+      print "Java compatibility test passed!"
 
   # Test 3: NiFi installation structure validation
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Application files
-        - ${{ "Library/" if win }}bin/nifi${{ ".bat" if win }}
-        - ${{ "Library/" if win }}libexec/nifi/bin/nifi.sh
-        - ${{ "Library/" if win }}libexec/nifi/conf/nifi.properties
-        - ${{ "Library/" if win }}libexec/nifi/lib/nifi-api-*.jar
-        - ${{ "Library/" if win }}share/nifi/README
+    - ${{ "Library/" if win }}bin/nifi${{ ".bat" if win }}
+    - ${{ "Library/" if win }}libexec/nifi/bin/nifi.sh
+    - ${{ "Library/" if win }}libexec/nifi/conf/nifi.properties
+    - ${{ "Library/" if win }}libexec/nifi/lib/nifi-api-*.jar
+    - ${{ "Library/" if win }}share/nifi/README
 
   # Test 4: NiFi configuration validation
-  - script:
-      interpreter: nu
-      content: |
-        print "Validating NiFi installation..."
+- script:
+    interpreter: nu
+    content: |
+      print "Validating NiFi installation..."
 
-        let nifi_home = if ($nu.os-info.name == "windows") {
-            $env.LIBRARY_PREFIX | path join "libexec" "nifi"
-        } else {
-            $env.PREFIX | path join "libexec" "nifi"
-        }
+      let nifi_home = if ($nu.os-info.name == "windows") {
+          $env.LIBRARY_PREFIX | path join "libexec" "nifi"
+      } else {
+          $env.PREFIX | path join "libexec" "nifi"
+      }
 
-        # Check if essential NiFi files exist
-        let essential_files = [
-            "conf/nifi.properties",
-            "conf/bootstrap.conf",
-            "conf/logback.xml"
-        ]
+      # Check if essential NiFi files exist
+      let essential_files = [
+          "conf/nifi.properties",
+          "conf/bootstrap.conf",
+          "conf/logback.xml"
+      ]
 
-        for file in $essential_files {
-            let file_path = ($nifi_home | path join $file)
-            if not ($file_path | path exists) {
-                error make {msg: $"Essential NiFi file missing: ($file)"}
-            }
-        }
+      for file in $essential_files {
+          let file_path = ($nifi_home | path join $file)
+          if not ($file_path | path exists) {
+              error make {msg: $"Essential NiFi file missing: ($file)"}
+          }
+      }
 
-        print "NiFi installation validation passed!"
+      print "NiFi installation validation passed!"
 
 about:
   homepage: https://nifi.apache.org
@@ -252,12 +252,16 @@ about:
 
   license: Apache-2.0
   license_file:
-    - LICENSE
-    - NOTICE
+  - LICENSE
+  - NOTICE
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
+
+  version:
+    github-tags:
+    - ^rel/nifi-(\d+\.\d+\.\d+)
 
   # Additional metadata for NiFi
   jvm:

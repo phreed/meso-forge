@@ -9,12 +9,9 @@ package:
   version: ${{ version }}
 
 source:
-  git: https://github.com/dceejay/RedMap.git
-  rev: e5cdd1258dc62b553d0f753892adf53e2e9f577c
+  url: https://api.github.com/repos/dceejay/RedMap/tarball/refs/tags/v5.1.4
+  sha256: cf3fae47c6b7f670ab290010492326671750f54f2a8e4fd812b9a0fb68cb1656
   target_directory: node-red-worldmap
-  # url: https://registry.npmjs.org/node-red-contrib-web-worldmap/-/node-red-worldmap-${{ version }}.tgz
-  # sha256: 06db0a456ec02c74954b6e01400da3f881835c3384617c63d788f95b444291ae
-  # file_name: node-red-worldmap-${{ version }}.tgz
 
 build:
   script:
@@ -48,7 +45,7 @@ tests:
         # Node-RED Worldmap Node.js package
         - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/package.json
 
-  # Test 2: Functional test
+    # Test 2: Functional test
   - requirements:
       build:
         - nushell
@@ -73,3 +70,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)$
