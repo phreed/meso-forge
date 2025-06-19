@@ -146,48 +146,51 @@ def retract-from-prefix-dev [
         let package_file = $"($package)-($version)-($platform).conda"
         let api_url = $"https://prefix.dev/api/v1/delete/($channel)/($platform)/($package_file)"
 
-        let cmd = [
-            "curl", "-X", "DELETE",
-            "-H", $"Authorization: Bearer ($api_token)",
-            "-w", "%{http_code}",
-            "-s", "-S",
-            $api_url
-        ]
-
         if $verbose or $dry_run {
             print $"API URL: ($api_url)"
-            print $"Command: curl -X DELETE -H \"Authorization: Bearer [REDACTED]\" ($api_url)"
+            print $"Command: http delete ($api_url) --headers [Authorization \"Bearer [REDACTED]\"]"
         }
 
         if not $dry_run {
             print $"🗑️  Deleting: ($package_file)"
 
-            let result = run-external-with-status "curl" $cmd.1..
+            let result = try {
+                http delete $api_url --headers [Authorization $"Bearer ($api_token)"]
+                {status: 200, success: true}
+            } catch { |e|
+                if ($e.msg | str contains "404") {
+                    {status: 404, success: false, error: "Not found"}
+                } else if ($e.msg | str contains "401") {
+                    {status: 401, success: false, error: "Authentication failed"}
+                } else if ($e.msg | str contains "403") {
+                    {status: 403, success: false, error: "Permission denied"}
+                } else {
+                    {status: 500, success: false, error: $e.msg}
+                }
+            }
 
-            match $result.status_code {
-                200 | 204 => {
-                    print $"✅ Successfully deleted: ($package_file)"
-                }
-                404 => {
-                    print -e $"❌ Package not found: ($package_file)"
-                    if $verbose {
-                        print -e $"   The package may have already been deleted or never existed"
+            if $result.success {
+                print $"✅ Successfully deleted: ($package_file)"
+            } else {
+                match $result.status {
+                    404 => {
+                        print -e $"❌ Package not found: ($package_file)"
+                        if $verbose {
+                            print -e $"   The package may have already been deleted or never existed"
+                        }
                     }
-                }
-                401 => {
-                    print -e $"❌ Authentication failed for: ($package_file)"
-                    print -e $"   Check your PREFIX_API_TOKEN"
-                }
-                403 => {
-                    print -e $"❌ Permission denied for: ($package_file)"
-                    print -e $"   You may not have delete permissions for this channel"
-                }
-                _ => {
-                    print -e $"❌ Failed to delete: ($package_file) (HTTP $result.status_code)"
-                    if $verbose {
-                        print -e $"   Response: ($result.stdout)"
-                        if not ($result.stderr | is-empty) {
-                            print -e $"   Error: ($result.stderr)"
+                    401 => {
+                        print -e $"❌ Authentication failed for: ($package_file)"
+                        print -e $"   Check your PREFIX_API_TOKEN"
+                    }
+                    403 => {
+                        print -e $"❌ Permission denied for: ($package_file)"
+                        print -e $"   You may not have delete permissions for this channel"
+                    }
+                    _ => {
+                        print -e $"❌ Failed to delete: ($package_file) (HTTP $result.status)"
+                        if $verbose and "error" in $result {
+                            print -e $"   Error: ($result.error)"
                         }
                     }
                 }
@@ -227,7 +230,7 @@ def retract-from-s3 [
         if not $dry_run {
             print $"🗑️  Deleting: ($s3_path)"
 
-            let result = run-external "aws" $cmd.1..
+            let result = (^aws ...$cmd.1.. | complete)
 
             if $result.exit_code == 0 {
                 print $"✅ Successfully deleted: ($package_file)"
@@ -256,7 +259,8 @@ def update-s3-metadata [
     print "🔄 Updating repository metadata..."
 
     let repodata_path = $"($s3_url)/($channel)/($platform)/repodata.json"
-    let temp_dir = mktemp -d
+    let temp_dir = $nu.temp-path | path join $"retract-(date now | format date '%Y%m%d_%H%M%S')_(random int)"
+    mkdir $temp_dir
     let local_repodata = $"($temp_dir)/repodata.json"
 
     # Download current repodata
@@ -266,7 +270,7 @@ def update-s3-metadata [
         print $"Downloading metadata: (($download_cmd | str join ' '))"
     }
 
-    let download_result = run-external "aws" $download_cmd.1..
+    let download_result = (^aws ...$download_cmd.1.. | complete)
 
     if $download_result.exit_code == 0 {
         # Here you would typically update the repodata.json to remove references
@@ -280,7 +284,7 @@ def update-s3-metadata [
     }
 
     # Clean up temp directory
-    rm -rf $temp_dir
+    rm -r $temp_dir
 }
 
 # Helper function to run external commands and capture results
@@ -405,6 +409,7 @@ def get-token-from-auth-file [auth_file: string, channel: string, verbose: bool]
 }
 
 # Helper function to run external commands with HTTP status code parsing
+# Note: This function is kept for compatibility with other external commands
 def run-external-with-status [command: string, ...args] {
     try {
         let output = ^$command ...$args | complete

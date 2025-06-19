@@ -65,7 +65,7 @@ def main [
 }
 
 # Check if package exists in a conda channel
-def "check-conda-channel" [
+export def "check-conda-channel" [
     package: string,
     version: string,
     channel: string,
@@ -73,13 +73,11 @@ def "check-conda-channel" [
 ] {
     print $"Checking ($channel) for ($package)..."
 
-    let search_cmd = if ($version | is-empty) {
-        $"micromamba search -c ($channel) --platform ($platform) ($package) 2>/dev/null"
+    let result = if ($version | is-empty) {
+        (^micromamba search -c $channel --platform $platform $package | complete)
     } else {
-        $"micromamba search -c ($channel) --platform ($platform) '($package)==($version)' 2>/dev/null"
+        (^micromamba search -c $channel --platform $platform $"($package)==($version)" | complete)
     }
-
-    let result = (do { bash -c $search_cmd } | complete)
 
     if $result.exit_code != 0 {
         return {
@@ -142,7 +140,7 @@ def "check-conda-channel" [
 }
 
 # Check local builds
-def "check-local-builds" [
+export def "check-local-builds" [
     package: string,
     version: string,
     platform: string
@@ -192,7 +190,7 @@ def "check-local-builds" [
 }
 
 # Check prefix.dev repository
-def "check-prefix-dev" [
+export def "check-prefix-dev" [
     package: string,
     version: string,
     platform: string
@@ -200,13 +198,11 @@ def "check-prefix-dev" [
     print $"Checking prefix.dev for ($package)..."
 
     # Use micromamba to check prefix.dev
-    let search_cmd = if ($version | is-empty) {
-        $"micromamba search -c https://prefix.dev/meso-forge ($package) --platform ($platform) 2>/dev/null"
+    let result = if ($version | is-empty) {
+        (^micromamba search -c "https://prefix.dev/meso-forge" $package --platform $platform | complete)
     } else {
-        $"micromamba search -c https://prefix.dev/meso-forge '($package)==($version)' --platform ($platform) 2>/dev/null"
+        (^micromamba search -c "https://prefix.dev/meso-forge" $"($package)==($version)" --platform $platform | complete)
     }
-
-    let result = (do { bash -c $search_cmd } | complete)
 
     if $result.exit_code != 0 {
         return {
@@ -266,7 +262,7 @@ def "check-prefix-dev" [
 }
 
 # Check S3 repository
-def "check-s3-repo" [
+export def "check-s3-repo" [
     package: string,
     version: string,
     platform: string
@@ -288,13 +284,11 @@ def "check-s3-repo" [
 
     # Use micromamba with S3 channel
     let s3_channel = "https://minio.isis.vanderbilt.edu/pixi/meso-forge"
-    let search_cmd = if ($version | is-empty) {
-        $"micromamba search -c ($s3_channel) --platform ($platform) ($package) 2>/dev/null"
+    let result = if ($version | is-empty) {
+        (^micromamba search -c $s3_channel --platform $platform $package | complete)
     } else {
-        $"micromamba search -c ($s3_channel) --platform ($platform) '($package)==($version)' 2>/dev/null"
+        (^micromamba search -c $s3_channel --platform $platform $"($package)==($version)" | complete)
     }
-
-    let result = (do { bash -c $search_cmd } | complete)
 
     if $result.exit_code != 0 {
         return {
@@ -416,8 +410,24 @@ export def "check-before-build" [
 ] {
     print $"🔍 Checking if ($package) already exists before building..."
 
-    # Check all common locations
-    let results = main $package --version $version --platform $platform --check_all --check_local --check_prefix --check_s3 --json | from json
+    # Check all common locations - work with native data structures
+    mut results = []
+
+    # Check conda-forge
+    let conda_result = (check-conda-channel $package $version "conda-forge" $platform)
+    $results = ($results | append $conda_result)
+
+    # Check local builds
+    let local_result = (check-local-builds $package $version $platform)
+    $results = ($results | append $local_result)
+
+    # Check prefix.dev
+    let prefix_result = (check-prefix-dev $package $version $platform)
+    $results = ($results | append $prefix_result)
+
+    # Check S3
+    let s3_result = (check-s3-repo $package $version $platform)
+    $results = ($results | append $s3_result)
 
     let remote_found_count = ($results | where found == true and location != "local" | length)
     let remote_found = $remote_found_count > 0
@@ -439,10 +449,10 @@ export def "should-skip-build" [
     package: string,
     --platform: string = "linux-64"
 ] {
-    # Quick check for conda-forge and custom channels
-    let conda_exists = (main $package --platform $platform --channel conda-forge --json | from json | get found)
-    let meso_exists = (main $package --platform $platform --channel https://prefix.dev/meso-forge --json | from json | get found)
-    let prefix_exists = (main $package --platform $platform --check_prefix --json | from json | where location == "prefix.dev/meso-forge" | get found | first)
+    # Quick check for conda-forge and custom channels - work with native data structures
+    let conda_result = (check-conda-channel $package "" "conda-forge" $platform)
+    let meso_result = (check-conda-channel $package "" "https://prefix.dev/meso-forge" $platform)
+    let prefix_result = (check-prefix-dev $package "" $platform)
 
-    return ($conda_exists or $meso_exists or $prefix_exists)
+    return ($conda_result.found or $meso_result.found or $prefix_result.found)
 }

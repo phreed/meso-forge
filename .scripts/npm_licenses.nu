@@ -5,7 +5,7 @@ def main [
 ] {
     let args = if $production { ["--prod"] } else { [] }
 
-    npm list --all --parseable ...$args
+    ^npm list --all --parseable ...$args
     | lines
     | skip 1
     | par-each { |path|

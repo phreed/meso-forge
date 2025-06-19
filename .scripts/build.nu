@@ -5,6 +5,7 @@
 
 use check_package_exists.nu *
 use manifest_utils.nu *
+use std repeat
 
 def main [
     package: string,                         # Package name to build
@@ -160,8 +161,8 @@ def main [
         print ""
         print "Command that would be executed:"
 
-        let cmd = build-command $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
-        print $"   ($cmd)"
+        let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
+        print $"   rattler-build (($cmd_args | str join ' '))"
 
         exit 0
     }
@@ -169,13 +170,13 @@ def main [
     print "🚀 Building package..."
     print ""
 
-    # Build the rattler-build command
-    let cmd_str = build-command $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
-    print $"Running: ($cmd_str)"
+    # Build the rattler-build command arguments
+    let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
+    print $"Running: rattler-build (($cmd_args | str join ' '))"
 
     # Execute build
     let start_time = date now
-    let build_result = (do { bash -c $cmd_str } | complete)
+    let build_result = (^rattler-build ...$cmd_args | complete)
     let duration = ((date now) - $start_time)
 
     if $build_result.exit_code != 0 {
@@ -249,8 +250,8 @@ def main [
     print $"  • Publish to S3 local: pixi run publish-s3-local ($package) ($target_platform)"
 }
 
-# Build the rattler-build command
-def "build-command" [
+# Build the rattler-build command arguments
+def "build-command-args" [
     recipe_dir: string,
     output_dir: string,
     platform: string,
@@ -258,8 +259,8 @@ def "build-command" [
     no_test: bool,
     verbose: bool
 ] {
-    mut cmd_parts = [
-        "rattler-build", "build",
+    mut cmd_args = [
+        "build",
         "--recipe-dir", $recipe_dir,
         "--output-dir", $output_dir,
         $"--skip-existing=($skip_existing)",
@@ -268,16 +269,16 @@ def "build-command" [
     ]
 
     if $no_test {
-        $cmd_parts = ($cmd_parts | append "--no-test")
+        $cmd_args = ($cmd_args | append "--no-test")
     }
 
     if $verbose {
-        $cmd_parts = ($cmd_parts | append "-vvv")
+        $cmd_args = ($cmd_args | append "-vvv")
     } else {
-        $cmd_parts = ($cmd_parts | append "-v")
+        $cmd_args = ($cmd_args | append "-v")
     }
 
-    $cmd_parts | str join " "
+    $cmd_args
 }
 
 # Update the manifest file with build information
@@ -471,7 +472,7 @@ export def "package-status" [
     --platform: string = "linux-64"
 ] {
     print $"📊 Status for ($package) on ($platform)"
-    print "=" * 40
+    print (1..40 | each { "=" } | str join "")
 
     # Check all locations
     print ""

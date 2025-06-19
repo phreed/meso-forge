@@ -75,17 +75,17 @@ def main [
         print ""
     }
 
-    # Build the publish command
-    let cmd = if $method == "pd" {
-        let verbosity = if $verbose { "-vvv" } else { "-v" }
+    # Build the publish command arguments
+    let cmd_args = if $method == "pd" {
+        let verbosity = if $verbose { ["-vvv"] } else { ["-v"] }
         let channel_name = if ($channel | is-empty) { "meso-forge" } else { $channel }
-        let skip_existing = if $force { "" } else { "--skip-existing" }
-        $"rattler-build upload prefix ($skip_existing) ($verbosity) --channel ($channel_name) ($conda_file)"
+        let skip_existing = if $force { [] } else { ["--skip-existing"] }
+        (["upload", "prefix"] | append $skip_existing | append $verbosity | append ["--channel", $channel_name, $conda_file])
     } else if $method == "s3" {
-        let verbosity = if $verbose { "-vvv" } else { "-v" }
+        let verbosity = if $verbose { ["-vvv"] } else { ["-v"] }
         let endpoint_url = if ($url | is-empty) { "https://minio.isis.vanderbilt.edu" } else { $url }
         let channel_name = if ($channel | is-empty) { "s3://pixi/meso-forge" } else { $channel }
-        $"rattler-build upload s3 --channel '($channel_name)' --region auto --endpoint-url '($endpoint_url)' --force-path-style ($verbosity) ($conda_file)"
+        (["upload", "s3", "--channel", $channel_name, "--region", "auto", "--endpoint-url", $endpoint_url, "--force-path-style"] | append $verbosity | append [$conda_file])
     } else {
         print -e $"❌ Unsupported method: ($method)"
         exit 1
@@ -93,16 +93,16 @@ def main [
 
     if $dry_run {
         print $"🔍 Dry run - would execute:"
-        print $"   ($cmd)"
+        print $"   rattler-build (($cmd_args | str join ' '))"
         exit 0
     }
 
     print $"🚀 Publishing via ($method)..."
-    print $"   Command: ($cmd)"
+    print $"   Command: rattler-build (($cmd_args | str join ' '))"
 
     # Execute the publish
     let start_time = date now
-    let result = (do { bash -c $cmd } | complete)
+    let result = (^rattler-build ...$cmd_args | complete)
     let duration = ((date now) - $start_time)
 
     print ""
@@ -192,7 +192,7 @@ export def publish-all [
     if $dry_run {
         print "🔍 DRY RUN - no actual publishing will occur"
     }
-    print ("=" | repeat 80 | str join)
+    print ("=" | std repeat 80 | str join "")
     print ""
 
     mut published = 0
@@ -254,14 +254,14 @@ export def publish-all [
         }
 
         print ""
-        print ("─" | repeat 80 | str join)
+        print ("─" | std repeat 80 | str join "")
         print ""
     }
 
     # Print summary
     let action = if $dry_run { "Would publish" } else { "Publish" }
     print $"($action) Summary:"
-    print ("=" | repeat 15 | str join)
+    print ("=" | std repeat 15 | str join "")
     $results | to md
     print ""
     print $"Total: ($packages | length) | Published: ($published) | Failed: ($failed)"
@@ -329,7 +329,7 @@ export def publish-directory [
     if $dry_run {
         print "🔍 DRY RUN - no actual publishing will occur"
     }
-    print ("=" | repeat 80 | str join)
+    print ("=" | std repeat 80 | str join "")
     print ""
 
     # Validate method
@@ -364,28 +364,28 @@ export def publish-directory [
         let filename = $conda_file | path basename
         print $"Publishing ($filename)..."
 
-        let cmd = if $method == "pd" {
-            let verbosity = if $verbose { "-vvv" } else { "-v" }
+        let cmd_args = if $method == "pd" {
+            let verbosity = if $verbose { ["-vvv"] } else { ["-v"] }
             let channel_name = if ($channel | is-empty) { "meso-forge" } else { $channel }
-            let skip_existing = if $force { "" } else { "--skip-existing" }
-            $"rattler-build upload prefix ($skip_existing) ($verbosity) --channel ($channel_name) ($conda_file)"
+            let skip_existing = if $force { [] } else { ["--skip-existing"] }
+            (["upload", "prefix"] | append $skip_existing | append $verbosity | append ["--channel", $channel_name, $conda_file])
         } else if $method == "s3" {
-            let verbosity = if $verbose { "-vvv" } else { "-v" }
+            let verbosity = if $verbose { ["-vvv"] } else { ["-v"] }
             let endpoint_url = if ($url | is-empty) { "https://minio.isis.vanderbilt.edu" } else { $url }
             let channel_name = if ($channel | is-empty) { "s3://pixi/meso-forge" } else { $channel }
-            $"rattler-build upload s3 --channel '($channel_name)' --region auto --endpoint-url '($endpoint_url)' --force-path-style ($verbosity) ($conda_file)"
+            (["upload", "s3", "--channel", $channel_name, "--region", "auto", "--endpoint-url", $endpoint_url, "--force-path-style"] | append $verbosity | append [$conda_file])
         }
 
         if $dry_run {
-            print $"   Would execute: ($cmd)"
+            print $"   Would execute: rattler-build (($cmd_args | str join ' '))"
             $published = $published + 1
             $results = ($results | append {
                 file: $filename,
                 status: "✅ WOULD PUBLISH"
             })
         } else {
-            print $"   Command: ($cmd)"
-            let result = (do { bash -c $cmd } | complete)
+            print $"   Command: rattler-build (($cmd_args | str join ' '))"
+            let result = (^rattler-build ...$cmd_args | complete)
 
             if $result.exit_code == 0 {
                 $published = $published + 1
@@ -414,10 +414,10 @@ export def publish-directory [
     }
 
     # Print summary
-    print ("─" | repeat 80 | str join)
+    print ("─" | std repeat 80 | str join "")
     let action = if $dry_run { "Would publish" } else { "Publish" }
     print $"($action) Summary:"
-    print ("=" | repeat 15 | str join)
+    print ("=" | std repeat 15 | str join "")
     $results | to md
     print ""
     print $"Total: ($conda_files | length) | Published: ($published) | Failed: ($failed)"

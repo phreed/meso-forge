@@ -1,0 +1,298 @@
+= JSON Handling Patterns with Nushell
+
+This document demonstrates excellent patterns for working with JSON data in nushell, based on the patterns used in the meso-forge project scripts.
+
+== Overview
+
+Nushell provides excellent native JSON handling capabilities that eliminate the need for external tools like `jq`. The key principle is to work with nushell's structured data types directly rather than converting to/from JSON unnecessarily.
+
+== Excellent Patterns
+
+=== 1. Reading JSON Files
+
+Nushell automatically parses JSON files when using the `open` command:
+
+[source,nu]
+----
+# EXCELLENT: Open automatically parses JSON into nushell data structures
+let package_data = open package.json
+print $"Package name: ($package_data.name)"
+print $"Version: ($package_data.version)"
+print $"Dependencies count: ($package_data.dependencies | length)"
+----
+
+*Benefits:*
+* No manual parsing required
+* Direct access to structured data
+* Type-safe operations
+
+=== 2. Native Data Processing
+
+Work with data structures directly using nushell's built-in commands:
+
+[source,nu]
+----
+let packages = [
+    {name: "pkg1", version: "1.0.0", license: "MIT"},
+    {name: "pkg2", version: "2.1.0", license: ""},
+    {name: "pkg3", version: "0.5.0", license: "Apache-2.0"}
+]
+
+# EXCELLENT: Work with data structures directly
+let processed = $packages
+    | where version =~ "^[12]"  # Filter by version pattern
+    | update license { |row|
+        if ($row.license | is-empty) { "UNKNOWN" } else { $row.license }
+    }
+    | insert has_major_version { |row|
+        ($row.version | split row "." | first | into int) >= 1
+    }
+----
+
+*Benefits:*
+* Efficient data manipulation
+* Type safety
+* No string conversion overhead
+
+=== 3. Conditional JSON Output
+
+Only convert to JSON when interfacing with external systems:
+
+[source,nu]
+----
+def show-package-info [
+    --json  # Flag to output as JSON
+] {
+    let data = {
+        package: "my-package",
+        version: "1.0.0",
+        platform: "linux-64",
+        timestamp: (date now)
+    }
+
+    # EXCELLENT: Only convert to JSON when needed
+    if $json {
+        $data | to json --indent 2
+    } else {
+        print $"Package: ($data.package)"
+        print $"Version: ($data.version)"
+        print $"Platform: ($data.platform)"
+    }
+}
+----
+
+*Benefits:*
+* Performance optimization
+* Better user experience with structured output
+* JSON only when required for external consumption
+
+=== 4. API Response Handling
+
+Process API responses as structured data:
+
+[source,nu]
+----
+# Simulate API response (normally from http get)
+let api_response = {
+    status: "success",
+    data: {
+        packages: [
+            {name: "react", version: "18.2.0", downloads: 1000000},
+            {name: "vue", version: "3.3.4", downloads: 800000}
+        ]
+    }
+}
+
+# EXCELLENT: Work with the structure directly
+let popular_packages = $api_response.data.packages
+    | where downloads > 900000
+    | select name version
+----
+
+*Benefits:*
+* Direct data access
+* Efficient filtering and transformation
+* No intermediate JSON parsing
+
+== Anti-Patterns to Avoid
+
+=== 1. Unnecessary JSON Conversion
+
+[source,nu]
+----
+# ❌ BAD: Converting to JSON and back for no reason
+let data = {name: "test", version: "1.0.0"}
+let bad_result = ($data | to json | from json | get name)
+
+# ✅ GOOD: Work with the data directly
+let good_result = $data.name
+----
+
+=== 2. Using External JSON Tools
+
+[source,nu]
+----
+# ❌ BAD: Using external jq (avoid this)
+# echo '$json_string' | jq '.name'
+
+# ✅ GOOD: Use nushell's native JSON handling
+let json_string = '{"name": "test", "version": "1.0.0"}'
+let result = ($json_string | from json | get name)
+----
+
+=== 3. String-Based JSON Manipulation
+
+[source,nu]
+----
+# ❌ BAD: Manual string manipulation
+# let json_string = $"{{\"name\": \"($name)\", \"version\": \"($version)\"}}"
+
+# ✅ GOOD: Use nushell records
+let data = {name: $name, version: $version}
+let json_string = ($data | to json)
+----
+
+== Real-World Examples from Meso-Forge Scripts
+
+=== Package Manifest Handling
+
+From `manifest_utils.nu`:
+
+[source,nu]
+----
+# Read manifest file
+export def read-manifest [
+    --manifest: string = "./pkgs-out/conda-manifest.json"
+] {
+    if not ($manifest | path exists) {
+        return {}
+    }
+    open $manifest  # Automatically parses JSON
+}
+
+# Update manifest and save
+let updated_manifest = $manifest | update $platform $new_data
+$updated_manifest | to json --indent 2 | save -f $manifest_path
+----
+
+*Pattern:* Read as structured data, manipulate natively, save as JSON only when persisting.
+
+=== Package Check Results
+
+From `check_package_exists.nu`:
+
+[source,nu]
+----
+# Return structured data from functions
+def "check-conda-channel" [...] {
+    # ... processing ...
+    return {
+        location: $channel,
+        found: $found,
+        count: ($packages | length),
+        packages: ($packages | first 5)
+    }
+}
+
+# Use results directly without JSON conversion
+let conda_result = (check-conda-channel $package $version "conda-forge" $platform)
+if $conda_result.found {
+    print $"✅ Found in conda-forge: ($conda_result.count) version(s)"
+}
+----
+
+*Pattern:* Functions return structured data that can be used directly.
+
+=== NPM License Processing
+
+From `npm_licenses.nu`:
+
+[source,nu]
+----
+^npm list --all --parseable ...$args
+| lines
+| skip 1
+| par-each { |path|
+    let package_json = ($path | path join "package.json")
+    if ($package_json | path exists) {
+        open $package_json  # Auto-parse JSON
+        | select name version license? repository?
+        | update license {|r| $r.license | default "UNKNOWN"}
+        | update repository {|r| $r.repository? | default $r.repository.url? | default ""}
+    } else {
+        null
+    }
+}
+| compact
+| if $json { to json } else { $in }  # Convert to JSON only if requested
+----
+
+*Pattern:* Process JSON files natively, only convert to JSON at the end if needed.
+
+== Best Practices Summary
+
+=== Do's ✅
+
+. *Use `open` for JSON files* - automatic parsing into nushell data structures
+. *Work with structured data directly* - leverage nushell's data manipulation commands
+. *Return structured data from functions* - avoid JSON serialization between functions
+. *Use `to json` only for output* - when saving files or sending to external systems
+. *Leverage nushell's type system* - benefit from type safety and built-in operations
+
+=== Don'ts ❌
+
+. *Don't use external JSON tools* - `jq`, `python -m json.tool`, etc.
+. *Don't serialize/deserialize unnecessarily* - avoid `| to json | from json` patterns
+. *Don't build JSON strings manually* - use nushell records instead
+. *Don't convert for internal function calls* - pass structured data directly
+
+=== Performance Tips
+
+. *Native operations are faster* - avoid string conversions
+. *Use `select` and `update`* - efficient data transformation
+. *Leverage `where` clauses* - filter before processing
+. *Use `compact`* - remove null values efficiently
+
+== Integration with External Systems
+
+=== Reading from APIs
+
+[source,nu]
+----
+# HTTP responses are automatically parsed
+let response = http get "https://api.example.com/packages"
+let packages = $response.data.packages  # Direct access
+----
+
+=== Writing to Files
+
+[source,nu]
+----
+# Pretty-printed JSON output
+$data | to json --indent 2 | save packages.json
+
+# Compact JSON output
+$data | to json | save packages.json
+----
+
+=== Command Line Tools
+
+[source,nu]
+----
+# Provide both structured and JSON output
+def main [--json] {
+    let results = (process-data)
+
+    if $json {
+        $results | to json
+    } else {
+        $results | table
+    }
+}
+----
+
+== Conclusion
+
+Nushell's native JSON handling capabilities eliminate the need for external tools while providing better performance, type safety, and maintainability. The key is to work with structured data throughout your pipeline and only convert to JSON when interfacing with external systems.
+
+These patterns, as demonstrated in the meso-forge project, provide a robust foundation for JSON data processing in nushell scripts.

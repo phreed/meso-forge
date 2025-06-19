@@ -57,19 +57,19 @@ def main [
     print $"   Status: ($package_info.status)"
     print ""
 
-    # Build the test command
-    let verbosity = if $verbose { "-vvv" } else { "-v" }
-    let cmd = $"rattler-build test --package-file ($conda_file) --channel conda-forge ($verbosity)"
+    # Build the test command arguments
+    let verbosity = if $verbose { ["-vvv"] } else { ["-v"] }
+    let cmd_args = (["test", "--package-file", $conda_file, "--channel", "conda-forge"] | append $verbosity)
 
-    print $"🚀 Running: ($cmd)"
-    print ("─" | repeat 80 | str join)
+    print $"🚀 Running: rattler-build (($cmd_args | str join ' '))"
+    print ("─" | repeat 80 | str join "")
 
     # Execute the test
     let start_time = date now
-    let result = (do { bash -c $cmd } | complete)
+    let result = (^rattler-build ...$cmd_args | complete)
     let duration = ((date now) - $start_time)
 
-    print ("─" | repeat 80 | str join)
+    print ("─" | repeat 80 | str join "")
     print ""
 
     if $result.exit_code == 0 {
@@ -131,7 +131,7 @@ export def test-all [
     }
 
     print $"🧪 Testing ($packages | length) packages for platform ($platform)"
-    print ("=" | repeat 80 | str join)
+    print ("=" | repeat 80 | str join "")
     print ""
 
     mut passed = 0
@@ -169,7 +169,7 @@ export def test-all [
         }
 
         print ""
-        print ("─" | repeat 80 | str join)
+        print ("─" | repeat 80 | str join "")
         print ""
     }
 
