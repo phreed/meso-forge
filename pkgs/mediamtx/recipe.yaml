@@ -9,17 +9,17 @@ package:
   name: mediamtx
 
 source:
-- url: https://api.github.com/repos/bluenviron/mediamtx/tarball/v1.12.3
-  sha256: 8eabf02fd5c85628bcf5b789b3149b3f76de096905ce9a5d8718b1c7ca8a57f2
-  target_directory: src/mediamtx
-- if: linux
-  then:
-    path: systemd/mediamtx.service
-    target_directory: systemd/mediamtx.service
-- if: linux
-  then:
-    path: systemd/mediamtx-setup.sh
-    target_directory: systemd/mediamtx-setup.sh
+  - url: https://api.github.com/repos/bluenviron/mediamtx/tarball/v1.12.3
+    sha256: 8eabf02fd5c85628bcf5b789b3149b3f76de096905ce9a5d8718b1c7ca8a57f2
+    target_directory: src/mediamtx
+  - if: linux
+    then:
+      path: systemd/mediamtx.service
+      target_directory: systemd
+  - if: linux
+    then:
+      path: systemd/mediamtx-setup.sh
+      target_directory: systemd
 
 build:
   number: 0
@@ -55,8 +55,8 @@ build:
         let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
         let bin_dir = $"($env.PREFIX)/bin"
         mkdir $systemd_dir
-        cp $"($env.SRC_DIR)/systemd/mediamtx.service/mediamtx.service" $"($systemd_dir)/mediamtx.service"
-        cp $"($env.SRC_DIR)/systemd/mediamtx-setup.sh/mediamtx-setup.sh" $"($bin_dir)/mediamtx-setup.sh"
+        cp $"($env.SRC_DIR)/systemd/mediamtx.service" $"($systemd_dir)/mediamtx.service"
+        cp $"($env.SRC_DIR)/systemd/mediamtx-setup.sh" $"($bin_dir)/mediamtx-setup.sh"
         chmod +x $"($bin_dir)/mediamtx-setup.sh"
       }
 
@@ -81,31 +81,31 @@ build:
 
 requirements:
   build:
-  - nushell
-    # For static binaries without C dependencies
-  - ${{ compiler('go-nocgo') }}
-  - go-licenses
+    - nushell
+      # For static binaries without C dependencies
+    - ${{ compiler('go-nocgo') }}
+    - go-licenses
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # MediaMTX binary
-    - ${{ "Library/" if win }}bin/mediamtx${{ ".exe" if win }}
-        # Systemd files (Linux only)
-    - ${{ "lib/systemd/system/mediamtx.service" if linux }}
-    - ${{ "bin/mediamtx-setup.sh" if linux }}
+        - ${{ "Library/" if win }}bin/mediamtx${{ ".exe" if win }}
+          # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/mediamtx.service" if linux }}
+        - ${{ "bin/mediamtx-setup.sh" if linux }}
 
-  # Test 2: Functional tests
-- requirements:
-    build:
-    - nushell
-  script:
-    interpreter: nu
-    content:
+    # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
         # Test that the binary works
-    - ^mediamtx --version
-    - ^mediamtx --help
+        - ^mediamtx --version
+        - ^mediamtx --help
 
 about:
   homepage: https://github.com/bluenviron/mediamtx/blob/main/README.md
@@ -116,11 +116,11 @@ about:
       It has been conceived as a "media router" that routes media streams from one end to the other.
   license: Apache-2.0
   license_file:
-  - src/mediamtx/LICENSE
-  - license-files/
+    - src/mediamtx/LICENSE
+    - license-files/
   documentation: https://github.com/bluenviron/mediamtx/blob/main/README.md
   repository: https://github.com/bluenviron/mediamtx
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed

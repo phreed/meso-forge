@@ -14,36 +14,53 @@ source:
 
 build:
   script:
-  - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml   # !(1)
-  - $BUILD_PREFIX/bin/cargo install --locked --bins --root ${PREFIX} --path .
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v0\\.53\\.3$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "apache-opendal-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "apache-opendal-" | first | get name)
+
+      # Change to the extracted directory and build
+      cd $extracted_dir
+
+      # Move to the oli binary directory
+      cd bin/oli
+
+      ^cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
+      ^cargo install --locked --bins --root ($env.PREFIX) --path .
 
 requirements:
   build:
-  - ${{ compiler('rust') }}
-  - cargo-bundle-licenses
+    - nushell
+    - tar
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # OpenDAL oli binary
-    - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
+        - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
 
-  # Test 2: Functional test
-- requirements:
-    build:
-    - nushell
-  script:
-    interpreter: nu
-    content:
-    - ^oli --help     # !(2)
+    # Test 2: Functional test
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^oli --help # !(2)
 
 about:
   homepage: https://opendal.apache.org/apps/oli/
   license: Apache-2.0
   license_file:
-  - LICENSE
-  - THIRDPARTY.yml
+    - "*/LICENSE"
+    - "*/bin/oli/THIRDPARTY.yml"
   summary: Apache OpenDAL™ Oli
   description: |
     oli stands for OpenDAL Command Line Interface
@@ -53,7 +70,7 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)
+      - ^(\d+\.\d+\.\d+)

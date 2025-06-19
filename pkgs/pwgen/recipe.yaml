@@ -12,13 +12,22 @@ source:
   url: https://api.github.com/repos/tytso/pwgen/tarball/refs/tags/v2.08
   sha256: 4df811e5ee1e35e8bb81f1a9c07b99e8ecde10047a758e48ae7634780ea5ebc4
   patches:
-  - ./patches/10-run-autoupdate.patch
+    - ./patches/10-run-autoupdate.patch
 
 build:
-  number: 0
   script:
     interpreter: nu
     content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v2\\.08$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "tytso-pwgen-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "tytso-pwgen-" | first | get name)
+
+      # Change to the extracted directory and build
+      cd $extracted_dir
+
       print "Starting pwgen build process..."
 
       # Run autoreconf
@@ -72,34 +81,37 @@ build:
 
 requirements:
   build:
-  - nushell
-  - ${{ compiler('c') }}
-    # - ${{ stdlib('c') }}
-  - autoconf
-  - automake
-  - make
+    - nushell
+    - tar
+    - ${{ compiler('c') }}
+      # - ${{ stdlib('c') }}
+    - autoconf
+    - automake
+    - make
 
 tests:
-  # Test 1: Verify binary and documentation are included in package
-- package_contents:
-    files:
-    - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
-    - ${{ "Library/" if win }}share/man/man1/pwgen.1
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # pwgen binary
+        - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
+        # Man page
+        - ${{ "Library/" if win }}share/man/man1/pwgen.1
 
   # Test 2: Functional tests
-- requirements:
-    build:
-    - nushell
-  script:
-    interpreter: nu
-    content:
-    - ^pwgen --secure 20 10
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^pwgen --secure 20 10
 
 about:
   homepage: https://pwgen.sourceforge.net/
   license: GPL-2.0-only
   license_file:
-  - debian/copyright
+    - debian/copyright
   summary: Password generator
   description: |
     pwgen generates random, meaningless but pronounceable passwords.
@@ -109,7 +121,7 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
   version:
     github-tags:
-    - ^(\d+\.\d+)
+      - ^(\d+\.\d+)

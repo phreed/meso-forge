@@ -12,13 +12,22 @@ source:
   url: https://api.github.com/repos/metashell/metashell/tarball/v5.0.0
   sha256: 3d07c8d90f456dff9091f72903fe2127b2e3e32346f40e6afcbac4b034ec1d3c
   patches:
-  - ./patches/01-include-missiong-cstddef.patch
+    - ./patches/01-include-missiong-cstddef.patch
 
 build:
   number: 0
   script:
     interpreter: nu
     content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v5\\.0\\.0$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "metashell-metashell-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "metashell-metashell-" | first | get name)
+
+      # Change to the extracted directory and build
+      cd $extracted_dir
       ^cmake -S 3rd/templight/llvm -B build/templight -DLIBCLANG_BUILD_STATIC=ON -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_PROJECTS=clang ${{ CMAKE_ARGS }}
       ^cmake --build build/templight --target templight
       ^cmake -S . -B build/metashell ${{ CMAKE_ARGS }}
@@ -27,43 +36,44 @@ build:
 
 requirements:
   build:
-  - nushell
-  - ${{ compiler('c') }}
-  - ${{ compiler('cxx') }}
-    # - ${{ stdlib('c') }}
-  - cmake
+    - nushell
+    - tar
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+      # - ${{ stdlib('c') }}
+    - cmake
   host:
-  - if: linux
-    then:
-    - libedit
-    - libxml2
-    - zlib
-    - readline
+    - if: linux
+      then:
+        - libedit
+        - libxml2
+        - zlib
+        - readline
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Metashell binary
-    - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
+        - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
 
-  # Test 2: Functional test
-- requirements:
-    build:
-    - nushell
-  script:
-    interpreter: nu
-    content: |
-      "template <class T> struct add_const { using type = const T; };
-      add_const<int>::type" | save test.hpp
-      ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
+    # Test 2: Functional test
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        "template <class T> struct add_const { using type = const T; };
+        add_const<int>::type" | save test.hpp
+        ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
 
 about:
   homepage: http://metashell.org
   license: GPL-3.0-or-later
-  license_file: LICENSE
+  license_file: "*/LICENSE"
   summary: Metaprogramming shell for C++ templates
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed

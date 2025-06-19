@@ -15,35 +15,50 @@ source:
 
 build:
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^4\\.7\\.1$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "vimalloc-flask-jwt-extended-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "vimalloc-flask-jwt-extended-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
 requirements:
+  build:
+    - nushell
+    - tar
   host:
-  - pip
-  - python ==${{ python_min }}
-  - setuptools
-  - wheel
+    - pip
+    - python ==${{ python_min }}
+    - setuptools
+    - wheel
   run:
-  - python >=${{ python_min }},<4.0.0
-  - flask >=2.0,<4.0
-  - pyjwt >=2.0,<3.0
-  - werkzeug >=0.14
+    - python >=${{ python_min }},<4.0.0
+    - flask >=2.0,<4.0
+    - pyjwt >=2.0,<3.0
+    - werkzeug >=0.14
   run_exports:
     weak:
-    - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
+      - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python library package
-    - site-packages/flask_jwt_extended/__init__.py
+        - site-packages/flask_jwt_extended/__init__.py
 
-  # Test 2: Python import tests
-- script:
-    interpreter: python
-    content: |
-      import flask_jwt_extended
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import flask_jwt_extended
 
 about:
   homepage: https://github.com/vimalloc/flask-jwt-extended
@@ -53,11 +68,12 @@ about:
     blacklisting/revoking tokens,
     and token freshness (for accessing critical views).
   license: MIT
-  license_file: LICENSE
+  license_file: "*/LICENSE"
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
+
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$

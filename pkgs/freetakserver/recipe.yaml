@@ -10,113 +10,124 @@ package:
   version: ${{ version }}
 
 source:
-- url: https://api.github.com/repos/FreeTAKTeam/FreeTakServer/tarball/refs/tags/v2.2.1
-  sha256: 6c333442ae890b271de6d6d4733ddb49f5a359937b0d880de9cf8d3a8b52acb4
-- if: linux
-  then:
-    path: systemd/freetakserver.service
-    target_directory: systemd
-- if: linux
-  then:
-    path: systemd/freetakserver-setup.sh
-    target_directory: systemd
+  - url: https://api.github.com/repos/FreeTAKTeam/FreeTakServer/tarball/refs/tags/v2.2.1
+    sha256: 6c333442ae890b271de6d6d4733ddb49f5a359937b0d880de9cf8d3a8b52acb4
+    target_directory: freetakserver-src
+  - if: linux
+    then:
+      path: systemd/freetakserver.service
+      target_directory: systemd
+  - if: linux
+    then:
+      path: systemd/freetakserver-setup.sh
+      target_directory: systemd
 
 build:
   number: 0
   noarch: python
   script:
-    interpreter: bash
+    interpreter: nu
     content: |
-      pip install . -v
+      # Extract the GitHub API tarball and change to extracted directory
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v2\\.2\\.1$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "FreeTAKTeam-UI-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "FreeTAKTeam-UI-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
       # Install systemd unit file and setup script on Linux
-      if [[ "$OSTYPE" == "linux"* ]]; then
-        echo "Installing systemd unit file and setup script..."
-        mkdir -p "$PREFIX/lib/systemd/system"
-        mkdir -p "$PREFIX/bin"
-        cp "$SRC_DIR/systemd/freetakserver.service" "$PREFIX/lib/systemd/system/freetakserver.service"
-        cp "$SRC_DIR/systemd/freetakserver-setup.sh" "$PREFIX/bin/freetakserver-setup.sh"
-        chmod +x "$PREFIX/bin/freetakserver-setup.sh"
-      fi
+      if ($nu.os-info.name == "linux") {
+        print "Installing systemd unit file and setup script..."
+        let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
+        let bin_dir = $"($env.PREFIX)/bin"
+        mkdir $systemd_dir
+        cp $"($env.SRC_DIR)/systemd/freetakserver.service" $"($systemd_dir)/freetakserver.service"
+        cp $"($env.SRC_DIR)/systemd/freetakserver-setup.sh" $"($bin_dir)/freetakserver-setup.sh"
+        chmod +x $"($bin_dir)/mediamtx-setup.sh"
+      }
 
 requirements:
   host:
-  - pip
-  - python >=${{ python_min }}
-  - poetry-core
+    - pip
+    - python >=${{ python_min }}
+    - poetry-core
   run:
-  - python >=${{ python_min }},<4.0.0
-    # - asyncio 3.4.3.*
-  - bcrypt
-  - bitarray
-  - click >=8.1.3
-  - colorama >= 0.4.6
-  - connexion >= 2.6.0
-  - connexion-with-swagger-ui >= 2.6.0
-  - cryptography
-  - defusedxml 0.7.1.*
-  - digitalpy   # 0.3.13.7.*
-  - dnspython
-  - eventlet 0.35.2.*
-  - flask 3.0.2.*
-  - flask-cors 4.0.0.*
-  - flask-httpauth 4.8.0.*
-  - flask-login 0.6.3.*
-  - flask-socketio 5.3.6.*
-  - flask-sqlalchemy 3.1.1.*
-  - geographiclib 1.52.*
-  - geopy 2.2.0.*
-  - greenlet 3.1.1.*
-  - itsdangerous >=2.0.1
-  - jinja2 3.1.3.*
-  - lxml
-  - markupsafe 2.1.5.*
-  - monotonic 1.6.*
-  - opentelemetry-sdk
-  - pathlib2 2.3.7.post1.*
-  - pillow 11.0.0.*
-  - protobuf
-  - psutil 6.1.1.*
-  - pyjwt
-  - pykml 0.2.0.*
-  - pyopenssl
-  - python-dateutil 2.7.0.*
-  - python-engineio 4.11.2.*
-  - python-socketio 5.11.1.*
-  - pyyaml 6.0.2.*
-  - pyzmq
-  - qrcode 7.3.1.*
-  - ruamel.yaml 0.18.10.*
-  - ruamel.yaml.clib 0.2.8.*
-  - six 1.16.0.*
-  - sqlalchemy 2.0.38.*
-  - swagger-ui-bundle >=0.0.2
-  - tabulate 0.8.7.*
-  - testresources 2.0.2.*
-  - werkzeug 3.0.1.*
-  - wtforms 2.3.3.*
-  - xmltodict
+    - python >=${{ python_min }},<4.0.0
+      # - asyncio 3.4.3.*
+    - bcrypt
+    - bitarray
+    - click >=8.1.3
+    - colorama >= 0.4.6
+    - connexion >= 2.6.0
+    - connexion-with-swagger-ui >= 2.6.0
+    - cryptography
+    - defusedxml 0.7.1.*
+    - digitalpy # 0.3.13.7.*
+    - dnspython
+    - eventlet 0.35.2.*
+    - flask 3.0.2.*
+    - flask-cors 4.0.0.*
+    - flask-httpauth 4.8.0.*
+    - flask-login 0.6.3.*
+    - flask-socketio 5.3.6.*
+    - flask-sqlalchemy 3.1.1.*
+    - geographiclib 1.52.*
+    - geopy 2.2.0.*
+    - greenlet 3.1.1.*
+    - itsdangerous >=2.0.1
+    - jinja2 3.1.3.*
+    - lxml
+    - markupsafe 2.1.5.*
+    - monotonic 1.6.*
+    - opentelemetry-sdk
+    - pathlib2 2.3.7.post1.*
+    - pillow 11.0.0.*
+    - protobuf
+    - psutil 6.1.1.*
+    - pyjwt
+    - pykml 0.2.0.*
+    - pyopenssl
+    - python-dateutil 2.7.0.*
+    - python-engineio 4.11.2.*
+    - python-socketio 5.11.1.*
+    - pyyaml 6.0.2.*
+    - pyzmq
+    - qrcode 7.3.1.*
+    - ruamel.yaml 0.18.10.*
+    - ruamel.yaml.clib 0.2.8.*
+    - six 1.16.0.*
+    - sqlalchemy 2.0.38.*
+    - swagger-ui-bundle >=0.0.2
+    - tabulate 0.8.7.*
+    - testresources 2.0.2.*
+    - werkzeug 3.0.1.*
+    - wtforms 2.3.3.*
+    - xmltodict
   run_constraints:
-  - freetakserver-ui 2.2.1.*
-  - pytak 5.4.1.*
-  - pytest 7.2.0.*
-  - pytest-asyncio 0.20.1.*
+    - freetakserver-ui 2.2.1.*
+    - pytak 5.4.1.*
+    - pytest 7.2.0.*
+    - pytest-asyncio 0.20.1.*
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python package files
-    - site-packages/FreeTAKServer/__init__.py
-        # Systemd files (Linux only)
-    - ${{ "lib/systemd/system/freetakserver.service" if linux }}
-    - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
+        - site-packages/FreeTAKServer/__init__.py
+          # Systemd files (Linux only)
+        - ${{ "lib/systemd/system/freetakserver.service" if linux }}
+        - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
 
-  # Test 2: Python import test
-- script:
-    interpreter: python
-    content: |
-      import digitalpy
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/FreeTakServer
@@ -127,13 +138,13 @@ about:
     It is used by civilian and military organization for planning.
   license: EPL-2.0
   license_file:
-  - LICENSE
+    - freetakserver-src/FreeTAKTeam-FreeTakServer-*/LICENSE
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/FreeTakServer
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$

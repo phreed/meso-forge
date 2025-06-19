@@ -15,40 +15,55 @@ source:
 
 build:
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^2\\.0\\.2$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "testing-cabal-testresources-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "testing-cabal-testresources-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
 requirements:
+  build:
+    - nushell
+    - tar
   host:
-  - pip
-  - python ==${{ python_min }}
-  - setuptools
-  - wheel
-  - docutils
-  - testtools
-  - fixtures
-  - cryptography
-  - jinja2
-  - packaging
-  - pyyaml
+    - pip
+    - python ==${{ python_min }}
+    - setuptools
+    - wheel
+    - docutils
+    - testtools
+    - fixtures
+    - cryptography
+    - jinja2
+    - packaging
+    - pyyaml
   run:
-  - python >=${{ python_min }},<4.0.0
-  - pbr >=1.8
-  - cryptography
-  - jinja2
-  - packaging
+    - python >=${{ python_min }},<4.0.0
+    - pbr >=1.8
+    - cryptography
+    - jinja2
+    - packaging
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python library package
-    - site-packages/testresources/__init__.py
+        - site-packages/testresources/__init__.py
 
-  # Test 2: Python import test
-- script:
-    interpreter: python
-    content: |
-      import testresources
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import testresources
 
 about:
   summary: Testresources, a pyunit extension for managing expensive test resources
@@ -59,7 +74,8 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
+
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)
+      - ^(\d+\.\d+\.\d+)$

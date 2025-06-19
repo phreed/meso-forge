@@ -13,11 +13,19 @@ source:
   sha256: e0c177d5830559cba0a73100a10810f596572ea4d4550bccc9e5d1437e9e1fd7
 
 build:
-  number: 0
-  noarch: generic
   script:
     interpreter: nu
     content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^ratatui-v0\\.30\\.0-alpha\\.4$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "ratatui-ratatui-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "ratatui-ratatui-" | first | get name)
+
+      # Change to the extracted directory and build
+      cd $extracted_dir
+
       # This is a Rust library crate - we just validate it compiles
       # The actual library would be used via Cargo.toml dependencies
 
@@ -30,33 +38,34 @@ build:
 
 requirements:
   build:
-  - nushell
-  - rust
-  - pkgconf
+    - nushell
+    - tar
+    - rust
+    - pkgconf
 
 tests:
-  # Test 1: Verify package marker file is included
-- package_contents:
-    files:
-    - share/ratatui-info.txt
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Marker file indicating successful build
+        - share/ratatui-info.txt
 
-  # Test 2: Functional validation
-- requirements:
-    build:
-    - nushell
-    - rust
-  script:
-    interpreter: nu
-    content:
+    # Test 2: Functional test
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
         # Simple validation test
-    - if ($env.PREFIX | path join "share" "ratatui-info.txt" | path exists) { echo "✓ Package marker found" } else { exit 1 }
-    - echo "✓ Ratatui package test passed"
+        - if ($env.PREFIX | path join "share" "ratatui-info.txt" | path exists) { echo "✓ Package marker found" } else { exit 1 }
+        - echo "✓ Ratatui package test passed"
 
 about:
   homepage: https://ratatui.rs
   license: MIT
   license_file:
-  - LICENSE
+    - LICENSE
   summary: A Rust crate for cooking TUIs
   description: |
     Ratatui is a Rust crate for cooking up terminal user interfaces (TUIs).
@@ -69,4 +78,4 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed

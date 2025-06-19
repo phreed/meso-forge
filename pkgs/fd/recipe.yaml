@@ -17,6 +17,15 @@ build:
   script:
     interpreter: nu
     content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v10\\.2\\.0$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "sharkdp-fd-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "sharkdp-fd-" | first | get name)
+
+      # Change to the extracted directory and build
+      cd $extracted_dir
       ^cargo install --root ($env.PREFIX) --path .
 
       # Generate completions
@@ -45,43 +54,44 @@ build:
 
 requirements:
   build:
-  - nushell
-  - rust
-  - cargo-bundle-licenses
+    - nushell
+    - tar
+    - rust
+    - cargo-bundle-licenses
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # fd binary
-    - ${{ "Library/" if win }}bin/fd${{ ".exe" if win }}
-        # Shell completions
-    - ${{ "Library/" if win }}share/bash-completion/completions/fd
-    - ${{ "Library/" if win }}share/fish/vendor_completions.d/fd.fish
-    - ${{ "Library/" if win }}share/zsh/site-functions/_fd
-        # Man page
-    - ${{ "Library/" if win }}share/man/man1/fd.1
+        - ${{ "Library/" if win }}bin/fd${{ ".exe" if win }}
+          # Shell completions
+        - ${{ "Library/" if win }}share/bash-completion/completions/fd
+        - ${{ "Library/" if win }}share/fish/vendor_completions.d/fd.fish
+        - ${{ "Library/" if win }}share/zsh/site-functions/_fd
+          # Man page
+        - ${{ "Library/" if win }}share/man/man1/fd.1
 
-  # Test 2: Functional tests
-- requirements:
-    build:
-    - nushell
-  script:
-    interpreter: nu
-    content: |
-      ^mkdir -p trial
-      cd trial
-      ^touch foo_file
-      ^touch test_file
-      let result = (^fd test | str trim)
-      if $result != "test_file" { exit 1 }
+    # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^mkdir -p trial
+        cd trial
+        ^touch foo_file
+        ^touch test_file
+        let result = (^fd test | str trim)
+        if $result != "test_file" { exit 1 }
 
 about:
   homepage: https://github.com/sharkdp/fd
   license: Apache-2.0 OR MIT
   license_file:
-  - LICENSE
-  - thirdpartylicenses.yaml
+    - "*/LICENSE"
+    - "*/thirdpartylicenses.yaml"
   summary: Simple, fast and user-friendly alternative to find
   description: |
     fd is a simple, fast and user-friendly alternative to find.
@@ -90,8 +100,8 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
 
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$

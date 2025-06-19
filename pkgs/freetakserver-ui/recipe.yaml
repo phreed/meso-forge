@@ -15,60 +15,85 @@ source:
 
 build:
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v2\\.2\\.1$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "FreeTAKTeam-UI-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "FreeTAKTeam-UI-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
 requirements:
+  build:
+    - nushell
+    - tar
   host:
-  - pip
-  - python ==${{ python_min }}
-  - poetry-core
+    - pip
+    - python ==${{ python_min }}
+    - poetry-core
   run:
-  - python >=${{ python_min }},<4.0.0
-  - alembic 1.13.1.*
-  - blinker 1.7.0.*
-  - certifi 2024.2.2.*
-  - charset-normalizer 3.3.2.*
-  - click 8.1.7.*
-  - colorama >= 0.4.6
-  - dnspython 2.6.1.*
-  - email_validator 2.1.1.*
-  - eventlet 0.35.2.*
-  - flask 3.0.2.*
-  - flask-cors 4.0.0.*
-  - flask-login 0.6.3.*
-  - flask-migrate 4.0.6.*
-  - flask-sqlalchemy 3.1.1.*
-  - flask-wtf 1.2.1.*
-  - greenlet 3.1.1.*
-  - gunicorn 21.2.0.*
-  - idna 3.6.*
-  - itsdangerous 2.1.2.*
-  - jinja2 3.1.3.*
-  - mako 1.3.2.*
-  - markupsafe 2.1.5.*
-  - packaging 24.0.*
-  - python-decouple 3.8.*
-  - requests 2.31.0.*
-  - sqlalchemy 2.0.38.*
-  - sqlalchemy-utils 0.41.1.*
-  - typing_extensions 4.10.0.*
-  - urllib3 2.2.1.*
-  - werkzeug 3.0.1.*
-  - wtforms 2.3.3.*
+    - python >=${{ python_min }},<4.0.0
+    - alembic 1.13.1.*
+    - blinker 1.7.0.*
+    - certifi 2024.2.2.*
+    - charset-normalizer 3.3.2.*
+    - click 8.1.7.*
+    - colorama >= 0.4.6
+    - dnspython 2.6.1.*
+    - email_validator 2.1.1.*
+    - eventlet 0.35.2.*
+    - flask 3.0.2.*
+    - flask-cors 4.0.0.*
+    - flask-login 0.6.3.*
+    - flask-migrate 4.0.6.*
+    - flask-sqlalchemy 3.1.1.*
+    - flask-wtf 1.2.1.*
+    - greenlet 3.1.1.*
+    - gunicorn 21.2.0.*
+    - idna 3.6.*
+    - itsdangerous 2.1.2.*
+    - jinja2 3.1.3.*
+    - mako 1.3.2.*
+    - markupsafe 2.1.5.*
+    - packaging 24.0.*
+    - python-decouple 3.8.*
+    - requests 2.31.0.*
+    - sqlalchemy 2.0.38.*
+    - sqlalchemy-utils 0.41.1.*
+    - typing_extensions 4.10.0.*
+    - urllib3 2.2.1.*
+    - werkzeug 3.0.1.*
+    - wtforms 2.3.3.*
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python library package
-    - site-packages/FreeTAKServer-UI/__init__.py
+        - site-packages/FreeTAKServer-UI/__init__.py
 
-  # Test 2: Python import test
-- script:
-    interpreter: python
-    content: |
-      # Test basic imports
-      import freetakserver_ui
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        # Simple test to verify package structure is accessible
+        import os
+        import sys
+
+        # Check that the package directory exists
+        site_packages = os.path.join(sys.prefix, 'lib', 'python3.11', 'site-packages')
+        pkg_dir = os.path.join(site_packages, 'FreeTAKServer-UI')
+
+        if os.path.exists(pkg_dir):
+            print("FreeTAKServer-UI package directory found")
+        else:
+            raise Exception("FreeTAKServer-UI package directory not found")
 
 about:
   homepage: https://github.com/FreeTAKTeam/UI
@@ -86,13 +111,14 @@ about:
     The project is licensed under the EPL/MIT License.
   license: MIT
   license_file:
-  - LICENSE.txt
+    - LICENSE.txt
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/UI
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
+
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$

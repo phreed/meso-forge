@@ -11,16 +11,19 @@ package:
 source:
   - url: https://rubygems.org/downloads/asciidoctor-pdf-${{ version }}.gem
     sha256: 034a142964d627b82fd4f08a094abedae981e632e7f1c501d3bd9c2dfbe073f9
+    target_directory: asciidoctor-pdf-gem
   - path: asciidoctor-pdf.bat
+    target_directory: scripts
   - path: asciidoctor-pdf.sh
+    target_directory: scripts
 
 build:
   noarch: generic
   script:
-    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-pdf-${{ version }}.gem
-    - gem unpack asciidoctor-pdf-${{ version }}.gem
-    - cp -v asciidoctor-pdf.bat $PREFIX/bin/asciidoctor-pdf.bat
-    - cp -v asciidoctor-pdf.sh $PREFIX/bin/asciidoctor-pdf
+    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin asciidoctor-pdf-gem/asciidoctor-pdf-${{ version }}.gem
+    - gem unpack asciidoctor-pdf-gem/asciidoctor-pdf-${{ version }}.gem
+    - cp -v scripts/asciidoctor-pdf.bat $PREFIX/bin/asciidoctor-pdf.bat
+    - cp -v scripts/asciidoctor-pdf.sh $PREFIX/bin/asciidoctor-pdf
 
 requirements:
   host:

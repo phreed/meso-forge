@@ -14,35 +14,49 @@ source:
 
 build:
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^\\d+\\.\\d+\\.\\d+$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "python-asyncio-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "python-asyncio-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
 requirements:
-  # there is no build section
+  build:
+    - nushell
+    - tar
   host:
-  - pip
-  - python >=3.11
-  - setuptools
-  - wheel
+    - pip
+    - python >=3.11
+    - setuptools
+    - wheel
   run:
-  - python >=3.11
+    - python >=3.11
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python library package
-    - site-packages/asyncio/__init__.py
+        - site-packages/asyncio/__init__.py
 
-  # Test 2: Python import test
-- script:
-    interpreter: python
-    content: |
-      import asyncio
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import asyncio
 
 about:
   homepage: https://www.python.org/dev/peps/pep-3156/
   license: Apache-2.0
-  license_file: COPYING
+  license_file: "*/COPYING"
   summary: Reference implementation of PEP 3156
   description: |
     This is a proposal for asynchronous I/O in Python 3, starting at Python 3.3.
@@ -54,8 +68,8 @@ about:
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
 
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$

@@ -16,60 +16,75 @@ source:
 
 build:
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      # Expand the GitHub API tarball which comes as a single file
+      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v0\\.3\\.15$" | first | get name)
+      ^tar -xzf $tarball_file
+
+      # Find the extracted directory (GitHub API tarballs create directories like "FreeTAKTeam-DigitalPy-abc123")
+      let extracted_dir = (ls | where type == dir and name =~ "FreeTAKTeam-DigitalPy-" | first | get name)
+
+      # Change to the extracted directory and install
+      cd $extracted_dir
+      ^pip install . -v
 
 requirements:
+  build:
+    - nushell
+    - tar
   host:
-  - pip
-  - python >=${{ python_min }},<${{ python_max }}
-  - setuptools
-  - wheel
-  - poetry-core
-  - flask-cors
-  - flask-jwt-extended
-  - lxml
-  - opentelemetry-sdk
-  - psutil
-  - requests
-  - ruamel.yaml
-  - sqlalchemy
-  - xmltodict
-  - cryptography
-  - jinja2
-  - packaging
-  - pyyaml
+    - pip
+    - python >=${{ python_min }},<${{ python_max }}
+    - setuptools
+    - wheel
+    - poetry-core
+    - flask-cors
+    - flask-jwt-extended
+    - lxml
+    - opentelemetry-sdk
+    - psutil
+    - requests
+    - ruamel.yaml
+    - sqlalchemy
+    - xmltodict
+    - cryptography
+    - jinja2
+    - packaging
+    - pyyaml
   run:
-  - python >=${{ python_min }},<${{ python_max }}
-  - rule-engine
-  - cryptography
-  - packaging
-  - pyyaml
-  - pyzmq
-  - flask-cors
-  - flask-jwt-extended
-  - lxml
-  - opentelemetry-sdk
-  - psutil
-  - requests
-  - ruamel.yaml
-  - setuptools
-  - sqlalchemy
-  - xmltodict
+    - python >=${{ python_min }},<${{ python_max }}
+    - rule-engine
+    - cryptography
+    - packaging
+    - pyyaml
+    - pyzmq
+    - flask-cors
+    - flask-jwt-extended
+    - lxml
+    - opentelemetry-sdk
+    - psutil
+    - requests
+    - ruamel.yaml
+    - setuptools
+    - sqlalchemy
+    - xmltodict
   run_exports:
-  - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
+    - ${{ pin_subpackage("digitalpy", upper_bound="x.x") }}
 
 tests:
   # Test 1: Verify package contents are included
-- package_contents:
-    files:
+  - package_contents:
+      files:
         # Python library package
-    - site-packages/digitalpy/__init__.py
+        - site-packages/digitalpy/__init__.py
 
-  # Test 2: Python import test
-- script:
-    interpreter: python
-    content: |
-      import digitalpy
+    # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import digitalpy
 
 about:
   homepage: https://github.com/FreeTAKTeam/DigitalPy
@@ -78,12 +93,12 @@ about:
     A python implementation of the aphrodite specification,
     heavily based on WCMF.
   license: EPL-2.0
-  license_file: LICENSE.md
+  license_file: "*/LICENSE.md"
 
 extra:
   recipe-maintainers:
-  - phreed
+    - phreed
 
   version:
     github-tags:
-    - ^(\d+\.\d+\.\d+)$
+      - ^(\d+\.\d+\.\d+)$
