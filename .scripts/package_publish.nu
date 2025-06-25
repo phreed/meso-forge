@@ -192,7 +192,7 @@ export def publish-all [
     if $dry_run {
         print "🔍 DRY RUN - no actual publishing will occur"
     }
-    print ("=" | std repeat 80 | str join "")
+    print ("=" | repeat 80 | str join "")
     print ""
 
     mut published = 0
@@ -254,14 +254,14 @@ export def publish-all [
         }
 
         print ""
-        print ("─" | std repeat 80 | str join "")
+        print ("─" | repeat 80 | str join "")
         print ""
     }
 
     # Print summary
     let action = if $dry_run { "Would publish" } else { "Publish" }
     print $"($action) Summary:"
-    print ("=" | std repeat 15 | str join "")
+    print ("=" | repeat 15 | str join "")
     $results | to md
     print ""
     print $"Total: ($packages | length) | Published: ($published) | Failed: ($failed)"
@@ -329,7 +329,7 @@ export def publish-directory [
     if $dry_run {
         print "🔍 DRY RUN - no actual publishing will occur"
     }
-    print ("=" | std repeat 80 | str join "")
+    print ("=" | repeat 80 | str join "")
     print ""
 
     # Validate method
@@ -414,10 +414,10 @@ export def publish-directory [
     }
 
     # Print summary
-    print ("─" | std repeat 80 | str join "")
+    print ("─" | repeat 80 | str join "")
     let action = if $dry_run { "Would publish" } else { "Publish" }
     print $"($action) Summary:"
-    print ("=" | std repeat 15 | str join "")
+    print ("=" | repeat 15 | str join "")
     $results | to md
     print ""
     print $"Total: ($conda_files | length) | Published: ($published) | Failed: ($failed)"
