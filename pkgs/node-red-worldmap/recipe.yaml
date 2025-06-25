@@ -9,8 +9,8 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/dceejay/RedMap/tarball/refs/tags/v5.1.4
-  sha256: cf3fae47c6b7f670ab290010492326671750f54f2a8e4fd812b9a0fb68cb1656
+  url: https://github.com/dceejay/RedMap/archive/refs/tags/v5.1.4.tar.gz
+  sha256: 0e92d6f4ae0aa3bf9dfb99118cd4468995ee2d50a0a48f9d25246d1f49992b98
   target_directory: node-red-worldmap
 
 build:
@@ -30,29 +30,29 @@ build:
 
 requirements:
   build:
-    - nushell
-    - nodejs
-    - node-red
+  - nushell
+  - nodejs
+  - node-red
   host:
-    - nodejs
+  - nodejs
   run:
-    - nodejs
+  - nodejs
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Node-RED Worldmap Node.js package
-        - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/package.json
+    - ${{ "Library/" if win }}lib/node_modules/node-red-contrib-web-worldmap/package.json
 
     # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^echo 'not sure how to test'
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^echo 'not sure how to test'
 
 about:
   homepage: https://github.com/dceejay/RedMap#readme
@@ -63,13 +63,13 @@ about:
       but this can be changed in the configuration panel.
   license: Apache-2.0
   license_file:
-    - node-red-worldmap/LICENSE
+  - node-red-worldmap/LICENSE
   documentation: https://github.com/dceejay/RedMap#readme
   repository: https://github.com/dceejay/RedMap
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+)$
+    - ^(\d+\.\d+\.\d+)$

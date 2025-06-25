@@ -9,23 +9,17 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/fdupoux/fsarchiver/tarball/0.8.8
-  sha256: f7d103904a917863c84ab853686d14a7fa1bf3e54f7436849c6f8136c9975017
+  url: https://github.com/fdupoux/fsarchiver/archive/refs/tags/0.8.8.tar.gz
+  sha256: 99147c7a5e6afdaaf329881e3ccd4ef41bd2e255acfc644989cff15473920da3
+  target_directory: fsarchiver
 
 build:
   number: 0
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^0\\.8\\.8$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "fdupoux-fsarchiver-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "fdupoux-fsarchiver-" | first | get name)
-
       # Change to the extracted directory and build
-      cd $extracted_dir
+      cd fsarchiver
       ^autoreconf --force --install --verbose
       ^./configure --prefix=($env.PREFIX) --disable-lzma --sysconfdir=/etc "MKDIR_P=mkdir -p"
       ^make
@@ -66,7 +60,7 @@ tests:
         # fsarchiver binary
         - ${{ "Library/" if win }}sbin/fsarchiver${{ ".exe" if win }}
 
-    # Test 2: Functional tests
+      # Test 2: Functional tests
   - requirements:
       build:
         - nushell
@@ -79,7 +73,7 @@ tests:
 about:
   homepage: "https://www.fsarchiver.org"
   license: GPL-2.0-only
-  license_file: "*/COPYING"
+  license_file: "fsarchiver/COPYING"
   summary: File system archiver for linux
   description: |
     FSArchiver is a system tool that allows you to

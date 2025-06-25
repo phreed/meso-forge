@@ -9,26 +9,15 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/apache/opendal/tarball/refs/tags/v0.53.3
-  sha256: 9406070cdcfed6acf55d4c3802e82a1e51fa715cac2cbf74d6f7277a8b56c876
+  url: https://github.com/apache/opendal/archive/refs/tags/v0.53.3.tar.gz
+  sha256: 3e0f17600e7d7c542d915ce9f6f68e547a79aef6c2771e94a4d8bf382f406ace
 
 build:
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v0\\.53\\.3$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "apache-opendal-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "apache-opendal-" | first | get name)
-
-      # Change to the extracted directory and build
-      cd $extracted_dir
-
       # Move to the oli binary directory
       cd bin/oli
-
       ^cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
       ^cargo install --locked --bins --root ($env.PREFIX) --path .
 
@@ -46,7 +35,7 @@ tests:
         # OpenDAL oli binary
         - ${{ "Library/" if win }}bin/oli${{ ".exe" if win }}
 
-    # Test 2: Functional test
+      # Test 2: Functional test
   - requirements:
       build:
         - nushell

@@ -9,22 +9,14 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/ratatui/ratatui/tarball/ratatui-v0.30.0-alpha.4
-  sha256: e0c177d5830559cba0a73100a10810f596572ea4d4550bccc9e5d1437e9e1fd7
+  url: https://github.com/ratatui/ratatui/archive/refs/tags/ratatui-v0.30.0-alpha.4.tar.gz
+  sha256: 409186b90ee7be5323882d271b20537a20e83246742b5d487070e1941e9ff7ac
 
 build:
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^ratatui-v0\\.30\\.0-alpha\\.4$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "ratatui-ratatui-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "ratatui-ratatui-" | first | get name)
-
       # Change to the extracted directory and build
-      cd $extracted_dir
 
       # This is a Rust library crate - we just validate it compiles
       # The actual library would be used via Cargo.toml dependencies
@@ -50,7 +42,7 @@ tests:
         # Marker file indicating successful build
         - share/ratatui-info.txt
 
-    # Test 2: Functional test
+      # Test 2: Functional test
   - requirements:
       build:
         - nushell

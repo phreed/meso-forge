@@ -18,8 +18,8 @@ package:
 
 source:
   # Source archive from GitHub release: https://github.com/apache/nifi/releases/tag/rel%2Fnifi-2.4.0
-  url: https://api.github.com/repos/apache/nifi/tarball/refs/tags/rel/nifi-2.4.0
-  sha256: "10743a1a6c747d803acb46f8ad7779b86db394e819432301d65b58a8b84c8887"
+  url: https://github.com/apache/nifi/archive/refs/tags/rel/nifi-2.4.0.tar.gz
+  sha256: "d4da6800216eecf27246fe973b2f19fef961cf5125c6e14fbe1d7efdb295b21a"
   # GitHub archive extracts to nifi-rel-nifi-2.4.0 directory
   target_directory: nifi-rel-nifi-${{ version }}
 

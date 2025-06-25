@@ -1,0 +1,222 @@
+= Zed Editor Configuration Summary
+:toc: left
+:toclevels: 3
+
+== Configuration Complete ✅
+
+Your Zed editor has been successfully configured to work with Pixi Python environments!
+
+== What Was Changed
+
+=== 1. Dependencies Added to `pixi.toml`
+
+Added Python language servers to the `version-ctl` feature:
+
+[source,toml]
+----
+[feature.version-ctl.dependencies]
+# ... existing dependencies ...
+# Language servers for Zed editor
+pyright = ">=1.1.402,<1.2.0"
+ruff = ">=0.12.0,<=0.13.0"
+----
+
+=== 2. Pixi Tasks Added
+
+Two new tasks for environment switching:
+
+[source,toml]
+----
+[tasks.zed-env-default]
+description = "Configure Zed to use default pixi environment"
+
+[tasks.zed-env-update]
+description = "Configure Zed to use update pixi environment (with Python tools)"
+----
+
+=== 3. Zed Configuration Files Created
+
+[cols="1,2,3"]
+|===
+|File |Purpose |Description
+
+|`settings.json`
+|Main Zed configuration
+|Configures Python interpreter, language servers (Pyright, Ruff), terminal, and environment variables
+
+|`switch-env.sh`
+|Environment switcher script
+|Interactive script to switch between Pixi environments with automatic configuration
+
+|`aliases.sh`
+|Shell convenience aliases
+|Provides quick commands like `zed-py` and `zed-basic` for environment switching
+
+|`README.adoc`
+|Documentation
+|Comprehensive guide for using the Zed + Pixi integration
+|===
+
+== Quick Start Commands
+
+=== Recommended: Python Development Environment
+
+[source,bash]
+----
+# Switch to full Python development environment
+./.zed/switch-env.sh update
+
+# OR using aliases (after sourcing)
+source .zed/aliases.sh
+zed-py
+----
+
+=== Alternative: Basic Environment
+
+[source,bash]
+----
+# Switch to basic environment
+./.zed/switch-env.sh default
+
+# OR using aliases
+zed-basic
+----
+
+== Environment Comparison
+
+[cols="1,2,2"]
+|===
+|Feature |Default Environment |Update Environment
+
+|Python Version
+|3.13
+|3.12
+
+|Language Servers
+|❌ None
+|✅ Pyright + Ruff
+
+|IntelliSense
+|❌ Limited
+|✅ Full Python support
+
+|Code Formatting
+|❌ None
+|✅ Ruff formatter
+
+|Error Detection
+|❌ Basic syntax only
+|✅ Type checking + linting
+
+|Development Tools
+|❌ Minimal
+|✅ Full Python dev stack
+
+|Recommended For
+|General scripting
+|Python development
+|===
+
+== Current Status
+
+After running the configuration:
+
+* ✅ Language servers installed in `update` environment
+* ✅ Zed settings configured for Python development
+* ✅ Environment switcher scripts ready
+* ✅ Shell aliases available
+* ✅ Documentation complete
+
+== Verification Steps
+
+=== 1. Check Environment Status
+
+[source,bash]
+----
+./.zed/switch-env.sh --show
+----
+
+Expected output:
+----
+Current environment: update
+Python path: .pixi/envs/update/bin/python
+----
+
+=== 2. Verify Language Servers
+
+[source,bash]
+----
+ls -la .pixi/envs/update/bin/ | grep -E "(pyright|ruff)"
+----
+
+Should show both `pyright-langserver` and `ruff` executables.
+
+=== 3. Test in Zed
+
+. Open Zed editor
+. Create or open a Python file
+. Verify:
+   * IntelliSense suggestions appear
+   * Type hints work
+   * Automatic formatting on save
+   * Error highlighting for Python issues
+
+== Next Steps
+
+=== 1. Load Aliases (Optional but Recommended)
+
+Add to your shell configuration file (`.bashrc`, `.zshrc`, etc.):
+
+[source,bash]
+----
+# Add this line to automatically load Zed aliases
+source /path/to/meso-forge/.zed/aliases.sh
+----
+
+=== 2. Restart Zed
+
+For best results, restart Zed editor after environment changes.
+
+=== 3. Start Developing
+
+You're ready to develop Python code with full IDE features:
+
+* Code completion
+* Type checking
+* Error detection
+* Automatic formatting
+* Import organization
+
+== Troubleshooting
+
+=== Common Issues
+
+[cols="2,3"]
+|===
+|Issue |Solution
+
+|Language servers not working
+|Run `pixi install -e update` to reinstall environment
+
+|Python imports not found
+|Verify environment with `./.zed/switch-env.sh --show`
+
+|Settings not updating
+|Check file permissions on `.zed/settings.json`
+
+|Need to reset configuration
+|Restore from backup: `cp .zed/settings.json.backup.* .zed/settings.json`
+|===
+
+=== Getting Help
+
+. Check the comprehensive documentation: `README.adoc`
+. Verify Pixi setup: `pixi info`
+. Check language server availability: `pixi list -e update`
+. Review Zed's language server logs in the editor
+
+== Summary
+
+🎉 *Success!* Your Zed editor now has full Python IDE capabilities using your Pixi-managed environments. The `update` environment provides the best Python development experience with Pyright and Ruff integration.
+
+Use `zed-py` (after sourcing aliases) or `./.zed/switch-env.sh update` to ensure you're in the Python development environment, then enjoy coding with full language support!

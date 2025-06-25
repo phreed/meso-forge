@@ -25,26 +25,26 @@ build:
 
 requirements:
   build:
-    - nushell
+  - nushell
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Bash preexec profile script
-        - etc/profile.d/bash-preexec.sh
+    - etc/profile.d/bash-preexec.sh
 
     # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        let bash_preexec_file = ($env.PREFIX | path join "etc" "profile.d" "bash-preexec.sh")
-        if not ($bash_preexec_file | path exists) {
-          error make {msg: "bash-preexec.sh not found in profile.d directory"}
-        }
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content: |
+      let bash_preexec_file = ($env.PREFIX | path join "etc" "profile.d" "bash-preexec.sh")
+      if not ($bash_preexec_file | path exists) {
+        error make {msg: "bash-preexec.sh not found in profile.d directory"}
+      }
 
 about:
   homepage: https://github.com/rcaloras/bash-preexec
@@ -58,8 +58,8 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
 
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+)$
+    - ^(\d+\.\d+\.\d+)$

@@ -1,4 +1,4 @@
-= Version Update System for meso-forge
+= Version Control System for meso-forge
 :toc: left
 :toclevels: 3
 :icons: font
@@ -6,50 +6,101 @@
 
 == Overview
 
-The meso-forge project includes an intelligent version update system that uses link:https://conda.github.io/rattler/py-rattler/[py-rattler] to check package versions across both conda-forge and upstream sources. This system helps maintain up-to-date package recipes while making informed decisions about when updates are beneficial.
+The meso-forge project includes an intelligent, plugin-based version control system that monitors package versions across multiple source types and conda-forge. This system helps maintain up-to-date package recipes while making informed decisions about when updates are beneficial.
 
 === Key Features
 
+* 🔌 **Plugin Architecture**: Extensible support for different source types
 * 🔍 **conda-forge Integration**: Checks conda-forge first using py-rattler
 * 🧠 **Intelligent Decision Making**: Only updates when beneficial
 * 📊 **Comprehensive Reporting**: Detailed statistics and summaries
 * 🛡️ **Robust Error Handling**: Graceful handling of edge cases
-* 🚀 **Multiple Interfaces**: Command-line tools for different use cases
+* 🚀 **Multiple Source Types**: GitHub, RubyGems, Git repositories
+* 🎯 **API-Driven**: Uses official APIs for accurate version information
 
 == Quick Start
 
 === Check All Packages
 [source,bash]
 ----
-# Recommended: Use the unified script
-pixi run -e update python .scripts/version_ctl.py --all
+# Check all packages with dry run
+pixi run -e update python .scripts/version_ctl.py --all --dry-run
 
-# Or use the main script directly
-pixi run -e update update-ver
+# Actually update packages
+pixi run -e update python .scripts/version_ctl.py --all --update
 ----
 
 === Check Specific Package
 [source,bash]
 ----
 # Check one package
-pixi run -e update python .scripts/version_ctl.py --package fd
+pixi run -e update python .scripts/version_ctl.py --package digitalpy
+
+# Check multiple packages
+pixi run -e update python .scripts/version_ctl.py --package fd --package dysk
 
 # Check conda-forge status only
 pixi run -e update python .scripts/version_ctl.py --package fd --conda-forge-only
 ----
 
-=== Test Integration
+=== List Available Packages
 [source,bash]
 ----
-# Verify py-rattler is working
-pixi run -e update python .scripts/test_py_rattler.py
+# Show all available packages
+pixi run -e update python .scripts/version_ctl.py --list-packages
 ----
 
-== System Architecture
+== Plugin Architecture
 
-=== How It Works
+=== Supported Source Types
 
-The version update system follows this intelligent workflow:
+The system uses a plugin architecture to support different source types:
+
+[cols="2,3,3,2"]
+|===
+|Plugin |Source Types |Example URLs |Features
+
+|**GitHub**
+|GitHub repositories
+|`https://github.com/owner/repo`
+|Releases, tags, assets
+
+|**RubyGems**
+|Ruby gem packages
+|`https://rubygems.org/gems/name`
+|Gem registry API
+
+|**Git**
+|General Git repos
+|`git://example.com/repo.git`
+|Tag-based versioning
+
+|**Future**
+|PyPI, npm, GitLab
+|Various
+|Planned extensions
+|===
+
+=== Plugin Modes
+
+Each plugin can support different operation modes:
+
+==== GitHub Plugin Modes
+* `github-release`: Uses GitHub Releases API
+* `github-tags`: Uses GitHub Tags API
+
+* Auto-detection: Tries releases first, falls back to tags
+
+==== RubyGems Plugin Modes
+* `rubygems`: Uses RubyGems API for version checking
+
+==== Git Plugin Modes
+* `git-tags`: Checks repository tags
+* `git-branches`: Falls back to branch commits
+
+== System Workflow
+
+The version control system follows this intelligent workflow:
 
 [source]
 ----
@@ -57,15 +108,17 @@ The version update system follows this intelligent workflow:
          ↓
 2. Query conda-forge (py-rattler)
          ↓
-3. Analyze Available Versions
+3. Determine Source Plugin
          ↓
-4. Check Upstream Sources (GitHub)
+4. Check Upstream via Plugin
          ↓
-5. Make Update Decision
+5. Compare Versions
          ↓
-6. Update Files (if beneficial)
+6. Make Update Decision
          ↓
-7. Generate Reports
+7. Update Recipe Files
+         ↓
+8. Generate Reports
 ----
 
 === Decision Logic
@@ -74,75 +127,138 @@ The system makes intelligent decisions based on:
 
 * **conda-forge availability**: Is the package already available?
 * **Version comparison**: Is upstream newer than current?
-* **Ecosystem context**: Would this update be beneficial?
+* **Force flags**: Override version comparison if needed
+* **Source reliability**: Plugin-specific validation
 
-== Available Tools
+== Command Line Interface
 
-=== Core Scripts
-
-[cols="1,2,3"]
-|===
-|Script |Purpose |Usage
-
-|`version_ctl.py`
-|Unified version control script
-|`pixi run -e update python .scripts/version_ctl.py --all`
-
-|`update-ver` task
-|Convenience task for updates
-|`pixi run -e update update-ver`
-
-|`test_py_rattler.py`
-|Integration testing
-|`pixi run -e update python .scripts/test_py_rattler.py`
-
-|`example_py_rattler_usage.py`
-|Demonstration script
-|`pixi run -e update python .scripts/example_py_rattler_usage.py`
-|===
-
-=== Command Options
-
-The `version_ctl.py` unified script provides convenient options:
-
+=== Core Command
 [source,bash]
 ----
-# Package selection
---all                    # Check all packages
---package NAME           # Check specific package(s)
---list-packages          # List available packages
+pixi run -e update python .scripts/version_ctl.py [OPTIONS]
+----
 
-# Operation modes
---dry-run               # Show what would be updated
---conda-forge-only      # Only check conda-forge status
---newer-only            # Only show packages with updates
+=== Package Selection Options
+[source,bash]
+----
+--all, -a                    # Check all packages in recipes directory
+--package NAME, -p NAME      # Check specific package(s) (repeatable)
+--list-packages, -l          # List all available packages and exit
+----
 
-# Output control
---quiet                 # Reduce verbosity
---verbose               # Increase verbosity
---json                  # JSON output format
+=== Operation Modes
+[source,bash]
+----
+--update, -u                 # Actually update recipe files (default: check-only)
+--dry-run, -n               # Show what would be updated without changes
+--conda-forge-only, -c      # Only check conda-forge status, skip upstream
+--force, -f                 # Force update even if versions match
+----
+
+=== Filtering Options
+[source,bash]
+----
+--newer-only                # Only show packages with newer versions available
+----
+
+=== Output Control
+[source,bash]
+----
+--quiet, -q                 # Reduce output verbosity
+--verbose, -v               # Increase output verbosity
+--json                      # Output results in JSON format
+----
+
+=== Directory Options
+[source,bash]
+----
+--recipes-dir DIR, -d DIR   # Specify recipes directory (default: ./pkgs)
+----
+
+== Recipe Configuration
+
+=== Version Patterns
+
+Configure version detection in the recipe's `extra.version` section:
+
+[source,yaml]
+----
+extra:
+  version:
+    github-tags:                    # Plugin mode
+      - ^(\d+\.\d+\.\d+)$          # Semantic version pattern
+      - ^v(\d+\.\d+\.\d+)$         # Version with 'v' prefix
+----
+
+=== Multiple Modes
+[source,yaml]
+----
+extra:
+  version:
+    github-release:                 # Try releases first
+      - ^(\d+\.\d+\.\d+)$
+    github-tags:                    # Fallback to tags
+      - ^(\d+\.\d+\.\d+)$
+----
+
+=== Asset Patterns (GitHub)
+
+
+=== RubyGems Configuration
+[source,yaml]
+----
+source:
+  url: https://rubygems.org/downloads/gem-name-${{ version }}.gem
+
+extra:
+  version:
+    rubygems:
+      - ^(\d+\.\d+\.\d+)$
 ----
 
 == Output Examples
 
-=== Standard Output
+=== Standard Package Check
 [source]
 ----
 ============================================================
-Processing fd (current version: 10.2.0)
+Processing digitalpy (current version: 0.3.15)
 ============================================================
-(fd) Checking conda-forge availability...
-(fd) Package exists on conda-forge with 4 versions
-(fd) Latest on conda-forge: 8.40.2
-(fd) Current version 10.2.0 is NOT available on conda-forge
-(fd) Checking upstream for latest version...
-(fd) Current: 10.2.0, Upstream: 10.2.0
-(fd) Already at latest upstream version
+(digitalpy) Checking conda-forge availability...
+(digitalpy) Package not found on conda-forge
+(digitalpy) Using mode: github-tags
+(digitalpy) Using version patterns: ['^(\\d+\\.\\d+\\.\\d+)$']
+(digitalpy) Checking upstream for latest version...
+(digitalpy) Using github plugin
+(digitalpy) Found 5 total tags
+(digitalpy) Found 3 matching versions, latest: 0.3.15
+(digitalpy) Download URL: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v0.3.15.tar.gz
+(digitalpy) Current: 0.3.15, Upstream: 0.3.15
+(digitalpy) Already at latest upstream version
+----
+
+=== RubyGems Package Check
+[source]
+----
+============================================================
+Processing asciidoctor-revealjs (current version: 5.2.0)
+============================================================
+(asciidoctor-revealjs) Checking conda-forge availability...
+(asciidoctor-revealjs) Package not found on conda-forge
+(asciidoctor-revealjs) Using mode: rubygems
+(asciidoctor-revealjs) Using version patterns: ['^(\\d+\\.\\d+\\.\\d+)']
+(asciidoctor-revealjs) Checking upstream for latest version...
+(asciidoctor-revealjs) Using rubygems plugin
+(asciidoctor-revealjs) Found gem version: 5.2.0
+(asciidoctor-revealjs) Download URL: https://rubygems.org/downloads/asciidoctor-revealjs-5.2.0.gem
+(asciidoctor-revealjs) Current: 5.2.0, Upstream: 5.2.0
+(asciidoctor-revealjs) Already at latest upstream version
 ----
 
 === Summary Statistics
 [source]
 ----
+================================================================================
 🏁 UPDATE SUMMARY
 ================================================================================
 📦 Total packages processed: 27
@@ -157,6 +273,8 @@ Processing fd (current version: 10.2.0)
    📈 Upstream has newer version: 2
 
 📊 Success rate: 92.6% (25/27)
+
+✅ All packages are already up-to-date!
 ================================================================================
 ----
 
@@ -167,30 +285,39 @@ The system requires these dependencies (automatically managed by pixi):
 
 [source,toml]
 ----
-[feature.update-ver.dependencies]
+[feature.version-ctl.dependencies]
 python = "3.12.*"
 requests = ">=2.32.3,<3"
 pyyaml = ">=6.0.2,<7"
+"ruamel.yaml" = ">=0.17.0,<0.18"
 semver = ">=3.0.2,<4"
-py-rattler = ">=0.1.0"  # Key new dependency
+py-rattler = ">=0.1.0"
+aiohttp = ">=3.9.0,<4"
+urllib3 = ">=2.5.0,<3.0"
 ----
 
 === Environment Activation
 [source,bash]
 ----
-# Activate the update environment
-pixi shell -e update
-
-# Or run commands directly
+# Use the update environment
 pixi run -e update python .scripts/version_ctl.py --help
+
+# Or activate shell
+pixi shell -e update
+python .scripts/version_ctl.py --help
 ----
 
-=== Optional GitHub Token
-For better GitHub API rate limits:
+=== Authentication Tokens
+
+For better API rate limits and access:
 
 [source,bash]
 ----
+# GitHub API token (recommended)
 export GITHUB_TOKEN=your_github_token_here
+
+# Verify plugins are working
+pixi run -e update python .scripts/test_plugins.py
 ----
 
 == Common Use Cases
@@ -203,6 +330,9 @@ pixi run -e update python .scripts/version_ctl.py --all --quiet
 
 # Show only packages with updates available
 pixi run -e update python .scripts/version_ctl.py --all --newer-only
+
+# Check conda-forge status for all packages
+pixi run -e update python .scripts/version_ctl.py --all --conda-forge-only
 ----
 
 === Before Adding New Packages
@@ -219,114 +349,247 @@ pixi run -e update python .scripts/version_ctl.py --package NEW_PACKAGE --conda-
 pixi run -e update python .scripts/version_ctl.py --all --dry-run
 
 # Perform actual updates
-pixi run -e update python .scripts/version_ctl.py --update --all
+pixi run -e update python .scripts/version_ctl.py --all --update
+
+# Force updates even for matching versions
+pixi run -e update python .scripts/version_ctl.py --all --update --force
+----
+
+=== Package-Specific Operations
+[source,bash]
+----
+# Update specific packages
+pixi run -e update python .scripts/version_ctl.py --package fd --package dysk --update
+
+# Force update a specific package
+pixi run -e update python .scripts/version_ctl.py --package mypackage --update --force
+
+# Verbose debugging for problematic package
+pixi run -e update python .scripts/version_ctl.py --package problematic --verbose
+----
+
+== Testing and Debugging
+
+=== Plugin System Testing
+[source,bash]
+----
+# Test plugin loading and functionality
+pixi run -e update python .scripts/test_plugins.py
+
+# This tests:
+# - Plugin discovery and loading
+# - URL matching
+# - Source info extraction
+# - Basic plugin functionality
+----
+
+=== Integration Testing
+[source,bash]
+----
+# Test specific source types
+pixi run -e update python .scripts/version_ctl.py --package digitalpy --dry-run      # GitHub
+pixi run -e update python .scripts/version_ctl.py --package asciidoctor-revealjs --dry-run  # RubyGems
+pixi run -e update python .scripts/version_ctl.py --package jank --dry-run          # Git
+----
+
+=== Debug Mode
+[source,bash]
+----
+# Enable verbose output for troubleshooting
+pixi run -e update python .scripts/version_ctl.py --package mypackage --verbose --dry-run
+
+# JSON output for programmatic analysis
+pixi run -e update python .scripts/version_ctl.py --package mypackage --json
 ----
 
 == Troubleshooting
 
 === Common Issues
 
-**py-rattler import errors:**
+**Plugin loading errors:**
 [source,bash]
 ----
-# Reinstall dependencies
-pixi install
+# Check plugin system
+pixi run -e update python .scripts/test_plugins.py
 
-# Test integration
-pixi run -e update python .scripts/test_py_rattler.py
+# Verify environment
+pixi list -e update
 ----
 
-**Cache/storage issues:**
+**Version pattern mismatches:**
 [source,bash]
 ----
-# Clear cache
-rm -rf .cache/py-rattler/
+# Use verbose mode to see pattern matching
+pixi run -e update python .scripts/version_ctl.py --package mypackage --verbose
 
-# Check disk space
-df -h .cache/
+# Check actual tags/versions in source repository
 ----
 
 **GitHub rate limits:**
 [source,bash]
 ----
-# Set up token for better limits
+# Set up authentication token
 export GITHUB_TOKEN=your_token_here
+
+# Check rate limit status
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit
 ----
 
-== Documentation
+**RubyGems gem not found:**
+- Verify gem name extraction from URL
+- Check if gem exists on rubygems.org
+- Ensure URL template is correct
 
-=== Complete Documentation Set
+**Git repository access:**
+- Verify repository is publicly accessible
+- Check if git command is available
+- Ensure repository has tags (for version detection)
 
-[cols="1,3"]
-|===
-|Document |Description
+=== Error Messages
 
-|link:README_update_versions.adoc[README_update_versions.adoc]
-|Technical documentation and API details
+**"No plugin found for URL"**
+- The URL scheme is not supported by any plugin
+- Check if URL format is correct
+- Consider adding a new plugin for the source type
 
-|link:USAGE_GUIDE.adoc[USAGE_GUIDE.adoc]
-|Comprehensive user guide with examples
+**"No versions match patterns"**
+- Version patterns don't match actual tags/versions
+- Use `--verbose` to see what patterns and versions were found
+- Adjust patterns in recipe's `extra.version` section
 
-|link:IMPLEMENTATION_SUMMARY.adoc[IMPLEMENTATION_SUMMARY.adoc]
-|Implementation details and development summary
+**"Could not determine upstream version"**
+- Network connectivity issues
+- API authentication problems
+- Source repository doesn't have proper version tags
 
-|This document
-|Main overview and quick reference
-|===
+== Plugin Development
 
-=== Getting Help
+=== Adding New Plugins
 
-1. Check the link:USAGE_GUIDE.adoc[Usage Guide] for detailed examples
-2. Review link:README_update_versions.adoc[technical documentation] for API details
-3. Run test script to verify py-rattler integration
-4. Use `--verbose` mode for debugging information
+See link:plugin-source.adoc[Plugin Source Architecture] for detailed instructions on creating new plugins.
+
+Quick overview:
+1. Create `plugins_source/newtype_plugin.py`
+2. Inherit from `SourcePlugin`
+3. Implement required methods
+4. Plugin is automatically discovered
+
+=== Plugin Interface
+[source,python]
+----
+class SourcePlugin(ABC):
+    @property
+    def name(self) -> str: ...                    # Plugin name
+
+    @property
+    def supported_schemes(self) -> List[str]: ... # URL schemes
+
+    def can_handle(self, source_url: str) -> bool: ...  # URL matching
+
+    async def get_latest_version(...) -> VersionInfo: ...  # Main functionality
+
+    def extract_source_info(self, source_url: str) -> dict: ...  # URL parsing
+----
 
 == Migration from Legacy System
 
 === What Changed
 
-* **Before**: GitHub-only version checking
-* **After**: conda-forge aware with py-rattler integration
-* **Benefit**: Intelligent decisions based on conda ecosystem context
+* **Architecture**: Plugin-based instead of hardcoded functions
+* **Extensibility**: Easy to add new source types
+* **Maintainability**: Clear separation of concerns
+* **Functionality**: Enhanced GitHub support, added RubyGems and Git
+* **Reliability**: Better error handling and debugging
 
 === Backward Compatibility
 
 * ✅ All existing recipes work unchanged
-* ✅ Same command interface (`pixi run -e update update-ver`)
-* ✅ Enhanced output with more information
-* ✅ Better error handling and reporting
+* ✅ Same command patterns and options
+* ✅ Enhanced output with plugin information
+* ✅ Better error messages and troubleshooting
+
+=== Benefits
+
+* **Modularity**: Each source type is isolated
+* **Testability**: Individual plugins can be tested
+* **Flexibility**: Different behaviors per source type
+* **Extensibility**: Easy to add PyPI, npm, GitLab, etc.
+
+== Future Enhancements
+
+=== Planned Plugins
+
+* **PyPI Plugin**: Python Package Index support
+* **NPM Plugin**: Node.js package registry
+* **GitLab Plugin**: GitLab repository support
+* **Conda Plugin**: Conda package registry integration
+
+=== Advanced Features
+
+* **Parallel Processing**: Concurrent package checking
+* **Caching**: Cache API responses to reduce calls
+* **Configuration Files**: Plugin-specific settings
+* **Webhook Integration**: Real-time version notifications
+* **CI/CD Integration**: Automated update workflows
+
+== Related Documentation
+
+[cols="1,3"]
+|===
+|Document |Description
+
+|link:plugin-source.adoc[Plugin Source Architecture]
+|Detailed plugin development guide
+
+|link:README_update_versions.adoc[README Update Versions]
+|Legacy documentation (historical reference)
+
+|link:USAGE_GUIDE.adoc[Usage Guide]
+|Detailed usage examples (if exists)
+
+|Main README
+|Project overview and setup
+|===
+
+=== Getting Help
+
+1. Check plugin functionality: `pixi run -e update python .scripts/test_plugins.py`
+2. Use verbose mode for debugging: `--verbose`
+3. Review plugin documentation: link:plugin-source.adoc[Plugin Source Architecture]
+4. Test individual packages with `--dry-run`
 
 == Contributing
 
-When modifying the version update system:
+When contributing to the version control system:
 
-1. Test with `test_py_rattler.py` first
-2. Ensure backward compatibility
-3. Update relevant documentation
-4. Test with various package types
-5. Follow the established patterns
+1. **Test plugins**: Run `test_plugins.py` before and after changes
+2. **Maintain compatibility**: Don't break existing recipes
+3. **Add documentation**: Update this file and plugin docs
+4. **Follow patterns**: Use established plugin patterns
+5. **Test thoroughly**: Test with various package types
 
-== Future Roadmap
+=== Development Workflow
 
-=== Planned Enhancements
+[source,bash]
+----
+# 1. Test existing functionality
+pixi run -e update python .scripts/test_plugins.py
 
-* **PyPI integration** for Python packages
-* **npm registry support** for Node.js packages
-* **Enhanced git source handling**
-* **Configuration file support**
-* **Integration with rattler-build** for testing
+# 2. Make changes
+# ... edit files ...
 
-=== Extension Points
+# 3. Test specific functionality
+pixi run -e update python .scripts/version_ctl.py --package testpkg --dry-run --verbose
 
-The py-rattler based architecture makes it easy to add:
+# 4. Test plugin system again
+pixi run -e update python .scripts/test_plugins.py
 
-* Additional package registries
-* Custom update policies
-* Automated testing workflows
-* CI/CD integration
+# 5. Run broader tests
+pixi run -e update python .scripts/version_ctl.py --all --dry-run
+----
 
 ---
 
-For detailed usage instructions, see link:USAGE_GUIDE.adoc[USAGE_GUIDE.adoc].
+For plugin development details, see link:plugin-source.adoc[Plugin Source Architecture].
 
-For technical implementation details, see link:IMPLEMENTATION_SUMMARY.adoc[IMPLEMENTATION_SUMMARY.adoc].
+For troubleshooting and advanced usage, use the `--verbose` and `--dry-run` options.

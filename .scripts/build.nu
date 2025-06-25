@@ -47,6 +47,9 @@ def main [
         ""
     }
 
+    # Override skip_existing when force is used
+    let effective_skip_existing = if $force { "none" } else { $skip_existing }
+
     # Step 1: Check if package already exists (unless forced)
     if not $force and $check_remote != false {
         print "📍 Checking if package already exists..."
@@ -161,7 +164,7 @@ def main [
         print ""
         print "Command that would be executed:"
 
-        let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
+        let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $effective_skip_existing $no_test $verbose
         print $"   rattler-build (($cmd_args | str join ' '))"
 
         exit 0
@@ -171,7 +174,7 @@ def main [
     print ""
 
     # Build the rattler-build command arguments
-    let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $skip_existing $no_test $verbose
+    let cmd_args = build-command-args $recipe_dir $output_dir $target_platform $effective_skip_existing $no_test $verbose
     print $"Running: rattler-build (($cmd_args | str join ' '))"
 
     # Execute build

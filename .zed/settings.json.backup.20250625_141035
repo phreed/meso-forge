@@ -28,12 +28,12 @@
       "initialization_options": {
         "settings": {
           "python": {
-            "pythonPath": ".pixi/envs/update/bin/python",
+            "pythonPath": ".pixi/envs/default/bin/python",
             "venvPath": ".pixi/envs",
-            "defaultInterpreterPath": ".pixi/envs/update/bin/python",
+            "defaultInterpreterPath": ".pixi/envs/default/bin/python",
             "analysis": {
               "extraPaths": [
-                ".pixi/envs/update/lib/python3.12/site-packages"
+                ".pixi/envs/default/lib/python3.13/site-packages"
               ],
               "autoSearchPaths": true,
               "useLibraryCodeForTypes": true
@@ -68,20 +68,20 @@
         "program": "bash",
         "args": [
           "-c",
-          "cd /var/home/phreed/Projects/meso-forge && pixi shell -e update"
+          "cd /var/home/phreed/Projects/meso-forge && pixi shell -e default"
         ]
       }
     }
   },
   "python": {
     "interpreter": {
-      "path": ".pixi/envs/update/bin/python"
+      "path": ".pixi/envs/default/bin/python"
     }
   },
   "env": {
     "PIXI_PROJECT_ROOT": ".",
-    "PIXI_ENVIRONMENT": "update",
-    "PYTHONPATH": ".pixi/envs/update/lib/python3.12/site-packages"
+    "PIXI_ENVIRONMENT": "default",
+    "PYTHONPATH": ".pixi/envs/default/lib/python3.13/site-packages"
   },
   "project_panel": {
     "button": true,

@@ -10,8 +10,8 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://api.github.com/repos/FreeTAKTeam/FreeTakServer/tarball/refs/tags/v2.2.1
-    sha256: 6c333442ae890b271de6d6d4733ddb49f5a359937b0d880de9cf8d3a8b52acb4
+  - url: https://github.com/FreeTAKTeam/FreeTakServer/archive/refs/tags/v2.2.1.tar.gz
+    sha256: 14a16adb3260b82b097807596d69002322522ebc43e40c382a54bdc6f9f61a8b
     target_directory: freetakserver-src
   - if: linux
     then:
@@ -28,15 +28,8 @@ build:
   script:
     interpreter: nu
     content: |
-      # Extract the GitHub API tarball and change to extracted directory
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v2\\.2\\.1$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "FreeTAKTeam-UI-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "FreeTAKTeam-UI-" | first | get name)
-
       # Change to the extracted directory and install
-      cd $extracted_dir
+      cd freetakserver-src
       ^pip install . -v
 
       # Install systemd unit file and setup script on Linux
@@ -47,10 +40,14 @@ build:
         mkdir $systemd_dir
         cp $"($env.SRC_DIR)/systemd/freetakserver.service" $"($systemd_dir)/freetakserver.service"
         cp $"($env.SRC_DIR)/systemd/freetakserver-setup.sh" $"($bin_dir)/freetakserver-setup.sh"
-        chmod +x $"($bin_dir)/mediamtx-setup.sh"
+        chmod +x $"($bin_dir)/freetakserver-setup.sh"
       }
 
 requirements:
+  build:
+    - python >=${{ python_min }}
+    - poetry-core
+    - nushell
   host:
     - pip
     - python >=${{ python_min }}
@@ -123,7 +120,7 @@ tests:
         - ${{ "lib/systemd/system/freetakserver.service" if linux }}
         - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
 
-    # Test 2: Python import test
+      # Test 2: Python import test
   - script:
       interpreter: python
       content: |
@@ -138,7 +135,7 @@ about:
     It is used by civilian and military organization for planning.
   license: EPL-2.0
   license_file:
-    - freetakserver-src/FreeTAKTeam-FreeTakServer-*/LICENSE
+    - freetakserver-src/LICENSE
   documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
   repository: https://github.com/FreeTAKTeam/FreeTakServer
 

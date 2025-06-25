@@ -1,29 +1,16 @@
 {
   "languages": {
     "Python": {
-      "format_on_save": {
-        "language_server": {
-          "name": "ruff"
-        }
-      },
-      "formatter": {
-        "language_server": {
-          "name": "ruff"
-        }
-      },
-      "language_servers": [
-        "pyright",
-        "ruff"
-      ]
+      "format_on_save": { "language_server": { "name": "ruff" } },
+      "formatter": { "language_server": { "name": "ruff" } },
+      "language_servers": ["pyright", "ruff"]
     }
   },
   "lsp": {
     "pyright": {
       "binary": {
         "path": ".pixi/envs/update/bin/pyright-langserver",
-        "arguments": [
-          "--stdio"
-        ]
+        "arguments": ["--stdio"]
       },
       "initialization_options": {
         "settings": {
@@ -32,9 +19,7 @@
             "venvPath": ".pixi/envs",
             "defaultInterpreterPath": ".pixi/envs/update/bin/python",
             "analysis": {
-              "extraPaths": [
-                ".pixi/envs/update/lib/python3.12/site-packages"
-              ],
+              "extraPaths": [".pixi/envs/update/lib/python3.12/site-packages"],
               "autoSearchPaths": true,
               "useLibraryCodeForTypes": true
             }
@@ -45,15 +30,11 @@
     "ruff": {
       "binary": {
         "path": ".pixi/envs/update/bin/ruff",
-        "arguments": [
-          "server"
-        ]
+        "arguments": ["server"]
       },
       "initialization_options": {
         "settings": {
-          "interpreter": [
-            ".pixi/envs/update/bin/python"
-          ],
+          "interpreter": [".pixi/envs/update/bin/python"],
           "configuration": {
             "lineLength": 88
           }
@@ -66,10 +47,7 @@
     "shell": {
       "with_arguments": {
         "program": "bash",
-        "args": [
-          "-c",
-          "cd /var/home/phreed/Projects/meso-forge && pixi shell -e update"
-        ]
+        "args": ["-c", "cd $(pwd) && pixi shell -e update"]
       }
     }
   },

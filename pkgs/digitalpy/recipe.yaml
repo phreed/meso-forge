@@ -11,23 +11,17 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/FreeTAKTeam/DigitalPy/tarball/refs/tags/v0.3.15
-  sha256: 86b36fd8983866f9a19813594a7144fa693613f38db5e7b78a833864b7536052
+  url: https://github.com/FreeTAKTeam/DigitalPy/archive/refs/tags/v0.3.15.tar.gz
+  sha256: 75a8970465e290f61b633595ff12cf39ad5bd0cc98d5efcf9d860912f8134dc3
+  target_directory: digitalpy
 
 build:
   noarch: python
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v0\\.3\\.15$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "FreeTAKTeam-DigitalPy-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "FreeTAKTeam-DigitalPy-" | first | get name)
-
       # Change to the extracted directory and install
-      cd $extracted_dir
+      cd digitalpy
       ^pip install . -v
 
 requirements:
@@ -80,7 +74,7 @@ tests:
         # Python library package
         - site-packages/digitalpy/__init__.py
 
-    # Test 2: Python import test
+      # Test 2: Python import test
   - script:
       interpreter: python
       content: |
@@ -93,7 +87,7 @@ about:
     A python implementation of the aphrodite specification,
     heavily based on WCMF.
   license: EPL-2.0
-  license_file: "*/LICENSE.md"
+  license_file: "digitalpy/LICENSE.md"
 
 extra:
   recipe-maintainers:

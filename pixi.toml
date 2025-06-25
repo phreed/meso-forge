@@ -83,6 +83,7 @@ cmd = ["python", ".scripts/generate_readmes.py"]
 args = [
     { arg = "pkg", default = "_skeleton_python" },
     { arg = "tgt_platform", default = "linux-64" },
+    { arg = "force", default = "false" },
 ]
 cmd = [
     "nu",
@@ -90,6 +91,21 @@ cmd = [
     "{{ pkg }}",
     "--target-platform={{ tgt_platform }}",
     "--no-test",
+    "{{ '--force' if force == 'true' else '' }}",
+]
+
+[tasks.build-force]
+args = [
+    { arg = "pkg", default = "_skeleton_python" },
+    { arg = "tgt_platform", default = "linux-64" },
+]
+cmd = [
+    "nu",
+    ".scripts/build.nu",
+    "{{ pkg }}",
+    "--target-platform={{ tgt_platform }}",
+    "--no-test",
+    "--force",
 ]
 
 [tasks.check-package]
@@ -174,7 +190,7 @@ depends-on = [
     { task = "build", args = ["fsarchiver", "{{ tgt_platform }}"] },
     # { task = "build", args = ["gitql", "{{ tgt_platform }}" ] },
     { task = "build", args = ["gtksourceview5", "{{ tgt_platform }}"] },
-    { task = "build", args = ["iamb", "{{ tgt_platform }}"] },
+    # { task = "build", args = ["iamb", "{{ tgt_platform }}"] },
     { task = "build", args = ["internxt-cli", "{{ tgt_platform }}"] },
     { task = "build", args = ["jank", "{{ tgt_platform }}"] },
     { task = "build", args = ["mediamtx", "{{ tgt_platform }}"] },
@@ -186,6 +202,110 @@ depends-on = [
     { task = "build", args = ["ratatui", "{{ tgt_platform }}"] },
     { task = "build", args = ["testresources", "{{ tgt_platform }}"] },
     # { task = "build", args = ["trippy", "{{ tgt_platform }}" ] },
+]
+
+[tasks.build-all-force]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
+depends-on = [
+    { task = "build-force", args = [
+        "asciidoctor-revealjs",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "asyncio",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "bash-preexec",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "ble-sh",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "bitwarden-cli",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "devcontainer-cli",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "digitalpy",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "dysk",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "fd",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "flask-jwt-extended",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "freetakserver",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "freetakserver-ui",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "fsarchiver",
+        "{{ tgt_platform }}",
+    ] },
+    # { task = "build-force", args = ["gitql", "{{ tgt_platform }}" ] },
+    { task = "build-force", args = [
+        "gtksourceview5",
+        "{{ tgt_platform }}",
+    ] },
+    # { task = "build-force", args = [ "iamb", "{{ tgt_platform }}", ] },
+    { task = "build-force", args = [
+        "internxt-cli",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "jank",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "mediamtx",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "mumble-voip",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "node-red",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "node-red-worldmap",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "podlet",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "pwgen",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "ratatui",
+        "{{ tgt_platform }}",
+    ] },
+    { task = "build-force", args = [
+        "testresources",
+        "{{ tgt_platform }}",
+    ] },
+    # { task = "build-force", args = ["trippy", "{{ tgt_platform }}" ] },
 ]
 
 [tasks.test]
@@ -482,10 +602,22 @@ pyyaml = ">=6.0.2,<7"
 semver = ">=3.0.2,<4"
 py-rattler = ">=0.1.0"
 aiohttp = ">=3.9.0,<4"
+urllib3 = ">=2.5.0,<3.0"
+# Language servers for Zed editor
+pyright = ">=1.1.402,<1.2.0"
+ruff = ">=0.12.0,<=0.13.0"
+
+[feature.version-ctl.pypi-dependencies]
+pluginlib = ">=0.10.0,<0.11"
 
 # Version control tasks
 [feature.version-ctl.tasks.update-version]
-cmd = ["python", ".scripts/version_ctl.py", "--update", "--package"]
+args = [{ arg = "package" }, { arg = "force", default = "false" }]
+cmd = "{{ 'python .scripts/version_ctl.py --update --package ' + package + (' --force' if force == 'true' else '') }}"
+
+[feature.version-ctl.tasks.update-version-force]
+args = [{ arg = "package" }]
+cmd = "{{ 'python .scripts/version_ctl.py --update --package ' + package + ' --force' }}"
 
 [feature.version-ctl.tasks.update-version-all]
 cmd = ["python", ".scripts/version_ctl.py", "--update", "--all"]
@@ -493,3 +625,12 @@ cmd = ["python", ".scripts/version_ctl.py", "--update", "--all"]
 
 [environments.update]
 features = ["version-ctl"]
+
+# Zed editor tasks
+[tasks.zed-env-default]
+description = "Configure Zed to use default pixi environment"
+cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/default/bin/python' | upsert env.PIXI_ENVIRONMENT 'default' | save .zed/settings.json"]
+
+[tasks.zed-env-update]
+description = "Configure Zed to use update pixi environment (with Python tools)"
+cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/update/bin/python' | upsert env.PIXI_ENVIRONMENT 'update' | save .zed/settings.json"]

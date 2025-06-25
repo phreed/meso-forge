@@ -9,23 +9,15 @@ package:
   name: podlet
 
 source:
-  url: https://api.github.com/repos/containers/podlet/tarball/v0.3.0
-  sha256: 61598acc216c3a845dc59595ec379947e521cd90b58d9dafd3bd9cf3d81bd3ee
+  url: https://github.com/containers/podlet/archive/refs/tags/v0.3.0.tar.gz
+  sha256: b91398ef75566a2a646e9845d1211854e7275fce727d4b976e7d8a3c4430ae52
 
 build:
   number: 0
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^v0\\.3\\.0$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "containers-podlet-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "containers-podlet-" | first | get name)
-
       # Change to the extracted directory and build
-      cd $extracted_dir
       cargo build --release
       mkdir ($env.PREFIX | path join "bin")
       cp target/release/podlet ($env.PREFIX | path join "bin" "podlet")
@@ -43,7 +35,7 @@ tests:
         # Podlet binary
         - ${{ "Library/" if win }}bin/podlet${{ ".exe" if win }}
 
-    # Test 2: Functional tests
+      # Test 2: Functional tests
   - requirements:
       build:
         - nushell
@@ -52,11 +44,11 @@ tests:
       content:
         # Test that binary exists and is executable
         - ^which podlet
-        # Test version output contains expected version
+          # Test version output contains expected version
         - ^podlet --version | ^grep "${{ version }}"
-        # Test help command works
+          # Test help command works
         - ^podlet --help | ^grep -i "usage"
-        # Test that binary can show subcommands
+          # Test that binary can show subcommands
         - ^podlet --help | ^grep -i "command"
 
 about:
@@ -66,8 +58,7 @@ about:
     Generate Podman Quadlet files from a Podman command, compose file, or existing object
   license: MPL-2.0
   license_file:
-    - "*/LICENSE"
-    - "*/library_licenses"
+    - "LICENSE"
   documentation: https://github.com/containers/podlet/blob/main/README.md
   repository: https://github.com/containers/podlet
 

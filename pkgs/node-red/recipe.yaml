@@ -9,25 +9,25 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://api.github.com/repos/node-red/node-red/tarball/4.0.9
-    sha256: f2beeed7fbe5aee82d3dc1e427a8962b9b95c8a775d88bc6ca05de8f2f3d15e5
-    file_name: node-red-${{ version }}.tgz
-    target_directory: node-red-src
-  - path: ../../.scripts/npm_licenses.nu
-    file_name: npm_licenses.nu
-    target_directory: scripts
-  - if: linux
-    then:
-      path: systemd/node-red.service
-      target_directory: systemd/node-red.service
-  - if: linux
-    then:
-      path: systemd/node-red-setup.sh
-      target_directory: systemd/node-red-setup.sh
-  - if: win
-    then:
-      path: bin/node-red.cmd
-      target_directory: bin/node-red.cmd
+- url: https://github.com/node-red/node-red/archive/refs/tags/4.0.9.tar.gz
+  sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
+  file_name: node-red-${{ version }}.tgz
+  target_directory: node-red-src
+- path: ../../.scripts/npm_licenses.nu
+  file_name: npm_licenses.nu
+  target_directory: scripts
+- if: linux
+  then:
+    path: systemd/node-red.service
+    target_directory: systemd/node-red.service
+- if: linux
+  then:
+    path: systemd/node-red-setup.sh
+    target_directory: systemd/node-red-setup.sh
+- if: win
+  then:
+    path: bin/node-red.cmd
+    target_directory: bin/node-red.cmd
 
 build:
   script:
@@ -62,35 +62,35 @@ build:
 
 requirements:
   build:
-    - nushell
-    - nodejs
+  - nushell
+  - nodejs
   host:
-    - nodejs
-    - grunt
+  - nodejs
+  - grunt
   run:
-    - nodejs
+  - nodejs
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Node-RED Node.js package
-        - ${{ "Library/" if win }}lib/node_modules/node-red/package.json
+    - ${{ "Library/" if win }}lib/node_modules/node-red/package.json
           # Binary/executable
-        - ${{ "Library/" if win }}bin/node-red${{ ".cmd" if win }}
+    - ${{ "Library/" if win }}bin/node-red${{ ".cmd" if win }}
           # Systemd files (Linux only)
-        - ${{ "lib/systemd/system/node-red.service" if linux }}
-        - ${{ "bin/node-red-setup.sh" if linux }}
+    - ${{ "lib/systemd/system/node-red.service" if linux }}
+    - ${{ "bin/node-red-setup.sh" if linux }}
 
     # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^find . -maxdepth 2
-        - ^echo "node-red --help"
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^find . -maxdepth 2
+    - ^echo "node-red --help"
 
 about:
   homepage: https://nodered.org
@@ -104,11 +104,11 @@ about:
       industrial control systems or anything in between.
   license: Apache-2.0
   license_file:
-    - LICENSE
-    - license-summary.txt
+  - LICENSE
+  - license-summary.txt
   documentation: https://nodered.org/docs/
   repository: https://github.com/node-red/node-red
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed

@@ -2,15 +2,15 @@
 schema_version: 1
 
 context:
-  version: "0.0.11_alpha.1"
+  version: "0.0.10"
 
 package:
   name: iamb
   version: ${{ version }}
 
 source:
-  url: https://github.com/ulyssa/iamb/archive/refs/heads/main.tar.gz
-  sha256: 6be8c76aaca45f7971bcb542b1d12f26cd5f2c6266202de6433d768034e62fc7
+  url: https://github.com/ulyssa/iamb/archive/refs/tags/v0.0.10.tar.gz
+  sha256: f628cfbd9eba9e8881902b970e9432fec815044ec9bea901a8562ea3ef8f4615
 
 build:
   number: 0
@@ -23,37 +23,37 @@ build:
 
 requirements:
   build:
-    - nushell
-    - pkgconf
-    - rust
+  - nushell
+  - pkgconf
+  - rust
   host:
-    - sqlite
+  - sqlite
   run:
-    - if: linux
-      then:
-        - openssl
+  - if: linux
+    then:
+    - openssl
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # iamb binary
-        - ${{ "Library/" if win }}bin/iamb${{ ".exe" if win }}
+    - ${{ "Library/" if win }}bin/iamb${{ ".exe" if win }}
 
     # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^iamb --version
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^iamb --version
 
 about:
   homepage: https://iamb.chat
   license: Apache-2.0
   license_file:
-    - LICENSE
+  - LICENSE
   summary: Matrix client for Vim addicts
   description: |
     iamb is a Matrix client for the terminal that uses Vim keybindings.
@@ -61,7 +61,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-tags:
-      - ^(\d+\.\d+\.\d+.*)
+    - ^(\d+\.\d+\.\d+.*)

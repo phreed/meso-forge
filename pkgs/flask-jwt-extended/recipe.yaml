@@ -10,23 +10,17 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/vimalloc/flask-jwt-extended/tarball/refs/tags/4.7.1
-  sha256: 99f1e7107d4593925e027854b5a2c7afd6b590a2a875474ecd7082db74a23fcd
+  url: https://github.com/vimalloc/flask-jwt-extended/archive/refs/tags/4.7.1.tar.gz
+  sha256: c5bba87248b2253537891511f928dd3b51faf74e8e5ec1746529a6a36d819b9a
+  target_directory: flask-jwt-extended
 
 build:
   noarch: python
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^4\\.7\\.1$" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "vimalloc-flask-jwt-extended-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "vimalloc-flask-jwt-extended-" | first | get name)
-
       # Change to the extracted directory and install
-      cd $extracted_dir
+      cd flask-jwt-extended
       ^pip install . -v
 
 requirements:
@@ -54,7 +48,7 @@ tests:
         # Python library package
         - site-packages/flask_jwt_extended/__init__.py
 
-    # Test 2: Python import test
+      # Test 2: Python import test
   - script:
       interpreter: python
       content: |
@@ -68,7 +62,7 @@ about:
     blacklisting/revoking tokens,
     and token freshness (for accessing critical views).
   license: MIT
-  license_file: "*/LICENSE"
+  license_file: "flask-jwt-extended/LICENSE"
 
 extra:
   recipe-maintainers:

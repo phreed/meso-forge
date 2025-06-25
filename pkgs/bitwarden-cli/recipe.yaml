@@ -9,8 +9,9 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://api.github.com/repos/bitwarden/clients/tarball/cli-v2025.5.0
-  sha256: f48e0d908c31dbce4fb08ed8fb40741889bee89aba0bab9c973194d520c6726d
+  url: https://github.com/bitwarden/clients/archive/refs/tags/cli-v2025.5.0.tar.gz
+  sha256: 247ca881c8a9f407c494977f7e8555fe11beff017d0cfda6a6d437ec0c0978d6
+  target_directory: bitwarden-clients
 
 build:
   number: 0
@@ -18,15 +19,8 @@ build:
   script:
     interpreter: nu
     content: |
-      # Expand the GitHub API tarball which comes as a single file
-      let tarball_file = (ls | where type == file and name =~ "\\.tar\\.gz$|^cli-v" | first | get name)
-      ^tar -xzf $tarball_file
-
-      # Find the extracted directory (GitHub API tarballs create directories like "bitwarden-clients-abc123")
-      let extracted_dir = (ls | where type == dir and name =~ "bitwarden-clients-" | first | get name)
-
       # Change to the extracted directory
-      cd $extracted_dir
+      cd bitwarden-clients
 
       # Remove problematic postinstall script from desktop app
       ^sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' apps/desktop/package.json
@@ -80,7 +74,7 @@ tests:
         - ${{ "Library/" if win }}lib/bitwarden-cli/bw.js
         - ${{ "Library/" if win }}lib/bitwarden-cli/node_modules/.bin/acorn
 
-    # Test 2: Functional tests
+      # Test 2: Functional tests
   - requirements:
       build:
         - nushell
@@ -100,7 +94,7 @@ about:
     are available from the CLI.
     https://contributing.bitwarden.com/getting-started/clients/cli/
   license: Apache-2.0
-  license_file: "*/LICENSE.txt"
+  license_file: "bitwarden-clients/LICENSE.txt"
   repository: https://github.com/bitwarden/clients/tree/main/apps/cli
 
 extra:

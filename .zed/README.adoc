@@ -1,0 +1,189 @@
+= Zed Editor Configuration for Pixi Environments
+
+This directory contains Zed editor configuration for working with Python in your Pixi-managed environments.
+
+== Overview
+
+The configuration enables Zed to use Python interpreters and language servers from specific Pixi environments, providing proper IntelliSense, formatting, and linting support.
+
+== Available Environments
+
+* *default*: Basic environment with Python 3.13 (minimal Python setup)
+* *update*: Full Python development environment with Python 3.12, includes:
+** Python language servers (Pyright, Ruff)
+** Additional Python packages for development
+** All version control and development tools
+
+== Quick Start
+
+=== Option 1: Use the Environment Switcher Script
+
+[source,bash]
+----
+# Switch to update environment (recommended for Python development)
+./.zed/switch-env.sh update
+
+# Switch to default environment
+./.zed/switch-env.sh default
+
+# Interactive mode - choose from available environments
+./.zed/switch-env.sh
+
+# Show current environment
+./.zed/switch-env.sh --show
+----
+
+=== Option 2: Use Pixi Tasks
+
+[source,bash]
+----
+# Configure Zed for update environment (with Python tools)
+pixi run zed-env-update
+
+# Configure Zed for default environment
+pixi run zed-env-default
+----
+
+== What Gets Configured
+
+When you switch environments, the
+ following settings are updated in `settings.json`:
+
+. *Python Interpreter*: Points to the correct Python binary in the selected environment
+. *Language Servers*: Configures Pyright and Ruff to use the environment's binaries
+. *Environment Variables*: Sets `PIXI_ENVIRONMENT` and `PYTHONPATH`
+. *Terminal*: Configures integrated terminal to use the selected Pixi environment
+
+== Recommended Setup
+
+For Python development, use the *update* environment as it includes:
+
+* Pyright language server for type checking and IntelliSense
+* Ruff for fast linting and formatting
+* All Python development dependencies
+
+[source,bash]
+----
+./.zed/switch-env.sh update
+----
+
+== Manual Configuration
+
+If you prefer to configure manually, edit `.zed/settings.json` and update:
+
+[source,json]
+----
+{
+  "python": {
+    "interpreter": {
+      "path": ".pixi/envs/update/bin/python"
+    }
+  },
+  "lsp": {
+    "pyright": {
+      "binary": {
+        "path": ".pixi/envs/update/bin/pyright-langserver",
+        "arguments": ["--stdio"]
+      },
+      "initialization_options": {
+        "settings": {
+          "python": {
+            "pythonPath": ".pixi/envs/update/bin/python",
+            "venvPath": ".pixi/envs",
+            "defaultInterpreterPath": ".pixi/envs/update/bin/python"
+          }
+        }
+      }
+    }
+  },
+  "env": {
+    "PIXI_ENVIRONMENT": "update"
+  }
+}
+----
+
+== Troubleshooting
+
+=== Language Servers Not Working
+
+If Pyright or Ruff aren't working:
+
+. Ensure they're installed in your environment:
++
+[source,bash]
+----
+pixi list -e update | grep -E "(pyright|ruff)"
+----
+
+. If missing, they should be added automatically. If not:
++
+[source,bash]
+----
+pixi add -e update pyright ruff
+----
+
+=== Python Path Issues
+
+If Python modules aren't being found:
+
+. Check that the correct environment is selected:
++
+[source,bash]
+----
+./.zed/switch-env.sh --show
+----
+
+. Restart Zed after switching environments
+
+. Check that the Python path is correct:
++
+[source,bash]
+----
+ls -la .pixi/envs/update/bin/python
+----
+
+=== Settings Not Persisting
+
+* The script creates backups of your settings in `.zed/settings.json.backup.*`
+* Check file permissions on `.zed/settings.json`
+* Ensure you're running the script from the project root
+
+== Files
+
+* `settings.json`: Main Zed configuration file
+* `switch-env.sh`: Script to switch between Pixi environments
+* `aliases.sh`: Convenient shell aliases
+* `README.adoc`: This documentation
+
+== Environment Details
+
+=== Default Environment
+* Python 3.13
+* Basic system tools
+* Minimal dependencies
+* Good for general scripting
+
+=== Update Environment
+* Python 3.12
+* Pyright language server
+* Ruff linter/formatter
+* Development tools (requests, pyyaml, etc.)
+* Version control utilities
+* Recommended for Python development
+
+== Adding New Environments
+
+To add support for a new Pixi environment:
+
+. Add it to the `ENVIRONMENTS` array in `switch-env.sh`
+. Update the `pixi.toml` to include necessary language servers
+. Test the configuration
+
+== Support
+
+If you encounter issues:
+
+. Check that Pixi environments are properly installed: `pixi info`
+. Verify language servers are available: `pixi list -e update`
+. Check Zed's language server logs in the editor
+. Restart Zed after making configuration changes

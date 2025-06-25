@@ -9,9 +9,9 @@ package:
   version: ${{ version }}
 
 source:
-  - url: https://api.github.com/repos/internxt/cli/tarball/v1.5.3
-    sha256: 4c5eedf4a9dff5d53080070d3c66d44819beb80d8bb418e7542331af14444ead
-    target_directory: internxt-cli-src
+- url: https://github.com/internxt/cli/archive/refs/tags/v1.5.3.tar.gz
+  sha256: 6fe81124c50163c0d74be88019ef22a0068537c0169be4b315c69be3e873c611
+  target_directory: internxt-cli-src
 
 build:
   number: 0
@@ -20,6 +20,8 @@ build:
     interpreter: nu
     content: |
       $env.YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
+      cd internxt-cli-src
+
       # Install dependencies first (required for prepack script)
       ^yarn install
 
@@ -27,7 +29,7 @@ build:
       ^yarn pack
 
       # Install the tarball to the conda environment prefix
-      ^npm install --prefix=($env.PREFIX) --global ($env.SRC_DIR | path join "package.tgz")
+      ^npm install --prefix=($env.PREFIX) --global ./package.tgz
 
       # Create license report for dependencies
       # First install with pnpm to generate lockfile
@@ -36,54 +38,54 @@ build:
 
 requirements:
   build:
-    - nushell
-    - nodejs
-    - grunt
-    - pnpm
-    - pnpm-licenses
-    - yarn
-    - python
-    - setuptools
-    - ${{ compiler('cxx') }}
-    - make
+  - nushell
+  - nodejs
+  - grunt
+  - pnpm
+  - pnpm-licenses
+  - yarn
+  - python
+  - setuptools
+  - ${{ compiler('cxx') }}
+  - make
   host:
-    - nodejs
-    - grunt
+  - nodejs
+  - grunt
   run:
-    - nodejs
+  - nodejs
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Internxt CLI binary
-        - ${{ "Library/" if win }}bin/internxt${{ ".cmd" if win }}
+    - ${{ "Library/" if win }}bin/internxt${{ ".cmd" if win }}
           # Node.js package files
-        - ${{ "Library/" if win }}lib/node_modules/@internxt/cli/package.json
+    - ${{ "Library/" if win }}lib/node_modules/@internxt/cli/package.json
 
     # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^internxt --help
-        - ^internxt --version
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^internxt --help
+    - ^internxt --version
 
 about:
   homepage: https://github.com/internxt/cli/blob/main/README.md
   summary: A CLI tool to interact with your Internxt encrypted files
   description: |
-    rotect your privacy with our open-source and post-quantum encrypted suite of secure services.
+    Protect your privacy with our open-source and post-quantum encrypted suite of secure services.
     Private by default, secure by design, and free as in freedom.
   license: AGPL-3.0
   license_file:
-    - LICENSE.txt
-    - third-party-licenses.txt
+  - LICENSE.txt
+  - third-party-licenses.txt
   documentation: https://github.com/internxt/cli/blob/main/README.md
   repository: https://github.com/internxt/cli
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed

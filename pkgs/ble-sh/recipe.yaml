@@ -9,12 +9,12 @@ package:
   version: "0.4.0_devel3"
 
 source:
-  - url: https://github.com/akinomyoga/ble.sh/archive/refs/tags/v0.4.0-devel3.tar.gz
-    sha256: 867ec9681bd75de7faa93622bcae1b705f561c11d83a62ead1f14554b87630dc
-    target_directory: ble-sh-src
-  - url: https://github.com/akinomyoga/blesh-contrib/archive/refs/heads/master.tar.gz
-    sha256: a2147dc083ec0cc0f495b1ae68eb1dcddf5e4b29750d6f28e6d2cf003f6d4515
-    target_directory: contrib-src
+- url: https://github.com/akinomyoga/ble.sh/archive/refs/tags/v0.4.0-devel3.tar.gz
+  sha256: 867ec9681bd75de7faa93622bcae1b705f561c11d83a62ead1f14554b87630dc
+  target_directory: ble-sh-src
+- url: https://github.com/akinomyoga/blesh-contrib/archive/refs/heads/master.tar.gz
+  sha256: a2147dc083ec0cc0f495b1ae68eb1dcddf5e4b29750d6f28e6d2cf003f6d4515
+  target_directory: contrib-src
 
 build:
   noarch: generic
@@ -59,39 +59,39 @@ build:
 
 requirements:
   build:
-    - nushell
-    - make
-    - gawk
+  - nushell
+  - make
+  - gawk
   run:
-    - bash >=3.0
+  - bash >=3.0
 
 tests:
   # Test 1: Verify package contents are included
-  - package_contents:
-      files:
+- package_contents:
+    files:
         # Main ble.sh installation
-        - share/blesh/ble.sh
+    - share/blesh/ble.sh
           # Profile script
-        - etc/profile.d/ble.sh
+    - etc/profile.d/ble.sh
 
     # Test 2: Functional test
-  - requirements:
-      build:
-        - nushell
-        - bash
-    script:
-      interpreter: nu
-      content: |
-        let blesh_file = ($env.PREFIX | path join "share" "blesh" "ble.sh")
-        let profile_file = ($env.PREFIX | path join "etc" "profile.d" "ble.sh")
+- requirements:
+    build:
+    - nushell
+    - bash
+  script:
+    interpreter: nu
+    content: |
+      let blesh_file = ($env.PREFIX | path join "share" "blesh" "ble.sh")
+      let profile_file = ($env.PREFIX | path join "etc" "profile.d" "ble.sh")
 
-        if not ($blesh_file | path exists) {
-          error make {msg: "ble.sh not found in share/blesh directory"}
-        }
+      if not ($blesh_file | path exists) {
+        error make {msg: "ble.sh not found in share/blesh directory"}
+      }
 
-        if not ($profile_file | path exists) {
-          error make {msg: "ble.sh profile script not found in profile.d directory"}
-        }
+      if not ($profile_file | path exists) {
+        error make {msg: "ble.sh profile script not found in profile.d directory"}
+      }
 
 about:
   homepage: https://github.com/akinomyoga/ble.sh
@@ -106,7 +106,7 @@ about:
 
 extra:
   recipe-maintainers:
-    - phreed
+  - phreed
   version:
     github-release:
-      - ^(\d+\.\d+\.\d+)
+    - ^(\d+\.\d+\.\d+)

@@ -34,14 +34,14 @@ tests:
         # Asciidoctor Reveal.js binary
     - ${{ "Library/" if win }}bin/asciidoctor-revealjs${{ ".exe" if win }}
 
-  # Test 2: Ruby import test
+  # Test 2: Binary execution test
 - requirements:
     build:
-    - ruby
+    - nushell
   script:
-    interpreter: ruby
+    interpreter: nu
     content: |
-      require 'asciidoctor-revealjs'
+      ^asciidoctor-revealjs --version
 
   # Test 3: Functional test
 - requirements:
