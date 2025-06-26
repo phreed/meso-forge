@@ -81,16 +81,16 @@ tests:
         - ${{ "Library/" if win }}lib64/pkgconfig/gtksourceview-5.pc
 
   # Test 2: Functional tests
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content: |
-        # Simple test that doesn't require package installation
-        # This avoids dependency resolution issues during test phase
-        ^echo "Tests skipped due to complex dependency resolution"
-        exit 0
+  # - requirements:
+  #     build:
+  #       - nushell
+  #   script:
+  #     interpreter: nu
+  #     content: |
+  #       # Simple test that doesn't require package installation
+  #       # This avoids dependency resolution issues during test phase
+  #       ^echo "Tests skipped due to complex dependency resolution"
+  #       exit 0
 
 about:
   homepage: https://projects.gnome.org/gtksourceview/
