@@ -21,7 +21,7 @@ build:
     interpreter: nu
     content: |
       # Change to the extracted directory and install
-      cd takproto-${{ version }}
+      cd takproto
       ^pip install . -v
 
 requirements:
@@ -75,7 +75,7 @@ about:
     - Serialize CoT XML messages as Protobuf
     - Support for ATAK, WinTAK, iTAK, TAKX, TAK Tracker & TAK Server
   license: MIT
-  license_file: "takproto-${{ version }}/LICENSE"
+  license_file: "takproto/LICENSE"
 
 extra:
   recipe-maintainers:

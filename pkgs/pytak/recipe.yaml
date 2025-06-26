@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "7.1.0b10"
+  version: "7.0.2"
   python_min: 3.7
   python_max: 3.12
 
@@ -21,7 +21,7 @@ build:
     interpreter: nu
     content: |
       # Change to the extracted directory and install
-      cd pytak-7.1.0-beta10
+      cd pytak
       ^pip install . -v
 
 requirements:
@@ -45,7 +45,8 @@ tests:
       files:
         # Python library package
         - site-packages/pytak/__init__.py
-        - site-packages/pytak/VERSION
+        - site-packages/pytak/functions.py
+        - site-packages/pytak/constants.py
 
   # Test 2: Python import test
   - script:
@@ -65,15 +66,4 @@ about:
     Features:
     - TAK Protocol Support: Connect with ATAK, WinTAK, iTAK, and TAK Server
     - Data Handling: Manage TAK, Cursor on Target (CoT), and non-CoT data
-    - Data Parsing and Serialization: Parse and serialize TAK and CoT data
-    - Network Communication: Send and receive TAK and CoT data over a network
-  license: Apache-2.0
-  license_file: "pytak-7.1.0-beta10/LICENSE"
-
-extra:
-  recipe-maintainers:
-    - phreed
-
-  version:
-    github-releases:
-      - ^(\d+\.\d+\.\d+)$
+    - Data Parsing and Serialization: Parse an
