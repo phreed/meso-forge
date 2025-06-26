@@ -18,7 +18,7 @@ build:
     interpreter: nu
     content: |
       $env.PKG_CONFIG_PATH = ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" + ($env.PREFIX | path join "lib" "pkgconfig") + ":" + ($env.PKG_CONFIG_PATH | default "")
-      ^meson setup build --prefix=($env.PREFIX) -Dintrospection=disabled -Dvapi=false -Dsysprof=false --wrap-mode=nofallback
+      ^meson setup build --prefix=($env.PREFIX) --libdir=lib64 -Dintrospection=disabled -Dvapi=false -Dsysprof=false --wrap-mode=nofallback
       ^meson compile -C build --verbose
       ^meson install -C build
 
@@ -73,12 +73,12 @@ tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # GtkSourceView5 library files
-        - ${{ "Library/" if win }}lib64/libgtksourceview-5${{ ".dll" if win else ".so*" }}
+        # GtkSourceView5 library files (try lib64 first, then lib as fallback)
+        - ${{ "Library/" if win }}lib*/libgtksourceview-5${{ ".dll" if win else ".so*" }}
         # Header files
         - ${{ "Library/" if win }}include/gtksourceview-5/gtksourceview/gtksourceview.h
-        # pkg-config files
-        - ${{ "Library/" if win }}lib64/pkgconfig/gtksourceview-5.pc
+        # pkg-config files (try lib64 first, then lib as fallback)
+        - ${{ "Library/" if win }}lib*/pkgconfig/gtksourceview-5.pc
 
   # Test 2: Functional tests
   # - requirements:
