@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "7.1.0b10"
+  python_min: 3.7
+  python_max: 3.12
+
+package:
+  name: pytak
+  version: ${{ version }}
+
+source:
+  url: https://github.com/snstac/pytak/archive/refs/tags/v7.1.0-beta10.tar.gz
+  sha256: 11e4269ecca2314fea458da28d253aef9007d47f18b5c87bd347be2a812d3ae3
+  target_directory: pytak
+
+build:
+  noarch: python
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and install
+      cd pytak-7.1.0-beta10
+      ^pip install . -v
+
+requirements:
+  build:
+    - nushell
+    - tar
+  host:
+    - pip
+    - python >=${{ python_min }},<${{ python_max }}
+    - setuptools
+    - wheel
+  run:
+    - python >=${{ python_min }},<${{ python_max }}
+    - setuptools
+  run_exports:
+    - ${{ pin_subpackage("pytak", upper_bound="x.x") }}
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python library package
+        - site-packages/pytak/__init__.py
+        - site-packages/pytak/VERSION
+
+  # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import pytak
+        print("PyTAK imported successfully")
+        # Test basic functionality
+        from pytak import split_host, hello_event
+
+about:
+  homepage: https://github.com/snstac/pytak
+  summary: PyTAK is a Python package for rapid Team Awareness Kit (TAK) integration
+  description: |
+    PyTAK is a Python Module for creating Team Awareness Kit (TAK) clients, servers & gateways.
+
+    Features:
+    - TAK Protocol Support: Connect with ATAK, WinTAK, iTAK, and TAK Server
+    - Data Handling: Manage TAK, Cursor on Target (CoT), and non-CoT data
+    - Data Parsing and Serialization: Parse and serialize TAK and CoT data
+    - Network Communication: Send and receive TAK and CoT data over a network
+  license: Apache-2.0
+  license_file: "pytak-7.1.0-beta10/LICENSE"
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-releases:
+      - ^(\d+\.\d+\.\d+)$
