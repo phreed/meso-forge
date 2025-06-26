@@ -125,6 +125,9 @@ build:
         --ignore=golang.org/x/crypto/sha3
         --ignore=github.com/ugorji/go/codec
         --ignore=github.com/benburkert/openpgp
+        --ignore=k8s.io/api
+        --ignore=k8s.io/apimachinery
+        --ignore=k8s.io/client-go
         | complete | ignore)
 
 requirements:
@@ -199,6 +202,15 @@ extra:
   recipe-maintainers:
     # TODO: Add your GitHub username
     - github-username
+
+  version:
+    github-tags:
+      # TODO: Update regex pattern to match your project's tag format
+      # Common patterns:
+      # - ^v(\d+\.\d+\.\d+)$         # v1.2.3
+      # - ^(\d+\.\d+\.\d+)$          # 1.2.3
+      # - ^v(\d+\.\d+\.\d+-.+)$      # v1.2.3-beta1
+      - ^v(\d+\.\d+\.\d+)$
 
   # Common Go packaging notes:
   # - For projects using git-based version embedding (go generate + versiongetter tools),

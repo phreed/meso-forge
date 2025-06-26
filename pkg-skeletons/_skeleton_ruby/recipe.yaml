@@ -1,88 +1,217 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# Ruby Gem Package Recipe Template
+# ===============================
+#
+# This template provides best practices for packaging Ruby gems in conda.
+# Based on patterns from real-world Ruby packaging in the meso-forge project.
+#
+# RUBY GEM PACKAGING PATTERNS:
+# - Use gem install for installation (most common)
+# - Use noarch: generic for pure Ruby gems
+# - Handle native extensions with proper build tools
+# - Test gem loading and CLI functionality
+#
+# BUILD CONSIDERATIONS:
+# - gem install handles dependency resolution and installation
+# - Use -N flag to skip documentation generation (faster builds)
+# - Use -l flag for local installation from .gem file
+# - Use -n flag to specify binary installation directory
+#
+# NATIVE EXTENSIONS:
+# - Remove noarch: generic for gems with native extensions
+# - Add C/C++ compilers to build requirements
+# - Native compilation happens automatically during gem install
+#
+# TESTING BEST PRACTICES:
+# - Test that gems can be required without errors
+# - Test CLI tools if the gem provides them
+# - Focus on basic functionality rather than complex scenarios
+# - Verify all expected files are installed
+
 context:
+  # TODO: Update these variables for your package
+  name: example-ruby-gem
   version: "1.0.0"
+  # Gem name (may differ from conda package name)
+  gem_name: example-gem
+  # Optional: GitHub info for source URL
+  github_org: example-org
+  github_repo: example-repo
+  # Does this gem provide CLI tools?
+  has_cli: true
+  # CLI command name (if different from gem name)
+  cli_name: example
 
 package:
-  name: gemname
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  - url: https://rubygems.org/downloads/gemname-${{ version }}.gem
-    sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  # TODO: Choose your source type and update accordingly
+
+  # Option 1: RubyGems.org (recommended for published gems)
+  - url: https://rubygems.org/downloads/${{ gem_name }}-${{ version }}.gem
+    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+
+  # Option 2: GitHub source (for gems not on RubyGems or need specific commits)
+  # - url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  #   sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  #   target_directory: ${{ gem_name }}-src
 
 build:
-  number: 0
-  # For pure Ruby gems (no native extensions)
+  # Use noarch: generic for pure Ruby gems
+  # Remove this line for gems with native extensions
   noarch: generic
-
+  number: 0
   script:
-    # Standard gem installation - the -n flag automatically creates CLI executables
-    - gem install -N -l -V --norc --ignore-dependencies -n $PREFIX/bin gemname-${{ version }}.gem
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
 
-    # Extract license file
-    - gem unpack gemname-${{ version }}.gem
-    - cp gemname-${{ version }}/LICENSE* LICENSE || cp gemname-${{ version }}/LICENSE.* LICENSE || echo "No LICENSE file found"
+      # INSTALLATION PATTERN 1: Install from .gem file (most common)
+      gem install -N -l -V --norc --ignore-dependencies -n ($env.PREFIX | path join "bin") ${{ gem_name }}-${{ version }}.gem
 
-  # For gems with native extensions, remove 'noarch: generic' above and add build requirements below
+      # Extract license file from gem
+      gem unpack ${{ gem_name }}-${{ version }}.gem
+      let gem_dir = ${{ gem_name }}-${{ version }}
+      if ($gem_dir | path join "LICENSE" | path exists) {
+        cp ($gem_dir | path join "LICENSE") LICENSE
+      } else if ($gem_dir | path join "LICENSE.txt" | path exists) {
+        cp ($gem_dir | path join "LICENSE.txt") LICENSE
+      } else if ($gem_dir | path join "MIT-LICENSE" | path exists) {
+        cp ($gem_dir | path join "MIT-LICENSE") LICENSE
+      } else {
+        echo "No LICENSE file found in gem" | save LICENSE
+      }
+
+      # INSTALLATION PATTERN 2: Build and install from source (uncomment if using GitHub source)
+      # cd ${{ gem_name }}-src
+      # gem build ${{ gem_name }}.gemspec
+      # gem install -N -l -V --norc --ignore-dependencies -n ($env.PREFIX | path join "bin") ${{ gem_name }}-${{ version }}.gem
+
+      # TODO: Add post-installation steps if needed
+      # Copy additional files, create configuration, etc.
 
 requirements:
-  # For gems with native extensions, add build section:
-  # build:
-  #   - if: unix
-  #     then: ${{ compiler('c') }}
-  #   - if: unix
-  #     then: ${{ compiler('cxx') }}
-  #   - if: win
-  #     then: ${{ compiler('m2w64_c') }}
-  #   - if: win
-  #     then: ${{ compiler('m2w64_cxx') }}
+  build:
+    - nushell
+    # TODO: Add build tools for gems with native extensions
+    # - ${{ compiler('c') }}      # C compiler for native extensions
+    # - ${{ compiler('cxx') }}    # C++ compiler for native extensions
+    # - make                      # Build system for native code
+    # - pkg-config                # For finding system libraries
 
   host:
     - ruby
-    # Add other build dependencies here
+    # TODO: Add other build dependencies if needed
 
   run:
     - ${{ pin_compatible('ruby', upper_bound='x.x') }}
-    # Add runtime dependencies here with rb- prefix for Ruby gems:
+    # TODO: Add runtime gem dependencies with rb- prefix
+    # Use version constraints similar to the gem's gemspec
     # - rb-activesupport >=6.0,<8.0
     # - rb-nokogiri >=1.10,<2.0
+    # - rb-json >=2.0
+    # - rb-thor >=0.20           # For CLI gems
 
 tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # Ruby gem binary (if it provides CLI)
-        - ${{ "Library/" if win }}bin/gemname${{ ".exe" if win }}
+        # TODO: Update based on what your gem provides
 
-  # Test 2: Ruby import test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        # Test gem can be required
-        - ^ruby -r gemname -e 'exit 0'
+        # For gems with CLI tools
+        - ${{ "Library/" if win }}bin/${{ cli_name }}${{ ".exe" if win }}
 
-        # Test CLI tools if gem provides them (CLI tools are automatically created by gem install -n)
-        # - ^gemname --version
-        # - ^gemname --help
+        # Ruby gem files are installed in lib/ruby/gems/[version]/gems/[gem-name]/
+        # The exact path varies by Ruby version, so we don't test specific paths
+
+  # Test 2: Ruby gem loading test
+  - script:
+      interpreter: ruby
+      content: |
+        # Test that the gem can be required
+        require '${{ gem_name }}'
+        puts "${{ gem_name }} loaded successfully"
+
+        # TODO: Add basic functionality tests
+        # Test that main classes/modules can be accessed
+        # puts ${{ gem_name }}::VERSION if defined?(${{ gem_name }}::VERSION)
+
+  # Test 3: CLI functionality test (if applicable)
+  - if: ${{ has_cli }}
+    then:
+      requirements:
+        build:
+          - nushell
+      script:
+        interpreter: nu
+        content:
+          # TODO: Update these tests for your specific CLI
+
+          # Test that CLI can execute
+          - ^${{ cli_name }} --version
+          - ^${{ cli_name }} --help
+
+          # TODO: Add functional tests that verify core CLI functionality
+          # Keep tests simple and avoid external dependencies
+          # - ^${{ cli_name }} validate --dry-run
+          # - ^echo "test input" | ^${{ cli_name }} --stdin
+          # - ^${{ cli_name }} --check-syntax /dev/null
 
 about:
-  homepage: https://github.com/username/gemname
-  repository: https://github.com/username/gemname
-  documentation: https://rubydoc.info/gems/gemname
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://rubydoc.info/gems/${{ gem_name }}
+  summary: Brief one-line description of the Ruby gem
+  description: |
+    A longer, multi-line description of what this Ruby gem provides.
+    Include key features, use cases, and any important notes.
 
+    Features:
+    - Feature 1: Easy-to-use Ruby API
+    - Feature 2: Cross-platform compatibility
+    - Feature 3: Comprehensive documentation
+
+    This gem provides functionality for...
+
+    Usage:
+    ```ruby
+    require '${{ gem_name }}'
+
+    # Example usage code here
+    ```
+
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
   license: MIT
   license_file: LICENSE
 
-  summary: Brief description of the gem
-  description: |
-    Longer description of what the gem does.
-    Include main features and use cases.
-
 extra:
   recipe-maintainers:
-    - maintainer1
+    # TODO: Add your GitHub username
+    - github-username
+
+  version:
+    # TODO: Choose appropriate version detection method
+
+    # Option 1: GitHub tags (for gems built from GitHub)
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
+
+    # Option 2: RubyGems releases (for gems published to RubyGems.org)
+    # rubygems:
+    #   - ${{ gem_name }}
+
+  # Common Ruby gem packaging notes:
+  # - Use noarch: generic for pure Ruby gems
+  # - Remove noarch for gems with native extensions
+  # - Include C/C++ compilers for native extensions
+  # - Test gem loading with require statements
+  # - For CLI gems, test basic command execution
+  # - Use rb- prefix for Ruby gem dependencies in conda
+  # - Pin Ruby version compatibility appropriately
+  # - Extract license files from gem contents
+  # - Focus on basic functionality tests rather than complex scenarios

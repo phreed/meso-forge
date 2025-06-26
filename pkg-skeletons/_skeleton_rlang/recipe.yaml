@@ -1,219 +1,257 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# R Package Recipe Template
+# ========================
+#
+# This template provides best practices for packaging R packages in conda.
+# Based on patterns from real-world R packaging in the meso-forge project.
+#
+# R PACKAGE PACKAGING PATTERNS:
+# - Use r- prefix for R package names in conda
+# - Use $R CMD INSTALL for installation (standard)
+# - Handle compiled code with proper compilers
+# - Test package loading and basic functionality
+#
+# BUILD CONSIDERATIONS:
+# - R CMD INSTALL handles standard R package installation
+# - Use noarch: generic only for pure R packages (no compiled code)
+# - Handle cross-compilation for different architectures
+# - Set proper RPATH for dynamic linking
+#
+# COMPILED CODE:
+# - Remove noarch: generic for packages with C/C++/Fortran code
+# - Add appropriate compilers to build requirements
+# - Include system libraries in host requirements
+#
+# TESTING BEST PRACTICES:
+# - Test that packages can be loaded with library()
+# - Test basic functionality if applicable
+# - Verify package version can be retrieved
+# - Focus on functionality rather than complex test suites
+
 context:
-  # Update version for the R package
+  # TODO: Update these variables for your package
+  name: r-example-package
   version: "1.0.0"
+  # Package name on CRAN/source (without r- prefix)
+  r_package_name: example.package
+  # Optional: GitHub info for source URL
+  github_org: example-org
+  github_repo: example-repo
+  # Does this package have compiled code (C/C++/Fortran)?
+  has_compiled_code: false
 
 package:
-  # R packages in conda-forge are typically prefixed with "r-"
-  # Replace "packagename" with the actual package name (lowercase)
-  name: r-packagename
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  # Most R packages are hosted on CRAN
-  url: https://cran.r-project.org/src/contrib/packagename_${{ version }}.tar.gz
-  # Alternative sources:
-  # For GitHub releases:
-  # url: https://github.com/username/packagename/archive/v${{ version }}.tar.gz
-  # For Bioconductor packages:
-  # url: https://bioconductor.org/packages/release/bioc/src/contrib/packagename_${{ version }}.tar.gz
+  # TODO: Choose your source type and update accordingly
 
-  # Replace with actual SHA256 hash of the source tarball
-  sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  # Option 1: CRAN (most common for published R packages)
+  url: https://cran.r-project.org/src/contrib/${{ r_package_name }}_${{ version }}.tar.gz
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+
+  # Option 2: Bioconductor (for Bioconductor packages)
+  # url: https://bioconductor.org/packages/release/bioc/src/contrib/${{ r_package_name }}_${{ version }}.tar.gz
+  # sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+
+  # Option 3: GitHub (for development versions or packages not on CRAN)
+  # url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  # sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
 build:
-  # Build number - increment for recipe changes without version bump
+  # Use noarch: generic only for pure R packages (no compiled code)
+  # Remove this line for packages with C/C++/Fortran extensions
+  noarch: generic
   number: 0
 
-  # For pure R packages (no compiled code), uncomment the following:
-  # noarch: generic
-
-  # R packages typically need these rpaths
+  # R packages typically need these rpaths for dynamic linking
   dynamic_linking:
     rpath_allowlist: ["lib/R/lib", "lib"]
 
-  # Build script - standard for most R packages
   script:
-    - $R CMD INSTALL --build . ${R_ARGS}
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
 
-  # For packages with configure scripts, you might need:
-  # script:
-  #   - if: osx
-  #     then: export DISABLE_AUTOBREW=1
-  #   - $R CMD INSTALL --build . ${R_ARGS}
+      # Standard R package installation
+      # R_ARGS contains standard conda-forge R build arguments
+      ^$env.R CMD INSTALL --build . $env.R_ARGS
+
+      # TODO: Add post-installation steps if needed
+      # Some packages may need additional file copying or setup
 
 requirements:
   build:
-    # Compilers needed for packages with C/C++/Fortran code
-    # Remove if package is pure R
-    - if: unix
-      then: ${{ compiler('c') }}
-    - if: unix
-      then: ${{ compiler('cxx') }}
-    - if: unix
-      then: ${{ compiler('fortran') }}
-    - if: win
-      then: ${{ compiler('m2w64_c') }}
-    - if: win
-      then: ${{ compiler('m2w64_cxx') }}
-    - if: win
-      then: ${{ compiler('m2w64_fortran') }}
+    # TODO: Add compilers if package has compiled code
+    # For packages with C/C++/Fortran code, uncomment these:
+    # - ${{ compiler('c') }}        # C compiler
+    # - ${{ compiler('cxx') }}      # C++ compiler
+    # - ${{ compiler('fortran') }}  # Fortran compiler
 
-    # For cross-compilation
-    - if: build_platform != target_platform
-      then: cross-r-base {{ r_base }}
+    # For cross-compilation support
+    # - if: build_platform != target_platform
+    #   then: cross-r-base {{ r_base }}
 
-    # Uncomment if package uses pkg-config
-    # - pkg-config
-
-    # Uncomment if package needs specific build tools
-    # - if: unix
-    #   then: make
-    # - if: unix
-    #   then: cmake
-    # - if: unix
-    #   then: autoconf
-    # - if: unix
-    #   then: automake
+    # TODO: Add other build tools if needed
+    # - pkg-config                  # For finding system libraries
+    # - make                        # For Makefile-based builds
+    # - cmake                       # For CMake-based builds
+    # - autoconf                    # For autotools
+    # - automake                    # For autotools
 
   host:
-    # Base R is always required
     - r-base
+    # TODO: Add R package dependencies
+    # Use exact package names from CRAN/Bioconductor with r- prefix
+    # - r-dplyr >=1.0.0            # Data manipulation
+    # - r-ggplot2 >=3.0.0          # Plotting
+    # - r-tidyr >=1.0.0            # Data tidying
+    # - r-stringr >=1.4.0          # String manipulation
+    # - r-readr >=1.3.0            # Data reading
+    # - r-tibble >=3.0.0           # Modern data frames
 
-    # Common R package dependencies - update as needed
-    # Remove version constraints if not needed
-    # - if: package uses Rcpp
-    #   then: r-rcpp
-    # - if: package uses RcppArmadillo
-    #   then: r-rcpparmadillo
-    # - if: package uses RcppEigen
-    #   then: r-rcppeigen
+    # Common statistical packages:
+    # - r-mass                      # Statistical functions
+    # - r-matrix                    # Matrix operations
+    # - r-survival                  # Survival analysis
+    # - r-nlme                      # Mixed-effects models
 
-    # Example of common tidyverse dependencies
+    # Common Rcpp packages (for packages with C++ code):
+    # - r-rcpp                      # R/C++ interface
+    # - r-rcpparmadillo            # Linear algebra
+    # - r-rcppeigen                 # Alternative linear algebra
+
+    # TODO: Add system dependencies for compiled packages
+    # - libxml2                     # XML parsing
+    # - libcurl                     # HTTP client
+    # - openssl                     # Cryptography
+    # - zlib                        # Compression
+    # - gsl                         # GNU Scientific Library
+    # - fftw                        # Fourier transforms
+    # - libblas                     # Basic Linear Algebra
+    # - liblapack                   # Linear Algebra Package
+
+  run:
+    - r-base
+    # TODO: Add the same R package dependencies as in host
+    # Runtime dependencies should typically match host dependencies
     # - r-dplyr >=1.0.0
     # - r-ggplot2 >=3.0.0
     # - r-tidyr >=1.0.0
-    # - r-purrr >=0.3.0
-    # - r-tibble >=3.0.0
-    # - r-stringr >=1.4.0
-    # - r-readr >=1.3.0
-    # - r-forcats >=0.5.0
 
-    # Example of statistical packages
-    # - r-mass
-    # - r-matrix
-    # - r-nlme
-    # - r-survival
-
-    # System dependencies for packages that need them
-    # - if: package needs BLAS
-    #   then: libblas
-    # - if: package needs LAPACK
-    #   then: liblapack
-    # - if: package uses XML
-    #   then: libxml2
-    # - if: package uses curl
-    #   then: libcurl
-    # - if: package uses openssl
-    #   then: openssl
-    # - if: package uses GSL
-    #   then: gsl
-    # - if: package uses FFTW
-    #   then: fftw
-
-  run:
-    # Base R is always required
-    - r-base
-
-    # Runtime dependencies should match host dependencies
-    # but typically without version constraints for compilers
-    # Copy the r-* dependencies from host section
-
-    # System dependencies needed at runtime
-    # Copy relevant system libraries from host section
+    # TODO: Add system runtime dependencies if needed
+    # Usually the same as host dependencies for system libraries
+    # - libxml2
+    # - libcurl
+    # - openssl
 
 tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # R library package
-        - ${{ "Library/" if win }}lib/R/library/packagename/
+        # R library package directory
+        - ${{ "Library/" if win }}lib/R/library/${{ r_package_name }}/
 
-  # Test 2: R library loading test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        # Basic test to ensure package can be loaded
-        - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename')" }
-        - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename'); packageVersion('packagename')" }
-        - if ($nu.os-info.name == "windows") { ^"%R%" -e "library('packagename')" }
-        - if ($nu.os-info.name == "windows") { ^"%R%" -e "library('packagename'); packageVersion('packagename')" }
+        # TODO: Add other expected files
+        # - ${{ "Library/" if win }}lib/R/library/${{ r_package_name }}/DESCRIPTION
+        # - ${{ "Library/" if win }}lib/R/library/${{ r_package_name }}/NAMESPACE
+        # - ${{ "Library/" if win }}lib/R/library/${{ r_package_name }}/R/
 
-        # Additional tests can be added here
-        # - if ($nu.os-info.name != "windows") { ^$R -e "library('packagename'); packagename::some_function()" }
+  # Test 2: R package loading test
+  - script:
+      interpreter: r
+      content: |
+        # Test that the package can be loaded
+        library('${{ r_package_name }}')
+        cat("${{ r_package_name }} loaded successfully\n")
 
-  # Alternative: run package tests (if they exist and are fast)
+        # Test that package version can be retrieved
+        version <- packageVersion('${{ r_package_name }}')
+        cat("Package version:", as.character(version), "\n")
+
+        # TODO: Add basic functionality tests
+        # Test that main functions can be called
+        # result <- some_function(test_data)
+        # stopifnot(is.numeric(result))
+
+        # Test that package exports work correctly
+        # stopifnot(exists("main_function"))
+        # stopifnot(is.function(main_function))
+
+  # Test 3: Extended functionality test (optional)
   # - requirements:
   #     build:
   #       - nushell
   #   script:
   #     interpreter: nu
   #     content:
-  #       - if ($nu.os-info.name != "windows") { ^$R -e "library('testthat'); library('packagename'); test_check('packagename')" }
+  #       # Run package test suite if it exists and is fast
+  #       - ^$env.R -e "library('testthat'); library('${{ r_package_name }}'); test_check('${{ r_package_name }}')"
 
 about:
-  # Update with actual package information
-  homepage: https://github.com/username/packagename
-  repository: https://github.com/username/packagename
-  documentation: https://packagename.readthedocs.io # or other documentation URL
-
-  # Common R package licenses - update as needed
-  license: MIT
-  # Other common licenses:
-  # license: GPL-2.0-or-later
-  # license: GPL-3.0-or-later
-  # license: BSD-3-Clause
-  # license: Apache-2.0
-  # license: Artistic-2.0
-
-  license_file:
-    - LICENSE
-    # Some packages have additional license files
-    # - LICENSE.md
-    # - LICENCE
-    # - COPYING
-
-  # Update with actual package description
-  summary: A brief description of what the package does
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://cran.r-project.org/package=${{ r_package_name }}
+  summary: Brief one-line description of the R package
   description: |
-    A longer description of the package functionality.
-    This can span multiple lines and provide more detail
-    about what the package does and how to use it.
+    A longer, multi-line description of what this R package provides.
+    Include key features, use cases, and any important notes.
+
+    Features:
+    - Feature 1: Statistical analysis capabilities
+    - Feature 2: Data visualization functions
+    - Feature 3: Integration with tidyverse
+
+    This package provides R functions for...
+
+    Usage:
+    ```r
+    library(${{ r_package_name }})
+
+    # Example usage code here
+    result <- main_function(data)
+    ```
+
+  # TODO: Update license type (common: MIT, GPL-2.0-or-later, GPL-3.0-or-later, Apache-2.0)
+  license: MIT
+  license_file: LICENSE
 
 extra:
   recipe-maintainers:
-    # Replace with actual maintainer GitHub usernames
-    - maintainer1
-    - maintainer2
+    # TODO: Add your GitHub username
+    - github-username
 
-  # Add additional platforms if the package supports them
-  additional-platforms:
-    - linux-aarch64
-    - osx-arm64
+  version:
+    # TODO: Choose appropriate version detection method
 
-  # For packages that need specific skip conditions
-  # skip-lints:
-  #   - if: source is git
-  #     then: missing_hash
-  #   - if: package has platform-specific code
-  #     then: should_be_noarch_generic
+    # Option 1: CRAN releases (for packages published to CRAN)
+    cran:
+      - ${{ r_package_name }}
 
-  # For packages with known issues on certain platforms
-  # skip:
-  #   if: win and match(python, "<3.9")
-  #   then: true
+    # Option 2: GitHub tags (for packages built from GitHub)
+    # github-tags:
+    #   - ^v(\d+\.\d+\.\d+)$
+
+    # Option 3: Bioconductor releases (for Bioconductor packages)
+    # bioconductor:
+    #   - ${{ r_package_name }}
+
+  # Additional platforms for pure R packages
+  # additional-platforms:
+  #   - linux-aarch64
+  #   - osx-arm64
+
+  # Common R package packaging notes:
+  # - Use r- prefix for conda package names
+  # - Use noarch: generic only for pure R packages (no compiled code)
+  # - Include appropriate compilers for packages with C/C++/Fortran code
+  # - Test package loading with library() function
+  # - Match runtime dependencies with host dependencies
+  # - Use proper R package names from CRAN/Bioconductor
+  # - Include system libraries for packages that need them
+  # - Focus on basic functionality tests rather than full test suites
+  # - Consider cross-compilation support for multi-arch builds

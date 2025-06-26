@@ -1,143 +1,163 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# JavaScript/Node.js Package Recipe Template
+# =========================================
+#
+# This template provides best practices for packaging JavaScript/Node.js applications in conda.
+# Based on patterns from real-world JavaScript packaging in the meso-forge project.
+#
+# NODE.JS PACKAGING PATTERNS:
+# - Use npm install -g for CLI tools (most common)
+# - Use noarch: generic for pure JavaScript packages
+# - Handle license collection with npm_licenses.nu script
+# - Test functionality rather than just imports
+#
+# BUILD CONSIDERATIONS:
+# - npm install handles dependency resolution and installation
+# - Use --prefix $PREFIX to install to conda environment
+# - Handle problematic postinstall scripts that may fail in conda builds
+# - For complex builds, may need to build from GitHub source
+#
+# NATIVE MODULES:
+# - Remove noarch: generic for packages with native Node.js modules
+# - Add python, make, and C++ compiler to build requirements
+# - Native compilation happens automatically during npm install
+#
+# TESTING BEST PRACTICES:
+# - Test that CLI tools can execute and show version
+# - Test module imports for library packages
+# - Focus on basic functionality rather than complex scenarios
+# - Avoid tests that require network access or external services
+
 context:
-  version: 1.0.0
+  # TODO: Update these variables for your package
+  name: example-js-package
+  version: "1.0.0"
+  # Optional: GitHub info for source URL (if building from GitHub)
+  github_org: example-org
+  github_repo: example-repo
+  # Package type: "cli" for command-line tools, "library" for modules
+  package_type: cli
 
 package:
-  name: ${{ PACKAGE_NAME }}
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  # For simple npm packages (recommended for most cases):
-  - url: https://registry.npmjs.org/{{ PACKAGE_NAME }}/-/{{ PACKAGE_NAME }}-${{ version }}.tgz
-    sha256: ${{ SHA256_HASH }}
-    file_name: ${{ PACKAGE_NAME }}-${{ version }}.tgz
+  # TODO: Choose your source type and update accordingly
 
-  # For GitHub source builds (complex packages, monorepos, or when npm tarball insufficient):
-  # - url: https://github.com/{{ GITHUB_USER }}/{{ REPO_NAME }}/archive/refs/tags/v${{ version }}.tar.gz
-  #   sha256: {{ SHA256_HASH }}
+  # Option 1: NPM registry (recommended for most packages)
+  - url: https://registry.npmjs.org/${{ name }}/-/${{ name }}-${{ version }}.tgz
+    sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+    file_name: ${{ name }}-${{ version }}.tgz
 
-  # For workspace/monorepo builds that need additional files:
-  # - url: https://github.com/{{ GITHUB_USER }}/{{ REPO_NAME }}/archive/refs/tags/v${{ version }}.tar.gz
-  #   sha256: {{ SHA256_HASH }}
+  # Option 2: GitHub source (for complex builds or when npm tarball insufficient)
+  # - url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  #   sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  #   target_directory: ${{ name }}-src
 
+  # License collection script (always include)
   - path: ../../.scripts/npm_licenses.nu
     file_name: npm_licenses.nu
+    target_directory: scripts
 
 build:
-  # Use noarch for pure JavaScript packages without native dependencies
-  # Remove 'noarch: generic' for packages with native Node.js modules
+  # Use noarch: generic for pure JavaScript packages
+  # Remove this line for packages with native Node.js modules
   noarch: generic
-  script: |
-    # BUILD PATTERN 1: Simple npm package installation (recommended for most cases)
-    # This works for packages that don't need compilation or complex setup
-    npm install -g ./{{ PACKAGE_NAME }}-${{ version }}.tgz --prefix $PREFIX
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
 
-    # BUILD PATTERN 2: Complex package build from source (use when npm tarball insufficient)
-    # Uncomment and modify as needed for complex builds:
+      # BUILD PATTERN 1: Simple npm package installation (recommended for most cases)
+      npm install -g ./${{ name }}-${{ version }}.tgz --prefix $env.PREFIX
 
-    # # Fix problematic postinstall scripts (common issue with electron/desktop packages)
-    # # sed -i 's/"postinstall": "electron-rebuild",/"postinstall": "echo Skipping electron-rebuild",/' package.json
-    # # sed -i 's/"postinstall": ".*problematic-script.*",/"postinstall": "echo Skipping problematic script",/' apps/*/package.json
+      # BUILD PATTERN 2: GitHub source build (uncomment if using GitHub source)
+      # cd ${{ name }}-src
+      #
+      # # Fix problematic postinstall scripts if needed
+      # # Some packages have postinstall scripts that fail in conda builds
+      # # sed -i 's/"postinstall": "problematic-script"/"postinstall": "echo Skipping postinstall"/' package.json
+      #
+      # # Install dependencies
+      # npm ci                    # For package-lock.json (recommended)
+      # # npm install             # For packages without lockfile
+      #
+      # # Build the package if needed
+      # npm run build             # Standard build script
+      # # npm run build:prod      # Production build
+      # # npm run compile         # TypeScript compilation
+      #
+      # # Install globally
+      # npm install -g . --prefix $env.PREFIX
 
-    # # Install dependencies (choose appropriate method):
-    # npm ci                           # For package-lock.json (recommended)
-    # # npm install                    # For packages without lockfile
-    # # yarn install                   # For yarn.lock
+      # BUILD PATTERN 3: Complex application with manual file copying
+      # Use when npm install doesn't handle all required files properly
+      # cd ${{ name }}-src
+      # npm ci
+      # npm run build
+      #
+      # # Copy application files
+      # let app_dir = ($env.PREFIX | path join "lib" "node_modules" ${{ name }})
+      # mkdir $app_dir
+      # cp -r build/* $app_dir
+      # cp package.json $app_dir
+      #
+      # # Create CLI wrapper if needed
+      # let bin_dir = ($env.PREFIX | path join "bin")
+      # mkdir $bin_dir
+      # let wrapper_content = $"#!/bin/bash\nexec node \"($app_dir)/main.js\" \"$@\""
+      # $wrapper_content | save ($bin_dir | path join ${{ name }})
+      # chmod +x ($bin_dir | path join ${{ name }})
 
-    # # Build the package (if build step required):
-    # npm run build                    # Standard build script
-    # # npm run build:prod             # Production build
-    # # npm run compile                # For TypeScript/compilation
+      # Generate license summary (always include)
+      source scripts/npm_licenses.nu
+      main | save license_summary.txt
 
-    # # For CLI tools, create global installation:
-    # npm install -g . --prefix $PREFIX
-
-    # BUILD PATTERN 3: Complex application with runtime dependencies
-    # Use when bundling fails and you need to package the full application with dependencies:
-
-    # # Build application
-    # npm run build:prod
-    #
-    # # Copy application files to package
-    # mkdir -p $PREFIX/lib/{{ PACKAGE_NAME }}
-    # cp -r build/* $PREFIX/lib/{{ PACKAGE_NAME }}/
-    #
-    # # Copy runtime dependencies (only if bundling insufficient)
-    # mkdir -p $PREFIX/lib/{{ PACKAGE_NAME }}/node_modules
-    # cp -r node_modules/* $PREFIX/lib/{{ PACKAGE_NAME }}/node_modules/
-    #
-    # # Create wrapper script for CLI tools
-    # mkdir -p $PREFIX/bin
-    # cat > $PREFIX/bin/{{ PACKAGE_NAME }} << 'EOF'
-    # #!/bin/bash
-    # export NODE_PATH="$PREFIX/lib/{{ PACKAGE_NAME }}/node_modules:$NODE_PATH"
-    # exec node "$PREFIX/lib/{{ PACKAGE_NAME }}/main.js" "$@"
-    # EOF
-    # chmod +x $PREFIX/bin/{{ PACKAGE_NAME }}
-
-    # BUILD PATTERN 4: Packages with native Node.js modules
-    # Use for packages that depend on native modules (node-pty, canvas, sqlite3, etc.)
-    # Requires C++ compiler and Python in build requirements:
-
-    # # Install dependencies (native modules will be compiled automatically)
-    # npm ci                           # For package-lock.json
-    # # yarn install                   # For yarn.lock
-    #
-    # # Build the package (compilation of native modules happens during install)
-    # npm run build                    # Standard build script
-    # # npm run compile                # For additional compilation steps
-    #
-    # # Install globally if it's a CLI tool
-    # npm install -g . --prefix $PREFIX
-    #
-    # # Note: Set noarch: false (remove noarch: generic) for packages with native modules
-
-    # Generate license summary (keep this for all patterns)
-    nu npm_licenses.nu | save license_summary.txt
+  number: 0
 
 requirements:
   build:
-    - nushell # For license summary generation
-    - nodejs # Node.js runtime for building
-    - npm # Package manager
-    # Add these for complex builds as needed:
-    # - yarn                # Alternative package manager
-    # - webpack             # Module bundler
-    # - webpack-cli         # Webpack CLI
-    # - typescript          # TypeScript compiler
-    # - cross-env           # Cross-platform environment variables
-    # - copy-webpack-plugin # Webpack plugins
-    # - webpack-node-externals
-    # - tsconfig-paths-webpack-plugin
-    # - ts-loader
+    - nushell
+    - nodejs
+    - npm
+    # TODO: Add additional build dependencies if needed
+    # - yarn                           # Alternative package manager
+    # - python                         # Required for packages with native modules
+    # - make                           # Required for packages with native modules
+    # - ${{ compiler('cxx') }}         # C++ compiler for packages with native modules
+    # - pkg-config                     # For finding system libraries
+    # - typescript                     # For TypeScript packages
+    # - webpack                        # For complex bundling
+    # - webpack-cli                    # Webpack CLI tools
 
-  # For GitHub source builds, may need additional tools:
-  # - git
-
-  # For packages with native Node.js modules (like node-pty, canvas, sqlite3):
-  # - python                 # Required by node-gyp for native builds
-  # - make                   # For native compilation
-  # - ${{ compiler('cxx') }} # C++ compiler for native modules
-  # - pkg-config             # For finding system libraries during compilation
+  host:
+    - nodejs
+    # TODO: Add host dependencies for packages with native modules
+    # - openssl                        # For packages that link to OpenSSL
+    # - sqlite                         # For packages that use SQLite
+    # - libffi                         # For packages that use FFI
 
   run:
     - nodejs
-    # For complex applications that include dependencies:
-    # Add specific runtime dependencies here based on package needs
-    # Common examples:
-    # - python              # If package uses Python scripts
-    # - git                 # If package needs git at runtime
+    # TODO: Add runtime dependencies if needed
+    # - python                         # If package uses Python scripts at runtime
+    # - git                           # If package needs git at runtime
 
 tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # Node.js CLI binary
-        - ${{ "Library/" if win }}bin/${{ PACKAGE_NAME }}${{ ".cmd" if win }}
-        # Node.js application files
-        - ${{ "Library/" if win }}lib/node_modules/${{ PACKAGE_NAME }}/
+        # For CLI packages
+        - ${{ "Library/" if win }}bin/${{ name }}${{ ".cmd" if win }}
+        # Node.js package files
+        - ${{ "Library/" if win }}lib/node_modules/${{ name }}/package.json
+
+        # TODO: Add other expected files
+        # - ${{ "Library/" if win }}lib/node_modules/${{ name }}/index.js
+        # - etc/config.json
 
   # Test 2: Functional tests
   - requirements:
@@ -146,141 +166,69 @@ tests:
     script:
       interpreter: nu
       content:
-        # TEST PATTERN 1: CLI tool tests (for command-line applications)
-        - ^${{ PACKAGE_NAME }} --version # Version check (exits with 0 on success)
-        # - ^{{ PACKAGE_NAME }} --help      # Help check (may exit with 1, use carefully)
+        # TODO: Update these tests based on your package type
 
-        # TEST PATTERN 2: Module import tests (for libraries)
-        # - ^node -e "require('{{ PACKAGE_NAME }}')"                    # Basic require test
-        # - ^node -e "console.log(typeof require('{{ PACKAGE_NAME }}')" # Type check
-        # - ^node -e "const pkg = require('{{ PACKAGE_NAME }}'); console.log(pkg.version || 'no version')" # Version test
+        # For CLI packages
+        - ^${{ name }} --version
+        - ^${{ name }} --help
 
-        # TEST PATTERN 3: Functional tests (for more comprehensive testing)
-        # - ^node -e "const pkg = require('{{ PACKAGE_NAME }}'); pkg.someFunction()" # Function test
-        # - ^echo "test input" | ^{{ PACKAGE_NAME }} --stdin              # Input processing test
-        # - ^{{ PACKAGE_NAME }} --validate-config ./test-config.json    # Config validation test
+        # For library packages (uncomment and modify as needed)
+        # - ^node -e "const pkg = require('${{ name }}'); console.log('Import successful')"
+        # - ^node -e "const pkg = require('${{ name }}'); console.log(typeof pkg)"
+
+        # TODO: Add functional tests that verify core functionality
+        # Keep tests simple and avoid external dependencies
+        # - ^${{ name }} validate --dry-run
+        # - ^echo "test input" | ^${{ name }} --stdin
+        # - ^${{ name }} --check-config /dev/null
 
 about:
-  homepage: ${{ HOMEPAGE_URL }}
-  summary: ${{ PACKAGE_SUMMARY }}
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://github.com/${{ github_org }}/${{ github_repo }}/blob/main/README.md
+  summary: Brief one-line description of the JavaScript package
   description: |
-    ${{ PACKAGE_DESCRIPTION }}
+    A longer, multi-line description of what this JavaScript package does.
+    Include key features, use cases, and any important notes.
 
-    Key features:
-    - Feature 1
-    - Feature 2
-    - Feature 3
-  license: ${{ LICENSE }}
+    Features:
+    - Feature 1: Cross-platform compatibility
+    - Feature 2: Modern JavaScript/TypeScript support
+    - Feature 3: Easy integration
+
+    This package provides a ${{ package_type }} tool that can be used for...
+
+  # TODO: Update license type (common: MIT, Apache-2.0, ISC, GPL-3.0)
+  license: MIT
   license_file:
-    - LICENSE # From source package
-    # - LICENSE.txt                    # Alternative license file name
-    # - COPYING                        # GPL-style license file
-    - license_summary.txt # Generated license summary
-  documentation: ${{ HOMEPAGE_URL }}/docs/
-  repository: ${{ DEV_URL }}
-
-# Common license values for JavaScript packages:
-# - MIT                    (most common)
-# - Apache-2.0
-# - BSD-3-Clause
-# - ISC
-# - GPL-3.0-or-later
-# - LGPL-3.0-or-later
+    - LICENSE
+    # Include collected dependency licenses
+    - license_summary.txt
 
 extra:
   recipe-maintainers:
-    - { { MAINTAINER_GITHUB_USERNAME } }
+    # TODO: Add your GitHub username
+    - github-username
 
-  # Additional platforms for pure JavaScript packages
-  # additional-platforms:
-  #   - linux-aarch64
-  #   - osx-arm64
+  version:
+    # TODO: Choose appropriate version detection method
 
-  # Skip builds on certain conditions
-  # skip-lints:
-  #   - missing_hash          # If using git source without hash
-  #   - should_be_noarch      # If package should be noarch but isn't
+    # Option 1: GitHub tags (for packages built from GitHub)
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
 
-  # For packages with optional native dependencies
-  # skip: True  # [win and py<38]
-# COMMON PATTERNS AND EXAMPLES:
-#
-# 1. SIMPLE CLI TOOL (like bibtex-tidy):
-#    - Use npm tarball source
-#    - npm install -g with --prefix
-#    - Test with --version
-#    - noarch: generic
-#
-# 2. COMPLEX APPLICATION (like bitwarden-cli):
-#    - Use GitHub source for full workspace
-#    - npm ci for workspace dependencies
-#    - Fix problematic postinstall scripts
-#    - npm run build for compilation
-#    - Copy build output and dependencies
-#    - Create wrapper script
-#    - Test with specific commands
-#
-# 3. TYPESCRIPT LIBRARY:
-#    - Add typescript to build requirements
-#    - npm run build for compilation
-#    - Include .d.ts files in package
-#    - Test with require() calls
-#
-# 4. WEB FRAMEWORK/LIBRARY:
-#    - Include webpack/rollup in build
-#    - May need browser testing setup
-#    - Consider peer dependencies
-#    - Test with import statements
-#
-# 5. MONOREPO PACKAGE:
-#    - Use GitHub source
-#    - cd to specific package directory
-#    - Handle workspace dependencies
-#    - May need lerna/nx tools
-#
-# 6. PACKAGES WITH NATIVE MODULES (like devcontainer-cli, node-pty):
-#    - Add python, make, ${{ compiler('cxx') }}, pkg-config to build requirements
-#    - Remove noarch: generic (native modules are platform-specific)
-#    - Use BUILD PATTERN 4 above
-#    - Native compilation happens automatically during npm install
-#    - Test with actual functionality, not just --help
-#    - Examples: node-pty, canvas, sqlite3, native-keymap, node-sass
-#
-# TROUBLESHOOTING NATIVE MODULES:
-#
-# Common build failures and solutions:
-#
-# 1. "node-gyp rebuild" fails:
-#    - Ensure python, make, ${{ compiler('cxx') }}, pkg-config are in build requirements
-#    - Check if package needs specific system libraries (add to host requirements)
-#    - Some packages need additional build tools (cmake, ninja-build)
-#
-# 2. "Cannot find module" errors during compilation:
-#    - Add missing system development packages to host requirements
-#    - Examples: libffi-devel, openssl-devel, zlib-devel
-#
-# 3. "Permission denied" or "EACCES" errors:
-#    - Usually indicates missing build tools or incorrect permissions
-#    - Ensure all build dependencies are properly declared
-#
-# 4. Platform-specific failures:
-#    - Some native modules only work on specific platforms
-#    - Use skip conditions: skip: True  # [win] or skip: True  # [osx]
-#    - Check upstream package compatibility
-#
-# 5. Memory or timeout issues during compilation:
-#    - Large native modules may need extended build timeouts
-#    - Consider using pre-compiled binaries if available
-#
-# 6. Common error messages and solutions:
-#    - "Python executable not found": Add python to build requirements
-#    - "make: command not found": Add make to build requirements
-#    - "fatal error: 'node.h' file not found": Add nodejs-devel to build requirements
-#    - "Package 'pkg-config' not found": Add pkg-config to build requirements
-#    - "No suitable version of gyp found": Usually resolved by python dependency
-#
-# 7. Debugging tips:
-#    - Check the full build log for specific missing dependencies
-#    - Look for "node-gyp" related errors in the npm install output
-#    - Verify the package actually needs native compilation (check package.json)
-#    - Some packages have "install" scripts that attempt native builds unnecessarily
+    # Option 2: NPM releases (for packages published to npm)
+    # npm:
+    #   - ${{ name }}
+
+  # Common JavaScript/Node.js packaging notes:
+  # - Use noarch: generic for pure JavaScript packages
+  # - Remove noarch for packages with native Node.js modules
+  # - Include npm_licenses.nu script for license compliance
+  # - Test CLI functionality with --version and --help
+  # - For libraries, test require() or import statements
+  # - Handle problematic postinstall scripts in complex builds
+  # - Native modules require python, make, and C++ compiler in build deps
+  # - Focus on basic functionality tests rather than complex scenarios
+  # - Use npm install -g with --prefix for consistent installation

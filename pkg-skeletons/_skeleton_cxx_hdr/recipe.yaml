@@ -1,282 +1,262 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# C++ Header-Only Library Package Recipe Template
+# ==============================================
+#
+# This template provides best practices for packaging C++ header-only libraries in conda.
+# Based on patterns from real-world C++ packaging in the meso-forge project.
+#
+# HEADER-ONLY LIBRARY PATTERNS:
+# - Use noarch: generic since headers are platform-independent
+# - Simple installation - just copy headers to include directory
+# - No compilation required during build
+# - Focus on header installation and basic validation
+#
+# BUILD CONSIDERATIONS:
+# - Header-only libraries don't need compilation
+# - Installation is usually just copying headers to PREFIX/include
+# - May need to handle CMake config files for find_package support
+# - Consider pkg-config files for library detection
+#
+# DEPENDENCY MANAGEMENT:
+# - Usually no build dependencies except basic tools
+# - May have header-only dependencies that need to be available
+# - Runtime dependencies are typically other header-only libraries
+#
+# TESTING BEST PRACTICES:
+# - Test that headers can be included without errors
+# - Test basic compilation of simple programs using the library
+# - Verify all expected header files are installed
+# - Test CMake find_package integration if provided
+
 context:
-  name: "my-header-library" # TODO: Replace with actual library name
-  version: "1.0.0" # TODO: Replace with actual version
+  # TODO: Update these variables for your package
+  name: example-cpp-headers
+  version: "1.0.0"
+  # GitHub organization or user
+  github_org: example-org
+  # GitHub repository name (often same as package name)
+  github_repo: example-repo
+  # Library namespace/prefix (e.g., "mylib" for <mylib/header.hpp>)
+  library_namespace: example
+  # Main header file name (optional, for testing)
+  main_header: example.hpp
 
 package:
   name: ${{ name }}
   version: ${{ version }}
 
 source:
-  # TODO: Replace with actual source URL
-  url: https://github.com/example/${{ name }}/archive/v${{ version }}.tar.gz
-  sha256: "0000000000000000000000000000000000000000000000000000000000000000" # TODO: Update hash
+  # TODO: Update the URL and sha256 for your package
+  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
 build:
+  # Header-only libraries are platform-independent
+  noarch: generic
   number: 0
-  # Using nushell for cross-platform builds
   script:
     interpreter: nu
-    env:
-      CMAKE_ARGS: ${{ CMAKE_ARGS }}
     content: |
-      # Header-only libraries typically don't need compilation, just installation
-      print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
 
-      # Determine the correct install prefix based on platform
-      let install_prefix = if ($nu.os-info.name == "windows") {
-          $env.LIBRARY_PREFIX
-      } else {
-          $env.PREFIX
-      }
+      # Create include directory
+      let include_dir = ($env.PREFIX | path join "include")
+      mkdir $include_dir
 
-      # Check if we have a CMake project
-      if ("CMakeLists.txt" | path exists) {
-          print "Building with CMake..."
+      # INSTALLATION PATTERN 1: Simple header copying (most common)
+      # Copy all headers maintaining directory structure
+      let target_include = ($include_dir | path join ${{ library_namespace }})
+      mkdir $target_include
 
-          # Create build directory
-          mkdir build
-          cd build
+      # Copy headers from source
+      # Adjust the source path based on your project structure
+      cp -r include/${{ library_namespace }}/* $target_include/
+      # Alternative patterns:
+      # cp -r src/*.hpp $target_include/              # Headers in src/
+      # cp -r ${{ library_namespace }}/*.hpp $target_include/  # Headers in namespace dir
+      # cp *.hpp $target_include/                     # Headers in root
 
-          # Configure CMake
-          let cmake_args = if ($nu.os-info.name == "windows") {
-              [
-                  "-G", "Ninja",
-                  "-DBUILD_TESTS=OFF",
-                  "-DBUILD_EXAMPLES=OFF",
-                  "-DBUILD_DOCS=OFF",
-                  $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
-                  $"-DCMAKE_PREFIX_PATH=($install_prefix)",
-                  $env.SRC_DIR
-              ]
-          } else {
-              [
-                  "-GNinja",
-                  "-DBUILD_TESTS=OFF",
-                  "-DBUILD_EXAMPLES=OFF",
-                  "-DBUILD_DOCS=OFF",
-                  $"-DCMAKE_INSTALL_PREFIX=($install_prefix)",
-                  $"-DCMAKE_PREFIX_PATH=($install_prefix)",
-                  $env.SRC_DIR
-              ]
-          }
+      # INSTALLATION PATTERN 2: CMake-based installation (if CMakeLists.txt exists)
+      # if ("CMakeLists.txt" | path exists) {
+      #     mkdir build
+      #     cd build
+      #     cmake .. $"-DCMAKE_INSTALL_PREFIX=($env.PREFIX)"
+      #     cmake --install . --component headers
+      # }
 
-          # Add any additional CMAKE_ARGS from environment
-          let cmake_cmd = if (($env.CMAKE_ARGS? | is-empty) == false) {
-              cmake ...$cmake_args ...($env.CMAKE_ARGS | split row " ")
-          } else {
-              cmake ...$cmake_args
-          }
+      # INSTALLATION PATTERN 3: Single header library
+      # cp ${{ main_header }} ($include_dir | path join ${{ main_header }})
 
-          # Install (no build needed for header-only)
-          run-external ninja install
+      # Optional: Install CMake config files for find_package support
+      # if (("cmake" | path exists) and (ls cmake | where name =~ ".*Config\.cmake\.in") | length) > 0) {
+      #     let cmake_dir = ($env.PREFIX | path join "lib" "cmake" ${{ name }})
+      #     mkdir $cmake_dir
+      #     cp cmake/*Config.cmake $cmake_dir/
+      #     cp cmake/*ConfigVersion.cmake $cmake_dir/
+      # }
 
-      } else if ("meson.build" | path exists) {
-          print "Building with Meson..."
+      # Optional: Install pkg-config file
+      # if ("${{ name }}.pc.in" | path exists) {
+      #     let pkgconfig_dir = ($env.PREFIX | path join "lib" "pkgconfig")
+      #     mkdir $pkgconfig_dir
+      #     # Process .pc.in template (simple substitution)
+      #     let pc_content = (open ${{ name }}.pc.in | str replace "@VERSION@" $env.PKG_VERSION | str replace "@PREFIX@" $env.PREFIX)
+      #     $pc_content | save ($pkgconfig_dir | path join "${{ name }}.pc")
+      # }
 
-          # Configure with meson
-          meson setup builddir `
-              $"--prefix=($install_prefix)" `
-              --buildtype=release `
-              -Dtests=false `
-              -Dexamples=false
-
-          # Install
-          meson install -C builddir
-
-      } else {
-          print "No build system detected, performing manual installation..."
-
-          # Create necessary directories
-          let include_dir = ($install_prefix | path join "include")
-          let cmake_dir = ($install_prefix | path join "share" "cmake" $env.PKG_NAME)
-          let pkgconfig_dir = ($install_prefix | path join "share" "pkgconfig")
-
-          mkdir $include_dir
-          mkdir $cmake_dir
-          mkdir $pkgconfig_dir
-
-          # Copy headers
-          # TODO: Adjust these paths based on your library structure
-          if ("include" | path exists) {
-              cp -r include/* $include_dir
-          } else if ("src" | path exists) {
-              let lib_include_dir = ($include_dir | path join $env.PKG_NAME)
-              mkdir $lib_include_dir
-              # Copy all header files
-              ls src | where name =~ '\.(h|hpp|hxx)$' | each { |file|
-                  cp $file.name $lib_include_dir
-              }
-          }
-
-          # Generate a basic pkg-config file if none exists
-          let pc_file = ($pkgconfig_dir | path join $"($env.PKG_NAME).pc")
-          if not ($pc_file | path exists) {
-              $"prefix=($install_prefix)
-                exec_prefix=$\{prefix}
-                includedir=$\{prefix}/include
-
-                Name: ($env.PKG_NAME)
-                Description: ($env.PKG_NAME) header-only library
-                Version: ($env.PKG_VERSION)
-                Cflags: -I$\{includedir}
-                " | str trim | save -f $pc_file
-          }
-      }
-
-      # Validate installation
-      print "Validating installation..."
-      let headers_found = (ls ($install_prefix | path join "include") -r | where name =~ '\.(h|hpp|hxx)$' | length)
-      print $"Found ($headers_found) header files"
-
-      if $headers_found == 0 {
-          error make {msg: "No headers were installed!"}
-      }
+      echo "Header installation completed successfully!"
 
 requirements:
   build:
     - nushell
-    - ${{ compiler('cxx') }} # Often needed for cmake configure checks
-    - cmake
-    - ninja
+    # TODO: Add build tools if needed (rare for header-only libraries)
+    # - cmake                 # If using CMake for installation
+    # - pkg-config            # If generating pkg-config files
+
   host:
-    # TODO: Add any header-only dependencies your library requires
-    # Common C++ header-only libraries:
-    # - eigen                  # Linear algebra library
-    # - boost-cpp              # Boost C++ libraries (if using header-only parts)
-    # - nlohmann_json          # JSON for Modern C++
-    # - fmt                    # Modern C++ formatting library (header-only mode)
-    # - spdlog                 # Fast C++ logging library (header-only mode)
-    # - catch2                 # Testing framework (if including test headers)
-    # - doctest                # Testing framework (if including test headers)
+    # TODO: Add header-only dependencies that this library depends on
+    # - boost-cpp             # Boost C++ libraries (if your headers use Boost)
+    # - eigen                 # Linear algebra library
+    # - nlohmann_json         # JSON library
+    # - fmt                   # Formatting library
+    # - range-v3              # Range library
+
   run:
-    # Header-only libraries typically need the same dependencies at runtime
-    # TODO: Add runtime dependencies (usually same as host for header-only)
-    # Common pattern: copy host dependencies here
-    # - eigen
+    # TODO: Add the same dependencies as host for header-only libraries
+    # Users need these available when they compile code using your headers
     # - boost-cpp
+    # - eigen
     # - nlohmann_json
-  run_constraints:
-    # TODO: Add optional dependencies that should be version-constrained if present
-    # Examples:
-    # - boost-cpp >=1.70       # Minimum Boost version required
-    # - eigen >=3.3            # Minimum Eigen version required
+    # - fmt
+    # - range-v3
 
 tests:
-  # Test 1: Check that key header files are installed
-  - package_contents:
-      include:
-        # TODO: Update with actual header paths
-        - ${{ name }}/core.hpp
-        - ${{ name }}/version.hpp
-
-  # Test 2: Check that CMake config files are installed
+  # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # CMake config files location differs on Windows
-        - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}Config.cmake
-        - ${{ "Library/" if win }}share/cmake/${{ name }}/${{ name }}ConfigVersion.cmake
+        # Main header files
+        - include/${{ library_namespace }}/${{ main_header }}
+        # TODO: Add other expected header files
+        # - include/${{ library_namespace }}/core.hpp
+        # - include/${{ library_namespace }}/utils.hpp
+        # - include/${{ library_namespace }}/detail/impl.hpp
 
-  # Test 3: Compile a simple test program using nushell
+        # Optional: CMake and pkg-config files
+        # - lib/cmake/${{ name }}/${{ name }}Config.cmake
+        # - lib/pkgconfig/${{ name }}.pc
+
+  # Test 2: Header compilation test
   - requirements:
       build:
         - nushell
+        - ${{ compiler('cxx') }}
     script:
       interpreter: nu
-      content: |
-        print "Testing header-only library compilation..."
+      content:
+        # TODO: Update these tests for your specific library
 
-        # Create a minimal test program
-        let test_content = $"
-        #include <($env.PKG_NAME)/core.hpp>
-        #include <iostream>
+        # Test 1: Basic header inclusion
+        - |
+          let test_cpp = "#include <${{ library_namespace }}/${{ main_header }}>
+          int main() { return 0; }"
+          $test_cpp | save test_include.cpp
+          ^g++ -std=c++17 -I$env.PREFIX/include -c test_include.cpp -o test_include.o
+          echo "✓ Headers can be included successfully"
 
-        int main() {
-            // TODO: Add minimal usage example that actually uses the library
-            // Example:
-            // auto obj = MyLibrary::create();
-            // std::cout << \"Library version: \" << obj.version() << std::endl;
+        # Test 2: Basic functionality test (if applicable)
+        # - |
+        #   let test_cpp = "#include <${{ library_namespace }}/${{ main_header }}>
+        #   int main() {
+        #       ${{ library_namespace }}::example_function();
+        #       return 0;
+        #   }"
+        #   $test_cpp | save test_functionality.cpp
+        #   ^g++ -std=c++17 -I$env.PREFIX/include test_functionality.cpp -o test_functionality
+        #   ^./test_functionality
+        #   echo "✓ Basic functionality works"
 
-            std::cout << \"Test compilation successful!\" << std::endl;
-            return 0;
-        }
-        " | str trim
+        # Test 3: CMake find_package test (if CMake config is provided)
+        # - |
+        #   let cmake_test = "cmake_minimum_required(VERSION 3.10)
+        #   project(test)
+        #   find_package(${{ name }} REQUIRED)
+        #   add_executable(test test.cpp)
+        #   target_link_libraries(test ${{ name }}::${{ name }})"
+        #   $cmake_test | save CMakeLists.txt
+        #   echo "int main(){return 0;}" | save test.cpp
+        #   mkdir build
+        #   cd build
+        #   ^cmake .. $"-DCMAKE_PREFIX_PATH=($env.PREFIX)"
+        #   ^cmake --build .
+        #   echo "✓ CMake integration works"
 
-        $test_content | save test.cpp
-
-        # Determine include path
-        let include_path = if ($nu.os-info.name == "windows") {
-            ($env.LIBRARY_PREFIX | path join "include")
-        } else {
-            ($env.PREFIX | path join "include")
-        }
-
-        # Compile test
-        print $"Compiling with include path: ($include_path)"
-
-        if ($nu.os-info.name == "windows") {
-            # Windows compilation
-            run-external $env.CXX /std:c++14 $"/I($include_path)" test.cpp /Fe:test.exe
-            run-external test.exe
-        } else {
-            # Unix compilation with better error handling
-            let compile_flags = [
-                "-std=c++14",
-                $"-I($include_path)",
-                "-Wall",
-                "-Wextra",
-                "-o", "test"
-            ]
-            run-external $env.CXX ...$compile_flags test.cpp
-            run-external ./test
-        }
-
-        print "Test compilation successful!"
-
-  # Test 4: Verify pkg-config (Unix only)
-  - if: unix
-    then:
-      requirements:
-        build:
-          - nushell
-      script:
-        interpreter: nu
-        content:
-          - ^pkg-config --exists ${{ name }}
-          - ^pkg-config --modversion ${{ name }}
+        # Test 4: Verify all expected headers exist
+        - |
+          let expected_headers = [
+              "include/${{ library_namespace }}/${{ main_header }}"
+              # TODO: Add other headers to verify
+              # "include/${{ library_namespace }}/core.hpp"
+              # "include/${{ library_namespace }}/utils.hpp"
+          ]
+          for header in $expected_headers {
+              let header_path = ($env.PREFIX | path join $header)
+              if not ($header_path | path exists) {
+                  error make {msg: $"Missing header: ($header)"}
+              }
+          }
+          echo "✓ All expected headers are installed"
 
 about:
-  homepage: https://github.com/example/${{ name }} # TODO: Update URL
-  license: MIT # TODO: Update license (common: MIT, Apache-2.0, BSD-3-Clause, BSL-1.0)
-  license_file: LICENSE # TODO: Verify license file name (may be LICENSE.txt, COPYING, etc.)
-  summary: Short description of the header-only library # TODO: Update (keep under 80 chars)
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://github.com/${{ github_org }}/${{ github_repo }}/blob/main/README.md
+  summary: Brief one-line description of the C++ header-only library
   description: |
-    A longer description of what this header-only C++ library does.
-    It can span multiple lines and should explain the key features
-    and use cases of the library.
+    A longer, multi-line description of what this C++ header-only library provides.
+    Include key features, use cases, and any important notes.
 
-    Key features:
-    - Header-only design for easy integration
-    - Feature 1
-    - Feature 2
-    - C++14/17/20 compatible
+    Features:
+    - Feature 1: Header-only implementation for easy integration
+    - Feature 2: Modern C++ standards support (C++17/20/23)
+    - Feature 3: Cross-platform compatibility
+
+    This library provides a header-only implementation that can be easily
+    integrated into C++ projects by including the headers and linking
+    against any required dependencies.
 
     Usage:
     ```cpp
-    #include <${{ name }}/core.hpp>
-    // Example usage code here
+    #include <${{ library_namespace }}/${{ main_header }}>
+
+    int main() {
+        // Use library functionality here
+        return 0;
+    }
     ```
 
-    TODO: Replace with actual description
-  documentation: https://example.github.io/${{ name }}/ # TODO: Update URL
-  repository: https://github.com/example/${{ name }} # TODO: Update URL
-  # Optional additional fields:
-  # dev_url: https://github.com/example/${{ name }}/issues
-  # doc_url: https://docs.example.com/${{ name }}/
-  # doc_source_url: https://github.com/example/${{ name }}/tree/main/docs
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause, Boost-1.0)
+  license: MIT
+  license_file: LICENSE
 
 extra:
   recipe-maintainers:
-    - github-username # TODO: Add actual maintainer GitHub usernames
+    # TODO: Add your GitHub username
+    - github-username
+
+  version:
+    # TODO: Choose appropriate version detection method
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
+
+  # Common C++ header-only library packaging notes:
+  # - Use noarch: generic since headers are platform-independent
+  # - Focus on header installation rather than compilation
+  # - Include dependencies in both host and run requirements
+  # - Test header inclusion and basic compilation
+  # - Consider providing CMake config files for easy integration
+  # - Keep directory structure consistent with upstream project
+  # - Verify all headers are properly installed
+  # - Test with different C++ standards if library supports multiple

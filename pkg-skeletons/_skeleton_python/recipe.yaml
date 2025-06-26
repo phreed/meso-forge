@@ -1,61 +1,190 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# Python Package Recipe Template
+# ==============================
+#
+# This template provides best practices for packaging Python applications and libraries in conda.
+# Based on patterns from real-world Python packaging in the meso-forge project.
+#
+# PYTHON VERSION CONSTRAINTS:
+# - Use python_min and python_max context variables for consistency
+# - Specify version ranges in both host and run requirements
+# - Consider noarch: python for pure Python packages
+#
+# BUILD PATTERNS:
+# - Use pip install . -v for standard installation
+# - Use nushell interpreter for cross-platform build scripts
+# - Handle source extraction with target_directory if needed
+#
+# TESTING BEST PRACTICES:
+# - Test package contents with package_contents
+# - Test Python imports with actual import statements
+# - Test functionality when applicable
+# - Use python interpreter for Python-specific tests
+#
+# DEPENDENCY MANAGEMENT:
+# - Include setuptools and wheel in host requirements
+# - Use run_exports for library packages that need version pinning
+# - Be specific about Python version constraints
+
 context:
-  version: 8.1.2
+  # TODO: Update these variables for your package
+  name: example-python-package
+  version: "1.0.0"
+  # Python version constraints
+  python_min: "3.11"
+  python_max: "3.12"
+  # Optional: GitHub info for source URL
+  github_org: example-org
+  github_repo: example-repo
 
 package:
-  name: ipywidgets
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: https://pypi.io/packages/source/i/ipywidgets/ipywidgets-${{ version }}.tar.gz
-  sha256: "d0b9b41e49bae926a866e613a39b0f0097745d2b9f1f3dd406641b4a57ec42c9"
+  # TODO: Choose your source type and update accordingly
+
+  # Option 1: PyPI source (recommended for published packages)
+  url: https://pypi.io/packages/source/${{ name[0] }}/${{ name }}/${{ name }}-${{ version }}.tar.gz
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+
+  # Option 2: GitHub source (for packages not on PyPI or need specific commits)
+  # url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  # sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  # target_directory: ${{ name }}
 
 build:
+  # Use noarch: python for pure Python packages (no compiled extensions)
   noarch: python
-  script: pip install . -v
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Change to source directory if using target_directory
+      # cd ${{ name }}
+
+      # Standard pip installation
+      ^pip install . -v
+
+      # TODO: Add any post-installation steps if needed
+      # mkdir ($env.PREFIX | path join "etc")
+      # cp config.yaml ($env.PREFIX | path join "etc" "config.yaml")
+
+  # Increment if you need to rebuild the same version
+  number: 0
 
 requirements:
-  # note that there is no build section
+  build:
+    - nushell
+    # TODO: Add other build tools if needed
+    # - make
+    # - cmake
+
   host:
     - pip
-    - python >=3.11
+    - python >=${{ python_min }},<${{ python_max }}
     - setuptools
     - wheel
+    # TODO: Add build-time dependencies
+    # - cython  # for packages with Cython extensions
+    # - numpy   # for packages that need numpy at build time
+
   run:
-    - comm >=0.1.3
-    - ipython >=6.1.0
-    - jupyterlab_widgets >=3.0.10,<3.1.0
-    - python >=3.11
-    - traitlets >=4.3.1
-    - widgetsnbextension >=4.0.10,<4.1.0
+    - python >=${{ python_min }},<${{ python_max }}
+    # TODO: Add runtime dependencies
+    # - requests >=2.25.0
+    # - numpy >=1.19.0
+    # - flask >=2.0.0
+
+  # TODO: Uncomment and configure for library packages that need version pinning
+  # run_exports:
+  #   - ${{ pin_subpackage(name, upper_bound="x.x") }}
 
 tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
         # Python library package
-        - site-packages/ipywidgets/
+        - site-packages/${{ name }}/__init__.py
+        # TODO: Add other expected files
+        # - site-packages/${{ name }}/main.py
+        # - site-packages/${{ name }}/utils.py
+
+        # For packages with console scripts, also check:
+        # - ${{ "Library/" if win }}bin/${{ name }}${{ ".exe" if win }}
 
   # Test 2: Python import test
-  - requirements:
-      build:
-        - nushell
-    script:
-      interpreter: nu
-      content:
-        - ^python -c "import ipywidgets"
+  - script:
+      interpreter: python
+      content: |
+        import ${{ name }}
+        print("${{ name }} imported successfully")
+
+        # TODO: Add basic functionality tests
+        # Test that main functions/classes can be imported
+        # from ${{ name }} import main_function, MainClass
+
+        # Test basic functionality without external dependencies
+        # result = main_function("test")
+        # assert result is not None
+
+        # Test version attribute if available
+        # print(f"Version: {${{ name }}.__version__}")
+
+  # Test 3: Console script test (if package provides console scripts)
+  # - requirements:
+  #     build:
+  #       - nushell
+  #   script:
+  #     interpreter: nu
+  #     content:
+  #       # Test that console script can execute
+  #       - ^${{ name }} --version
+  #       - ^${{ name }} --help
 
 about:
-  homepage: https://github.com/ipython/ipywidgets
-  license: BSD-3-Clause
-  license_file: LICENSE
-  summary: Jupyter Interactive Widgets
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://github.com/${{ github_org }}/${{ github_repo }}/blob/main/README.md
+  summary: Brief one-line description of the Python package
   description: |
-    ipywidgets are interactive HTML widgets for Jupyter notebooks and the IPython kernel.
-  documentation: https://ipywidgets.readthedocs.io/en/latest/
+    A longer, multi-line description of what this Python package does.
+    Include key features, use cases, and any important notes.
+
+    Features:
+    - Feature 1: Description
+    - Feature 2: Description
+    - Feature 3: Description
+
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
+  license: MIT
+  license_file: LICENSE
 
 extra:
   recipe-maintainers:
-    - maintainer
+    # TODO: Add your GitHub username
+    - github-username
+
+  version:
+    # TODO: Choose appropriate version detection method
+
+    # Option 1: GitHub tags (most common)
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
+
+    # Option 2: PyPI releases
+    # pypi-releases:
+    #   - ${{ name }}
+
+  # Common Python packaging notes:
+  # - Use noarch: python for pure Python packages
+  # - Include setuptools and wheel in host requirements
+  # - Test imports in addition to package contents
+  # - Use run_exports for library packages that need ABI compatibility
+  # - Consider python version constraints carefully
+  # - For packages with console scripts, add them to package_contents tests
+  # - Use pip install . -v for standard installation

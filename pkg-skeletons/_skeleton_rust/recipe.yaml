@@ -1,38 +1,121 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# Rust Package Recipe Template
+# ============================
+#
+# This template provides best practices for packaging Rust applications and libraries in conda.
+# Based on patterns from real-world Rust packaging in the meso-forge project.
+#
+# RUST PACKAGING PATTERNS:
+# - Use cargo install for binary packages (most common)
+# - Use cargo-bundle-licenses for license compliance
+# - Keep host/run requirements minimal unless specific system deps needed
+# - Test with --version to avoid network/functionality dependencies
+#
+# BUILD CONSIDERATIONS:
+# - cargo install handles compilation and installation
+# - Use --locked to respect Cargo.lock versions
+# - Use --bins to install only binaries (not examples)
+# - Use --root ${PREFIX} to install to conda environment
+#
+# LICENSE HANDLING:
+# - cargo-bundle-licenses collects all dependency licenses
+# - Include both main LICENSE and THIRDPARTY.yml in license_file
+# - YAML format is preferred for third-party license bundling
+#
+# TESTING BEST PRACTICES:
+# - Test that binaries can execute and show version
+# - Focus on "does the binary work" rather than complex functionality
+# - Avoid tests that require network access or complex setup
+#
+# COMMON PATTERNS:
+# - GitHub releases: https://github.com/org/repo/archive/refs/tags/v${{ version }}.tar.gz
+# - Crates.io releases: https://crates.io/api/v1/crates/${{ name }}/${{ version }}/download
+# - Binary location: ${{ PREFIX }}/bin/${{ binary_name }}
+
 context:
-  version: "0.11.9"
+  # TODO: Update these variables for your package
+  name: example-rust-package
+  version: "1.0.0"
+  # GitHub organization or user
+  github_org: example-org
+  # GitHub repository name (often same as package name)
+  github_repo: example-repo
+  # Binary name (what users will type to run the program)
+  # For packages with multiple binaries, this is the main one
+  binary_name: example
+  # Optional: Crate name if different from package name
+  crate_name: example
 
 package:
-  name: cargo-edit
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/killercup/cargo-edit/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 46670295e2323fc2f826750cdcfb2692fbdbea87122fe530a07c50c8dba1d3d7
+  # TODO: Choose your source type and update accordingly
+
+  # Option 1: GitHub source (most common for development versions)
+  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+
+  # Option 2: Crates.io source (for published crates)
+  # url: https://crates.io/api/v1/crates/${{ crate_name }}/${{ version }}/download
+  # sha256: "0000000000000000000000000000000000000000000000000000000000000000"
 
 build:
   number: 0
-  script: |
-    # Bundle third-party licenses for compliance
-    cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
-    # Install the package using cargo
-    cargo install --locked --bins --root ${PREFIX} --path .
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Bundle third-party licenses for compliance
+      # This must be done before installation to capture all dependencies
+      cargo-bundle-licenses --format yaml --output ($env.SRC_DIR | path join "THIRDPARTY.yml")
+
+      # Install the package using cargo
+      # --locked: Use exact versions from Cargo.lock
+      # --bins: Install only binaries (not examples or other targets)
+      # --root: Install to conda environment prefix
+      # --path: Build from current directory
+      cargo install --locked --bins --root $env.PREFIX --path .
+
+      # TODO: Add post-installation steps if needed
+      # mkdir ($env.PREFIX | path join "etc")
+      # cp config.toml ($env.PREFIX | path join "etc" "config.toml")
 
 requirements:
   build:
+    - nushell
     - ${{ compiler('rust') }}
     - cargo-bundle-licenses
-  host: []
-  run: []
+    # TODO: Add other build dependencies if needed
+    # - pkg-config  # for packages that link to system libraries
+    # - cmake       # for packages with native dependencies
+    # - make        # for packages with complex build processes
+
+  host:
+    # Most Rust packages don't need host dependencies
+    # TODO: Add host dependencies if needed (rare)
+    # - openssl     # for packages that link to OpenSSL
+    # - sqlite      # for packages that link to SQLite
+
+  run:
+    # Most Rust packages don't need runtime dependencies
+    # TODO: Add runtime dependencies if needed
+    # - ca-certificates  # for packages that make HTTPS requests
 
 tests:
   # Test 1: Verify package contents are included
   - package_contents:
       files:
         # Rust binary
-        - ${{ "Library/" if win }}bin/cargo-edit${{ ".exe" if win }}
+        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".exe" if win }}
+
+        # TODO: Add other expected files if the package installs them
+        # - etc/config.toml
+        # - share/man/man1/${{ binary_name }}.1
 
   # Test 2: Functional test
   - requirements:
@@ -41,25 +124,69 @@ tests:
     script:
       interpreter: nu
       content:
-        # Test that the installed cargo subcommand can execute and show version
-        - ^cargo-upgrade --version
+        # TODO: Update these tests for your specific binary
+        # Basic functionality tests - focus on behavior, not complex scenarios
+
+        # Test that version command works (doesn't crash)
+        - ^${{ binary_name }} --version
+
+        # Test help command works
+        - ^${{ binary_name }} --help
+
+        # TODO: Add simple functional tests that verify the program works
+        # Avoid tests that require network access, complex setup, or external files
+        # - ^${{ binary_name }} --check-config /dev/null
+        # - ^${{ binary_name }} validate --dry-run
+
+        # Example: Test that a command succeeds and produces expected output
+        # - ^${{ binary_name }} info | ^grep -q "version"
 
 about:
-  homepage: https://github.com/killercup/cargo-edit
+  # TODO: Update all metadata fields
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://docs.rs/${{ crate_name }}/latest/${{ crate_name | replace("-", "_") }}/
+  summary: Brief one-line description of the Rust package
+  description: |
+    A longer, multi-line description of what this Rust package does.
+    Include key features, use cases, and any important notes.
+
+    Features:
+    - Feature 1: High-performance implementation
+    - Feature 2: Cross-platform compatibility
+    - Feature 3: Minimal dependencies
+
+    This package provides a command-line tool that can be used for...
+
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
   license: MIT
   license_file:
     - LICENSE
+    # Include collected dependency licenses
     - THIRDPARTY.yml
-  description: "A utility for managing cargo dependencies from the command line."
-  summary: "A utility for managing cargo dependencies from the command line."
 
 extra:
   recipe-maintainers:
-    - maintainer
-  # Notes for Rust packages:
+    # TODO: Add your GitHub username
+    - github-username
+
+  version:
+    # TODO: Choose appropriate version detection method
+
+    # Option 1: GitHub tags (most common)
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
+
+    # Option 2: Crates.io releases
+    # crates-io:
+    #   - ${{ crate_name }}
+
+  # Common Rust packaging notes:
   # - Use cargo install for installation (preferred over manual compilation)
   # - Include cargo-bundle-licenses for license compliance
   # - Test with --version to avoid network/functionality dependencies
   # - Keep host/run requirements minimal unless specific system deps needed
   # - Version numbers cannot contain dashes, use underscores instead
   # - Remove conflicting dependencies that might override Cargo.toml versions
+  # - Focus on binary packages rather than library crates (use cargo for library deps)
+  # - Use --locked flag to ensure reproducible builds with exact dependency versions

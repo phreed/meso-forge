@@ -1,8 +1,37 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 schema_version: 1
 
+# JVM Package Recipe Template
+# ==========================
+#
+# This template provides best practices for packaging JVM applications and libraries in conda.
+# Based on patterns from real-world JVM packaging in the meso-forge project.
+#
+# JVM PACKAGING PATTERNS:
+# - Use appropriate Java version for build and runtime
+# - Handle different build systems (Maven, Gradle, SBT)
+# - Create wrapper scripts for executable applications
+# - Test functionality rather than complex integration
+#
+# BUILD CONSIDERATIONS:
+# - JVM applications are typically platform-independent (noarch: generic)
+# - Use Maven/Gradle/SBT for dependency resolution and building
+# - Handle JAR file installation and wrapper script creation
+# - Set proper JAVA_HOME and memory settings
+#
+# DEPENDENCY MANAGEMENT:
+# - Include OpenJDK in build and runtime requirements
+# - Most dependencies are bundled in fat JARs or handled by build system
+# - Add system dependencies only if needed (rare)
+#
+# TESTING BEST PRACTICES:
+# - Test that applications can execute and show version/help
+# - Test basic functionality without complex setup
+# - Verify JAR files and wrapper scripts are properly installed
+# - Focus on command-line interface rather than internal APIs
+
 context:
-  # TODO: Update these variables for your JVM package
+  # TODO: Update these variables for your package
   name: example-jvm-package
   version: "1.0.0"
   # GitHub organization or user
@@ -34,356 +63,201 @@ source:
   # target_directory: ${{ github_repo }}-${{ version }}
 
 build:
+  # Most JVM applications are platform-independent
+  noarch: generic
   number: 0
   script:
     interpreter: nu
     env:
-      # Set JAVA_HOME based on the Java version
+      # Set JAVA_HOME
       JAVA_HOME: ${{ "$PREFIX" if unix else "$LIBRARY_PREFIX" }}
-      # Maven/Gradle options
+      # Build tool memory settings
       MAVEN_OPTS: "-Xmx2g -XX:+UseG1GC"
       GRADLE_OPTS: "-Xmx2g -XX:+UseG1GC -Dorg.gradle.daemon=false"
+      SBT_OPTS: "-Xmx2g -XX:+UseG1GC"
     content: |
-      print $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
-      print $"Language: ${{ language }}, Build system: ${{ build_system }}, Type: ${{ package_type }}"
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+      echo $"Language: ${{ language }}, Build system: ${{ build_system }}, Type: ${{ package_type }}"
 
       # Determine platform-specific paths
-      let install_prefix = if ($nu.os-info.name == "windows") {
-          $env.LIBRARY_PREFIX
-      } else {
-          $env.PREFIX
-      }
+      let prefix = if ($nu.os-info.name == "windows") { $env.LIBRARY_PREFIX } else { $env.PREFIX }
+      let bin_dir = ($prefix | path join "bin")
+      let lib_dir = ($prefix | path join "lib")
+      let share_dir = ($prefix | path join "share" ${{ name }})
 
-      let bin_dir = ($install_prefix | path join "bin")
-      let lib_dir = ($install_prefix | path join "lib")
-      let share_dir = ($install_prefix | path join "share" ${{ name }})
-
-      # Create necessary directories
+      # Create directories
       mkdir $bin_dir
       mkdir $lib_dir
       mkdir $share_dir
 
-      # Build based on detected build system
-      let build_file = if (${{ build_system }} == "maven") {
-          "pom.xml"
-      } else if (${{ build_system }} == "gradle") {
-          if ("build.gradle.kts" | path exists) { "build.gradle.kts" } else { "build.gradle" }
-      } else if (${{ build_system }} == "sbt") {
-          "build.sbt"
-      } else {
-          # Auto-detect build system
-          if ("pom.xml" | path exists) {
-              "pom.xml"
-          } else if ("build.gradle.kts" | path exists) {
-              "build.gradle.kts"
-          } else if ("build.gradle" | path exists) {
-              "build.gradle"
-          } else if ("build.sbt" | path exists) {
-              "build.sbt"
-          } else {
-              error make {msg: "No recognized JVM build file found (pom.xml, build.gradle, build.sbt)"}
-          }
+      # BUILD PATTERN 1: Maven build (most common)
+      if ${{ build_system }} == "maven" {
+        echo "Building with Maven..."
+
+        # Clean and package
+        ^mvn clean package -DskipTests=true -Dmaven.javadoc.skip=true
+
+        # Find the built JAR file
+        let jar_files = (ls target | where name =~ '\.jar$' and name !~ 'sources' and name !~ 'javadoc')
+        let main_jar = ($jar_files | where name !~ 'original' | get name | first)
+
+        # Install JAR
+        cp $"target/($main_jar)" ($lib_dir | path join $"${{ name }}-${{ version }}.jar")
+
+        # Create symlink for easier access
+        if ($nu.os-info.name != "windows") {
+          ln -sf $"${{ name }}-${{ version }}.jar" ($lib_dir | path join "${{ name }}.jar")
+        }
       }
 
-      print $"Using build file: ($build_file)"
+      # BUILD PATTERN 2: Gradle build
+      if ${{ build_system }} == "gradle" {
+        echo "Building with Gradle..."
 
-      # Build the project
-      if ($build_file | str contains "pom.xml") {
-          print "Building with Maven..."
+        # Build without tests
+        ^./gradlew build -x test --no-daemon
 
-          # Skip tests during build (run them separately)
-          mvn clean package -DskipTests=true -Dmaven.javadoc.skip=true
+        # Find the built JAR file
+        let jar_files = (ls build/libs | where name =~ '\.jar$' and name !~ 'sources' and name !~ 'javadoc')
+        let main_jar = ($jar_files | get name | first)
 
-          # TODO: Adjust based on your Maven configuration
-          # For Spring Boot applications:
-          # mvn clean package -DskipTests=true spring-boot:repackage
+        # Install JAR
+        cp $"build/libs/($main_jar)" ($lib_dir | path join $"${{ name }}-${{ version }}.jar")
 
-          # For multi-module projects, you might need:
-          # mvn clean package -DskipTests=true -pl :module-name -am
-
-          # Find the built JAR
-          let jar_files = (ls target | where name =~ '\.jar$' | where name !~ '-sources\.jar$' | where name !~ '-javadoc\.jar$')
-
-          if ($jar_files | length) == 0 {
-              error make {msg: "No JAR file found in target directory"}
-          }
-
-          let main_jar = ($jar_files | where name =~ ${{ name }} | first).name
-
-          if (${{ package_type }} == "application") {
-              # Copy the main JAR
-              cp $main_jar ($lib_dir | path join $"(${{ binary_name }}).jar")
-
-              # Create executable wrapper script
-              let wrapper_content = if ($nu.os-info.name == "windows") {
-                  $'@echo off
-                  java -jar "%~dp0\..\lib\(${{ binary_name }}).jar" %*'
-              } else {
-                  $'#!/bin/bash
-                  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-                  exec java -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
-              }
-
-              let wrapper_file = if ($nu.os-info.name == "windows") {
-                  ($bin_dir | path join $"(${{ binary_name }}).bat")
-              } else {
-                  ($bin_dir | path join ${{ binary_name }})
-              }
-
-              $wrapper_content | save $wrapper_file
-
-              if ($nu.os-info.name != "windows") {
-                  chmod +x $wrapper_file
-              }
-          } else {
-              # For libraries, copy to lib directory
-              cp $main_jar ($lib_dir | path join ($main_jar | path basename))
-          }
-
-          # Collect dependency licenses
-          print "Collecting Maven dependency licenses..."
-          # Note: This requires the license-maven-plugin to be configured
-          # mvn license:download-licenses
-          # if ("target/generated-resources/licenses" | path exists) {
-          #     cp -r target/generated-resources/licenses ($share_dir | path join "licenses")
-          # }
-
-      } else if ($build_file | str contains "build.gradle") {
-          print "Building with Gradle..."
-
-          # Make gradlew executable on Unix systems
-          if ($nu.os-info.name != "windows") and ("gradlew" | path exists) {
-              chmod +x gradlew
-          }
-
-          let gradle_cmd = if ("gradlew" | path exists) {
-              if ($nu.os-info.name == "windows") { "gradlew.bat" } else { "./gradlew" }
-          } else {
-              "gradle"
-          }
-
-          # Build the project
-          run-external $gradle_cmd build -x test --no-daemon
-
-          # TODO: Adjust based on your Gradle configuration
-          # For Shadow JAR (fat JAR):
-          # run-external $gradle_cmd shadowJar --no-daemon
-
-          # For Spring Boot:
-          # run-external $gradle_cmd bootJar --no-daemon
-
-          # Find the built JAR
-          let jar_files = (ls build/libs | where name =~ '\.jar$' | where name !~ '-sources\.jar$' | where name !~ '-javadoc\.jar$')
-
-          if ($jar_files | length) == 0 {
-              error make {msg: "No JAR file found in build/libs directory"}
-          }
-
-          let main_jar = ($jar_files | first).name
-
-          if (${{ package_type }} == "application") {
-              # Copy the main JAR
-              cp $main_jar ($lib_dir | path join $"(${{ binary_name }}).jar")
-
-              # Create executable wrapper script
-              let wrapper_content = if ($nu.os-info.name == "windows") {
-                  $'@echo off
-                  java -jar "%~dp0\..\lib\(${{ binary_name }}).jar" %*'
-              } else {
-                  $'#!/bin/bash
-                  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-                  exec java -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
-              }
-
-              let wrapper_file = if ($nu.os-info.name == "windows") {
-                  ($bin_dir | path join $"(${{ binary_name }}).bat")
-              } else {
-                  ($bin_dir | path join ${{ binary_name }})
-              }
-
-              $wrapper_content | save $wrapper_file
-
-              if ($nu.os-info.name != "windows") {
-                  chmod +x $wrapper_file
-              }
-          } else {
-              # For libraries, copy to lib directory
-              cp $main_jar ($lib_dir | path join ($main_jar | path basename))
-          }
-
-          # Collect dependency licenses (requires gradle-license-plugin)
-          # run-external $gradle_cmd generateLicenseReport --no-daemon
-          # if ("build/reports/dependency-license" | path exists) {
-          #     cp -r build/reports/dependency-license ($share_dir | path join "licenses")
-          # }
-
-      } else if ($build_file | str contains "build.sbt") {
-          print "Building with sbt..."
-
-          # Build the project
-          sbt clean package
-
-          # TODO: For assembly plugin (fat JAR):
-          # sbt clean assembly
-
-          # Find the built JAR
-          let jar_files = (find . -name "*.jar" -path "*/target/*" | lines | where {|x| not ($x | str contains "sources") and not ($x | str contains "javadoc")})
-
-          if ($jar_files | length) == 0 {
-              error make {msg: "No JAR file found in target directories"}
-          }
-
-          let main_jar = ($jar_files | first)
-
-          if (${{ package_type }} == "application") {
-              # Copy the main JAR
-              cp $main_jar ($lib_dir | path join $"(${{ binary_name }}).jar")
-
-              # Create executable wrapper script
-              let wrapper_content = if ($nu.os-info.name == "windows") {
-                  $'@echo off
-                  java -jar "%~dp0\..\lib\(${{ binary_name }}).jar" %*'
-              } else {
-                  $'#!/bin/bash
-                  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-                  exec java -jar "$SCRIPT_DIR/../lib/(${{ binary_name }}).jar" "$@"'
-              }
-
-              let wrapper_file = if ($nu.os-info.name == "windows") {
-                  ($bin_dir | path join $"(${{ binary_name }}).bat")
-              } else {
-                  ($bin_dir | path join ${{ binary_name }})
-              }
-
-              $wrapper_content | save $wrapper_file
-
-              if ($nu.os-info.name != "windows") {
-                  chmod +x $wrapper_file
-              }
-          } else {
-              # For libraries, copy to lib directory
-              cp $main_jar ($lib_dir | path join ($main_jar | path basename))
-          }
+        # Create symlink for easier access
+        if ($nu.os-info.name != "windows") {
+          ln -sf $"${{ name }}-${{ version }}.jar" ($lib_dir | path join "${{ name }}.jar")
+        }
       }
 
-      # TODO: GraalVM Native Image support (uncomment if needed)
-      # if (which native-image | length) > 0 {
-      #     print "Building native executable with GraalVM..."
-      #     native-image -jar ($lib_dir | path join $"(${{ binary_name }}).jar") ($bin_dir | path join ${{ binary_name }})
+      # BUILD PATTERN 3: SBT build (for Scala)
+      if ${{ build_system }} == "sbt" {
+        echo "Building with SBT..."
+
+        # Package the application
+        ^sbt clean assembly
+
+        # Find the built JAR file
+        let jar_files = (ls target/scala-*/| where name =~ '\.jar$')
+        let main_jar = ($jar_files | get name | first)
+
+        # Install JAR
+        cp $"target/scala-*/($main_jar)" ($lib_dir | path join $"${{ name }}-${{ version }}.jar")
+
+        # Create symlink for easier access
+        if ($nu.os-info.name != "windows") {
+          ln -sf $"${{ name }}-${{ version }}.jar" ($lib_dir | path join "${{ name }}.jar")
+        }
+      }
+
+      # For application packages, create wrapper script
+      if ${{ package_type }} == "application" {
+        echo "Creating wrapper script for application..."
+
+        if ($nu.os-info.name == "windows") {
+          # Windows batch script
+          let wrapper_content = $"@echo off
+setlocal
+set JAVA_HOME=(%CONDA_PREFIX%\\Library)
+set JAR_PATH=%CONDA_PREFIX%\\Library\\lib\\${{ name }}.jar
+\"%JAVA_HOME%\\bin\\java.exe\" ${{ "-cp %JAR_PATH% " + main_class if main_class != "" else "-jar %JAR_PATH%" }} %*
+endlocal"
+          $wrapper_content | save ($bin_dir | path join "${{ binary_name }}.bat")
+        } else {
+          # Unix shell script
+          let wrapper_content = $"#!/bin/bash
+JAVA_HOME=\"$CONDA_PREFIX\"
+JAR_PATH=\"$CONDA_PREFIX/lib/${{ name }}.jar\"
+exec \"$JAVA_HOME/bin/java\" ${{ "-cp \"$JAR_PATH\" " + main_class if main_class != "" else "-jar \"$JAR_PATH\"" }} \"$@\""
+          $wrapper_content | save ($bin_dir | path join ${{ binary_name }})
+          chmod +x ($bin_dir | path join ${{ binary_name }})
+        }
+      }
+
+      # Copy additional resources if they exist
+      if ("src/main/resources" | path exists) {
+        cp -r src/main/resources/* $share_dir
+      }
+
+      # TODO: Add post-installation steps if needed
+      # Copy configuration files, documentation, etc.
+      # if ("config" | path exists) {
+      #   cp -r config/* ($prefix | path join "etc" ${{ name }})
       # }
 
-      print "Build completed successfully!"
+      echo "JVM package build completed successfully!"
 
 requirements:
   build:
     - nushell
-    # Choose appropriate Java version
-    - openjdk=${{ java_version }}
+    - openjdk ${{ java_version }}.*
+    # TODO: Add build system
+    # - maven                     # For Maven builds
+    # - gradle                    # For Gradle builds
+    # - sbt                       # For SBT/Scala builds
 
-    # Build tools (uncomment as needed)
-    - maven # For Maven projects
-    # - gradle  # For Gradle projects (or use wrapper)
-    # - sbt     # For sbt/Scala projects
-
-    # Language-specific compilers (uncomment as needed)
-    # {% if language == "kotlin" %}
-    - kotlin
-    # {% endif %}
-    # {% if language == "scala" %}
-    # - scala
-    # {% endif %}
-
-    # TODO: Add other build dependencies
-    # - nodejs  # If using Node.js tools
-    # - python  # If using Python tools in build
+    # TODO: Add other build dependencies if needed
+    # - make                      # For complex builds with native components
+    # - pkg-config                # For finding system libraries
 
   host:
-    - openjdk=${{ java_version }}
-
-    # TODO: Add JVM libraries your application depends on
-    # Examples for common dependencies:
-    # - junit            # For testing
-    # - slf4j-api        # For logging
-    # - jackson-core     # For JSON processing
-    # - spring-boot      # For Spring Boot applications
-    # - netty            # For networking
+    - openjdk ${{ java_version }}.*
+    # TODO: Add compile-time dependencies (rare for JVM packages)
+    # Most dependencies are handled by Maven/Gradle/SBT
 
   run:
-    - openjdk=${{ java_version }}
-
-    # TODO: Add runtime-only dependencies
-    # Most JVM dependencies are bundled in the JAR, but add external ones here
+    - openjdk ${{ java_version }}.*
+    # TODO: Add runtime dependencies (rare for JVM packages)
+    # Most JVM applications bundle their dependencies
+    # Only add if the application requires specific system libraries
+    # - fontconfig                # For applications that render fonts
+    # - libx11                    # For GUI applications on Linux
 
 tests:
-  # Test 1: Package contents validation
+  # Test 1: Verify package contents are included
   - package_contents:
       files:
-        # {% if package_type == "application" %}
-        # Application files
-        - ${{ "Library/" if win }}lib/${{ binary_name }}.jar
-        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".bat" if win }}
-        # {% else %}
-        # # Library files
-        # - ${{ "Library/" if win }}lib/*.jar
-        # {% endif %}
+        # JAR file
+        - lib/${{ name }}-${{ version }}.jar
 
-  # Test 2: Basic execution test
-  # {% if package_type == "application" %}
+        # TODO: Update based on package type
+        # For applications
+        - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".bat" if win }}
+
+        # For libraries (uncomment if applicable)
+        # - lib/${{ name }}.jar
+
+        # TODO: Add other expected files
+        # - share/${{ name }}/config/
+        # - etc/${{ name }}/
+
+  # Test 2: Functional tests
   - requirements:
       build:
         - nushell
     script:
       interpreter: nu
       content:
-        # TODO: Update these tests for your specific application
-        # Version check
+        # TODO: Update these tests for your specific package
+
+        # For applications - test basic execution
         - ^${{ binary_name }} --version
-        # Or if it uses different flag:
-        # - ^${{ binary_name }} -V
-        # - ^java -jar $PREFIX/lib/${{ binary_name }}.jar --version
-
-        # Help check
         - ^${{ binary_name }} --help
-        # Or:
-        # - ^java -jar $PREFIX/lib/${{ binary_name }}.jar --help
-  # {% endif %}
 
-  # Test 3: Java version compatibility
-  - script:
-      interpreter: nu
-      content: |
-        print "Testing Java version compatibility..."
+        # Test that JAR can be executed directly
+        - ^java -jar ($env.PREFIX | path join "lib" "${{ name }}.jar") --version
 
-        let java_version = (java -version 2>&1 | lines | first | parse 'version "{version}"' | get version.0)
-        print $"Java version: ($java_version)"
+        # TODO: Add functional tests that verify core functionality
+        # Keep tests simple and avoid external dependencies
+        # - ^${{ binary_name }} --validate-config /dev/null
+        # - ^${{ binary_name }} --dry-run --input test.txt
+        # - ^${{ binary_name }} --list-plugins
 
-        # Verify it's the expected version
-        if not ($java_version | str starts-with "${{ java_version }}") {
-            error make {msg: $"Expected Java ${{ java_version }}, got ($java_version)"}
-        }
+        # For libraries - test that classes can be loaded
+        # - ^java -cp ($env.PREFIX | path join "lib" "${{ name }}.jar") ${{ main_class }} --version
 
-        {% if package_type == "application" %}
-        # Test JAR execution directly
-        java -jar $env.PREFIX/lib/${{ binary_name }}.jar --help
-        {% endif %}
-
-        print "Java compatibility test passed!"
-
-  # TODO: Add more specific functionality tests
-  # - script:
-  #     interpreter: nu
-  #     content: |
-  #       print "Testing specific functionality..."
-  #
-  #       # Test with sample input
-  #       "test input" | save test.txt
-  #       ${{ binary_name }} process test.txt
-  #
-  #       # Verify output
-  #       let result = (open output.txt)
-  #       if $result != "expected output" {
-  #           error make {msg: "Output mismatch"}
-  #       }
+        # Verify the JAR is properly formed
+        - ^jar -tf ($env.PREFIX | path join "lib" "${{ name }}.jar") | ^head -10
 
 about:
   # TODO: Update all metadata fields
@@ -392,40 +266,43 @@ about:
   documentation: https://github.com/${{ github_org }}/${{ github_repo }}/blob/main/README.md
   summary: Brief one-line description of the JVM package
   description: |
-    A longer, multi-line description of what this JVM package does.
+    A longer, multi-line description of what this JVM package provides.
+    Include key features, use cases, and any important notes.
 
-    Key features:
-    - Feature 1
-    - Feature 2
-    - Feature 3
+    Features:
+    - Feature 1: Cross-platform JVM compatibility
+    - Feature 2: Modern ${{ language }} implementation
+    - Feature 3: Easy command-line interface
 
-    This package is built for Java ${{ java_version }} and uses ${{ build_system }}
-    as the build system. It's written in ${{ language }}.
+    This ${{ package_type }} provides functionality for...
 
-    {% if package_type == "application" %}
-    This is an executable application that can be run with the `${{ binary_name }}` command.
-    {% else %}
-    This is a library package that provides JVM functionality for other applications.
-    {% endif %}
+    Usage:
+    ```bash
+    ${{ binary_name }} --help
+    ${{ binary_name }} [options] [arguments]
+    ```
 
-  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause, etc.)
+  # TODO: Update license type (common: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
   license: Apache-2.0
-  license_file:
-    - LICENSE
-    # TODO: Uncomment if you collect dependency licenses
-    # - share/${{ name }}/licenses/
+  license_file: LICENSE
 
 extra:
   recipe-maintainers:
     # TODO: Add your GitHub username
     - github-username
 
-  # Additional metadata for JVM packages
-  jvm:
-    language: ${{ language }}
-    java_version: ${{ java_version }}
-    build_system: ${{ build_system }}
-    package_type: ${{ package_type }}
-    # {% if main_class %}
-    main_class: ${{ main_class }}
-    # {% endif %}
+  version:
+    # TODO: Choose appropriate version detection method
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$
+
+  # Common JVM packaging notes:
+  # - Use noarch: generic for platform-independent JVM packages
+  # - Include appropriate OpenJDK version in build and run requirements
+  # - Create wrapper scripts for executable applications
+  # - Most dependencies are bundled in JAR files by build systems
+  # - Test basic execution rather than complex functionality
+  # - Handle different build systems (Maven, Gradle, SBT)
+  # - Use proper memory settings for build tools
+  # - Focus on command-line interface testing
+  # - Consider fat JAR vs thin JAR + dependencies approach
