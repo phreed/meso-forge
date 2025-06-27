@@ -19,7 +19,7 @@ source:
       target_directory: systemd
   - if: linux
     then:
-      path: systemd/freetakserver-setup.sh
+      path: systemd/freetakserver-setup.py
       target_directory: systemd
 
 build:
@@ -37,10 +37,22 @@ build:
         print "Installing systemd unit file and setup script..."
         let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
         let bin_dir = $"($env.PREFIX)/bin"
+
         mkdir $systemd_dir
+        mkdir $bin_dir
+
         cp $"($env.SRC_DIR)/systemd/freetakserver.service" $"($systemd_dir)/freetakserver.service"
-        cp $"($env.SRC_DIR)/systemd/freetakserver-setup.sh" $"($bin_dir)/freetakserver-setup.sh"
-        chmod +x $"($bin_dir)/freetakserver-setup.sh"
+
+        # Copy setup script to bin directory (not python-scripts)
+        cp $"($env.SRC_DIR)/systemd/freetakserver-setup.py" $"($bin_dir)/freetakserver-setup"
+        chmod +x $"($bin_dir)/freetakserver-setup"
+
+        # Verify the file was placed correctly
+        if ($"($bin_dir)/freetakserver-setup" | path exists) {
+          print $"✓ Setup script installed to: ($bin_dir)/freetakserver-setup"
+        } else {
+          print $"❌ Failed to install setup script to: ($bin_dir)/freetakserver-setup"
+        }
       }
 
 requirements:
@@ -118,7 +130,7 @@ tests:
         - site-packages/FreeTAKServer/__init__.py
           # Systemd files (Linux only)
         - ${{ "lib/systemd/system/freetakserver.service" if linux }}
-        - ${{ "python-scripts/freetakserver-setup.sh" if linux }}
+        - ${{ "python-scripts/freetakserver-setup" if linux }}
 
       # Test 2: Python import test
   - script:
