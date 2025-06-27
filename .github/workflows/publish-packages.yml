@@ -42,7 +42,7 @@ jobs:
         with:
           fetch-depth: 2
 
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - uses: prefix-dev/setup-pixi@v0.8.10
         with:
           pixi-version: v0.47.0
           cache: true
@@ -75,7 +75,7 @@ jobs:
             jq '.artifacts[] | {name: .name, size_in_bytes: .size_in_bytes, created_at: .created_at}' || echo "Failed to fetch artifacts"
 
       - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
+        uses: actions/download-artifact@v4 # Use v4 or a later version
         with:
           name: packages-${{ matrix.target }}
           path: pkgs-out/

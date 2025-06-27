@@ -2,6 +2,10 @@
 """
 FreeTAKServer Service Setup Script
 This script sets up the FreeTAKServer service for systemd management.
+
+It will be obviated by systemd-pixi-generator.
+In that case, it should be replaced by a data file.
+That data file is likely freetakserver.service where all data can be in an [X-pixi-generator] section.
 """
 
 import os
