@@ -118,7 +118,7 @@ def main [
 }
 
 # Helper function to test all packages for a platform
-export def test-all [
+export def test-each [
     --platform: string = "linux-64",         # Target platform
     --manifest: string = "./pkgs-out/conda-manifest.json",  # Path to manifest file
     --continue-on-error                      # Continue testing even if some fail

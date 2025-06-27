@@ -1,0 +1,267 @@
+= C++ Meson Package Recipe Template
+:toc:
+:toc-placement: preamble
+
+This skeleton provides a template for packaging C++ projects that use the Meson build system in conda-forge style packages. It incorporates best practices learned from packaging complex projects like GTK/GNOME libraries.
+
+== When to Use This Template
+
+Use this template when:
+
+* Your C++ project uses Meson as its build system
+* You're packaging GTK/GNOME libraries or applications
+* You need cross-platform compatibility (Linux, macOS, Windows)
+* Your project has complex dependency chains
+* You want consistent library placement across different environments
+
+== Key Features
+
+=== Cross-Platform Build System
+* Explicit `--libdir=lib64` configuration for consistent library placement
+* Proper PKG_CONFIG_PATH setup for dependency detection
+* Windows-compatible path handling with `Library/` prefix
+* Flexible file patterns using `lib*/` for cross-platform testing
+
+=== Robust Dependency Management
+* Comprehensive PKG_CONFIG_PATH configuration
+* Support for complex GTK/GNOME dependency chains
+* Careful handling of problematic features (introspection, vapi)
+* Build vs host vs run dependency separation
+
+=== Reliable Testing
+* Package contents verification with flexible patterns
+* Cross-platform compatible file path matching
+* Simple smoke tests that avoid environment setup issues
+* Focus on essential functionality verification
+
+== Template Structure
+
+[source,text]
+----
+_skeleton_cxx_meson/
+├── recipe.yaml          # Main recipe template
+└── README.adoc          # This documentation
+----
+
+== Usage Instructions
+
+=== 1. Copy and Customize
+
+Copy this skeleton to your package directory and customize the context variables:
+
+[source,yaml]
+----
+context:
+  name: your-package-name
+  version: "1.0.0"
+  github_org: your-github-org
+  github_repo: your-repo-name
+  library_name: your-lib-name
+  library_version: "1"
+----
+
+=== 2. Update Source Information
+
+Modify the source section with your project's URL and checksum:
+
+[source,yaml]
+----
+source:
+  url: https://github.com/your-org/your-repo/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: "your-actual-sha256-checksum-here"
+----
+
+=== 3. Configure Build Options
+
+Customize meson configuration options for your project:
+
+[source,bash]
+----
+^meson setup build \
+  --prefix=$PREFIX \
+  --libdir=lib64 \
+  --buildtype=release \
+  --wrap-mode=nofallback \
+  -Dintrospection=disabled \
+  -Dvapi=false \
+  -Ddocs=false
+----
+
+=== 4. Set Dependencies
+
+Update the requirements sections:
+
+* **build**: Compilers, meson, ninja, pkg-config tools
+* **host**: Development libraries your project depends on
+* **run**: Runtime libraries (usually auto-detected)
+
+=== 5. Configure Tests
+
+Update the package_contents test with your expected files:
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        - lib*/libyourlib.so*
+        - include/yourlib/yourlib.h
+        - lib*/pkgconfig/yourlib.pc
+----
+
+== Best Practices
+
+=== Build System Configuration
+
+==== Always Use Explicit libdir
+[source,bash]
+----
+--libdir=lib64
+----
+This ensures consistent library placement across different Linux distributions and environments.
+
+==== Set PKG_CONFIG_PATH Comprehensively
+[source,bash]
+----
+PKG_CONFIG_PATH = \
+  $BUILD_PREFIX/lib/pkgconfig:$PREFIX/lib/pkgconfig:\
+  $BUILD_PREFIX/lib64/pkgconfig:$PREFIX/lib64/pkgconfig:$PKG_CONFIG_PATH
+----
+
+==== Disable Problematic Features
+For complex projects like GTK libraries, disable features that can cause dependency conflicts:
+
+[source,bash]
+----
+-Dintrospection=disabled
+-Dvapi=false
+-Dsysprof=false
+----
+
+=== Cross-Platform Compatibility
+
+==== Use Flexible File Patterns
+Instead of hardcoded paths:
+[source,yaml]
+----
+# ❌ Don't do this
+- lib64/libname.so*
+
+# ✅ Do this
+- lib*/libname.so*
+----
+
+==== Handle Windows Paths
+[source,yaml]
+----
+- ${{ "Library/" if win }}lib*/libname${{ ".dll" if win else ".so*" }}
+----
+
+=== Testing Strategy
+
+==== Focus on Package Contents
+Package contents tests are more reliable than complex script tests:
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        - lib*/libname.so*
+        - include/name/name.h
+        - lib*/pkgconfig/name.pc
+----
+
+==== Keep Script Tests Simple
+If you need script tests, keep them minimal:
+
+[source,yaml]
+----
+script:
+  content: |
+    # Simple smoke test
+    ^pkg-config --exists yourlib
+    echo "✓ Basic integration works"
+----
+
+== Common Customizations
+
+=== GTK/GNOME Applications
+For GTK applications, add typical dependencies:
+
+[source,yaml]
+----
+host:
+  - glib
+  - libglib
+  - gtk4  # or gtk3
+  - cairo
+  - pango
+  - gdk-pixbuf
+----
+
+=== Library with Headers
+For libraries, test both library and header files:
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        - lib*/libname.so*
+        - include/name/name.h
+        - lib*/pkgconfig/name.pc
+----
+
+=== GUI Application
+For GUI applications, include desktop files and icons:
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        - bin/appname
+        - share/applications/appname.desktop
+        - share/icons/hicolor/*/apps/appname.png
+----
+
+== Troubleshooting
+
+=== Build Fails to Find Dependencies
+1. Check PKG_CONFIG_PATH includes both lib and lib64
+2. Verify dependencies are in host requirements
+3. Use `pkgconf --debug` to diagnose pkg-config issues
+
+=== Library Files Not Found in Tests
+1. Check if files are in lib/ vs lib64/
+2. Use `lib*/` pattern instead of hardcoded paths
+3. Verify meson is using `--libdir=lib64`
+
+=== Complex Dependency Conflicts
+1. Disable problematic features (introspection, vapi)
+2. Use package_contents tests instead of script tests
+3. Simplify the dependency chain
+
+== Examples
+
+This template is based on successful packaging of projects like:
+
+* GTKSourceView5 - Text editor widget library
+* Various GNOME applications and libraries
+* Cross-platform C++ libraries with meson
+
+== Related Templates
+
+* `_skeleton_cxx_appl` - For CMake-based C++ applications
+* `_skeleton_cxx_hdr` - For header-only C++ libraries
+* `_skeleton_python` - For Python packages
+
+== Contributing
+
+When contributing improvements to this template:
+
+1. Test changes across multiple platforms
+2. Verify compatibility with various meson project structures
+3. Update documentation with new best practices
+4. Consider backward compatibility with existing recipes

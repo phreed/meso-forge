@@ -662,12 +662,12 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --all                        # Check all packages
+  %(prog)s --each                       # Check all packages
   %(prog)s --package fd                 # Check specific package
   %(prog)s --package fd --package pwgen # Check multiple packages
   %(prog)s --conda-forge-only           # Only check conda-forge status
-  %(prog)s --dry-run --all              # Show what would be updated
-  %(prog)s --update --all               # Update all packages
+  %(prog)s --dry-run --each             # Show what would be updated
+  %(prog)s --update --each              # Update all packages
   %(prog)s --newer-only                 # Only show packages with newer versions
   %(prog)s --list-packages              # List all available packages
   %(prog)s --force --update --package fd # Force update even if versions match
@@ -676,7 +676,7 @@ Examples:
 
     # Mutually exclusive group for target selection
     target_group = parser.add_mutually_exclusive_group(required=True)
-    target_group.add_argument('--all', '-a', action='store_true',
+    target_group.add_argument('--each', '-a', action='store_true',
                               help='Check all packages in the recipes directory')
     target_group.add_argument('--package', '-p', action='append', dest='package_names', metavar='NAME',
                               help='Check specific package(s) (can be used multiple times)')

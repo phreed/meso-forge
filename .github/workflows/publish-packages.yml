@@ -91,7 +91,7 @@ jobs:
       - name: Publish packages
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
-        run: pixi run publish-all-pd
+        run: pixi run publish-each-pd
 
   publish-summary:
     name: Publish Summary

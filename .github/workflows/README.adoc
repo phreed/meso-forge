@@ -19,7 +19,7 @@ The build and publish process has been split into two separate workflows for bet
 *What it does*:
 
 * Sets up the build environment with Pixi
-* Runs `pixi run build-all` to build all packages
+* Runs `pixi run build-each` to build all packages
 * Uploads built packages as GitHub artifacts
 * Provides build status summary
 
@@ -40,7 +40,7 @@ The build and publish process has been split into two separate workflows for bet
 
 * Downloads artifacts from the build workflow
 * Sets up the publish environment with Pixi
-* Runs `pixi run publish-all` to publish packages
+* Runs `pixi run publish-each` to publish packages
 * Provides publish status summary
 
 [IMPORTANT]

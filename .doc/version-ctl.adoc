@@ -24,10 +24,10 @@ The meso-forge project includes an intelligent, plugin-based version control sys
 [source,bash]
 ----
 # Check all packages with dry run
-pixi run -e update python .scripts/version_ctl.py --all --dry-run
+pixi run -e update python .scripts/version_ctl.py --each --dry-run
 
 # Actually update packages
-pixi run -e update python .scripts/version_ctl.py --all --update
+pixi run -e update python .scripts/version_ctl.py --each --update
 ----
 
 === Check Specific Package
@@ -141,7 +141,7 @@ pixi run -e update python .scripts/version_ctl.py [OPTIONS]
 === Package Selection Options
 [source,bash]
 ----
---all, -a                    # Check all packages in recipes directory
+--each, -a                   # Check all packages in recipes directory
 --package NAME, -p NAME      # Check specific package(s) (repeatable)
 --list-packages, -l          # List all available packages and exit
 ----
@@ -326,13 +326,13 @@ pixi run -e update python .scripts/test_plugins.py
 [source,bash]
 ----
 # Quick status check
-pixi run -e update python .scripts/version_ctl.py --all --quiet
+pixi run -e update python .scripts/version_ctl.py --each --quiet
 
 # Show only packages with updates available
-pixi run -e update python .scripts/version_ctl.py --all --newer-only
+pixi run -e update python .scripts/version_ctl.py --each --newer-only
 
 # Check conda-forge status for all packages
-pixi run -e update python .scripts/version_ctl.py --all --conda-forge-only
+pixi run -e update python .scripts/version_ctl.py --each --conda-forge-only
 ----
 
 === Before Adding New Packages
@@ -346,13 +346,13 @@ pixi run -e update python .scripts/version_ctl.py --package NEW_PACKAGE --conda-
 [source,bash]
 ----
 # See what would be updated (dry run)
-pixi run -e update python .scripts/version_ctl.py --all --dry-run
+pixi run -e update python .scripts/version_ctl.py --each --dry-run
 
 # Perform actual updates
-pixi run -e update python .scripts/version_ctl.py --all --update
+pixi run -e update python .scripts/version_ctl.py --each --update
 
 # Force updates even for matching versions
-pixi run -e update python .scripts/version_ctl.py --all --update --force
+pixi run -e update python .scripts/version_ctl.py --each --update --force
 ----
 
 === Package-Specific Operations
@@ -585,7 +585,7 @@ pixi run -e update python .scripts/version_ctl.py --package testpkg --dry-run --
 pixi run -e update python .scripts/test_plugins.py
 
 # 5. Run broader tests
-pixi run -e update python .scripts/version_ctl.py --all --dry-run
+pixi run -e update python .scripts/version_ctl.py --each --dry-run
 ----
 
 ---

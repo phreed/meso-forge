@@ -75,10 +75,18 @@ build:
       cd build
 
       # Configure with CMake
+      # Use explicit libdir to ensure consistent library placement across platforms
+      let libdir_arg = if ($nu.os-info.name == "windows") {
+          ""
+      } else {
+          " -DCMAKE_INSTALL_LIBDIR=lib64"
+      }
+
       cmake .. (
           $"-DCMAKE_INSTALL_PREFIX=($install_prefix)" +
           $"-DCMAKE_BUILD_TYPE=Release" +
           $"-DCMAKE_PREFIX_PATH=($install_prefix)" +
+          $libdir_arg +
           " " + ($env.CMAKE_ARGS? | default "")
       )
 
@@ -134,10 +142,13 @@ tests:
         # C++ binary
         - ${{ "Library/" if win }}bin/${{ binary_name }}${{ ".exe" if win }}
 
-        # TODO: Add other expected files
+        # TODO: Add other expected files (use flexible patterns for cross-platform)
         # - etc/config.conf
         # - share/man/man1/${{ binary_name }}.1
         # - share/${{ name }}/templates/
+        # For libraries, use flexible lib* pattern:
+        # - ${{ "Library/" if win }}lib*/lib${{ name }}${{ ".dll" if win else ".so*" }}
+        # - ${{ "Library/" if win }}lib*/pkgconfig/${{ name }}.pc
 
   # Test 2: Functional tests
   - requirements:
@@ -201,6 +212,7 @@ extra:
   # Common C++ packaging notes:
   # - CMake is the preferred build system for new C++ packages
   # - Use CMAKE_INSTALL_PREFIX to target conda environment
+  # - Use CMAKE_INSTALL_LIBDIR=lib64 for consistent library placement
   # - Handle Windows vs Unix path differences properly
   # - Include both C and C++ compilers in build requirements
   # - Add system libraries to host requirements, not run requirements
@@ -208,3 +220,5 @@ extra:
   # - Use parallel builds for faster compilation
   # - Keep runtime dependencies minimal - most C++ apps are self-contained
   # - Consider static linking to reduce runtime dependencies
+  # - Use flexible lib*/ patterns in tests for cross-platform compatibility
+  # - Avoid hardcoded lib64/ or lib/ paths in package_contents tests

@@ -1,0 +1,367 @@
+= C++ Meson Package Example
+:toc:
+
+This example demonstrates how to use the C++ Meson skeleton to package a real-world library.
+
+== Example: Packaging GTKSourceView5
+
+Here's how the GTKSourceView5 package was created using the principles from this skeleton:
+
+=== 1. Initial Setup
+
+[source,yaml]
+----
+context:
+  name: gtksourceview5
+  version: "5.14.0"
+  github_org: GNOME
+  github_repo: gtksourceview
+  library_name: gtksourceview-5
+  library_version: "0"
+
+package:
+  name: gtksourceview5
+  version: ${{ version }}
+
+source:
+  url: https://download.gnome.org/sources/gtksourceview/5.14/gtksourceview-${{ version }}.tar.xz
+  sha256: c40d1f7309d111f5805fec47c1fead519c4b8d506317ce5e90013ce47d65e9c6
+----
+
+=== 2. Build Configuration
+
+[source,yaml]
+----
+build:
+  script:
+    interpreter: nu
+    content: |
+      # Set PKG_CONFIG_PATH for dependency detection
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      # Configure with explicit libdir for consistent placement
+      ^meson setup build \
+        --prefix=($env.PREFIX) \
+        --libdir=lib64 \
+        -Dintrospection=disabled \
+        -Dvapi=false \
+        -Dsysprof=false \
+        --wrap-mode=nofallback
+
+      ^meson compile -C build --verbose
+      ^meson install -C build
+----
+
+=== 3. Dependencies
+
+[source,yaml]
+----
+requirements:
+  build:
+    - nushell
+    - c-compiler
+    - cxx-compiler
+    - meson
+    - ninja
+    - pkgconf
+    - pkg-config
+    - gtk4
+    - glib
+    # ... other build tools
+
+  host:
+    - cairo
+    - fontconfig
+    - fribidi
+    - gdk-pixbuf
+    - glib
+    - libglib
+    - glib-tools
+    - gtk4
+    - pango
+    - pcre2
+    - libxml2
+----
+
+=== 4. Cross-Platform Testing
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        # Use flexible lib*/ patterns for cross-platform compatibility
+        - ${{ "Library/" if win }}lib*/libgtksourceview-5${{ ".dll" if win else ".so*" }}
+        - ${{ "Library/" if win }}include/gtksourceview-5/gtksourceview/gtksourceview.h
+        - ${{ "Library/" if win }}lib*/pkgconfig/gtksourceview-5.pc
+----
+
+== Example: Simple C++ Library
+
+Here's a simpler example for a basic C++ library:
+
+=== Project Structure
+[source,text]
+----
+mylib/
+├── meson.build
+├── include/
+│   └── mylib/
+│       └── mylib.h
+├── src/
+│   └── mylib.cpp
+└── mylib.pc.in
+----
+
+=== Recipe Configuration
+
+[source,yaml]
+----
+context:
+  name: mylib
+  version: "1.2.3"
+  github_org: myorg
+  github_repo: mylib
+  library_name: mylib
+  library_version: "1"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/v${{ version }}.tar.gz
+  sha256: "your-checksum-here"
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      ^meson setup build \
+        --prefix=($env.PREFIX) \
+        --libdir=lib64 \
+        --buildtype=release
+
+      ^meson compile -C build --verbose
+      ^meson install -C build
+
+requirements:
+  build:
+    - nushell
+    - meson
+    - ninja
+    - pkgconf
+    - ${{ compiler('cxx') }}
+
+tests:
+  - package_contents:
+      files:
+        - lib*/libmylib.so*
+        - include/mylib/mylib.h
+        - lib*/pkgconfig/mylib.pc
+----
+
+== Example: GUI Application
+
+For a GTK application with desktop integration:
+
+[source,yaml]
+----
+context:
+  name: myapp
+  version: "2.1.0"
+  github_org: myorg
+  github_repo: myapp
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # Standard meson setup for GUI apps
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      ^meson setup build \
+        --prefix=($env.PREFIX) \
+        --libdir=lib64 \
+        -Dgtk4=true
+
+      ^meson compile -C build --verbose
+      ^meson install -C build
+
+requirements:
+  host:
+    - gtk4
+    - glib
+    - libglib
+    - cairo
+    - pango
+    - gdk-pixbuf
+
+tests:
+  - package_contents:
+      files:
+        - bin/myapp
+        - share/applications/myapp.desktop
+        - share/icons/hicolor/*/apps/myapp.png
+        - share/glib-2.0/schemas/org.myorg.myapp.gschema.xml
+----
+
+== Common Patterns
+
+=== Disabling Problematic Features
+
+Many GNOME libraries have features that can cause dependency conflicts:
+
+[source,bash]
+----
+^meson setup build \
+  --prefix=($env.PREFIX) \
+  --libdir=lib64 \
+  -Dintrospection=disabled \  # Disable GObject introspection
+  -Dvapi=false \              # Disable Vala bindings
+  -Dsysprof=false \           # Disable profiling support
+  -Ddocs=false \              # Disable documentation
+  -Dtests=false               # Disable test building
+----
+
+=== Handling Complex Dependencies
+
+For packages with many GTK/GNOME dependencies:
+
+[source,yaml]
+----
+requirements:
+  build:
+    - glib-tools              # For gschema compilation
+    - gettext                 # For internationalization
+    - itstool                 # For documentation
+
+  host:
+    # Core GNOME stack
+    - glib
+    - libglib
+    - gtk4
+    - cairo
+    - pango
+    - gdk-pixbuf
+
+    # Text and fonts
+    - fontconfig
+    - freetype
+    - harfbuzz
+    - fribidi
+
+    # System libraries
+    - libxml2
+    - pcre2
+    - zlib
+----
+
+=== Cross-Platform File Patterns
+
+Always use flexible patterns for cross-platform compatibility:
+
+[source,yaml]
+----
+tests:
+  - package_contents:
+      files:
+        # Libraries - works on both lib/ and lib64/ systems
+        - ${{ "Library/" if win }}lib*/libname${{ ".dll" if win else ".so*" }}
+
+        # Headers - consistent across platforms
+        - ${{ "Library/" if win }}include/name/name.h
+
+        # pkg-config - flexible lib directory
+        - ${{ "Library/" if win }}lib*/pkgconfig/name.pc
+
+        # Executables - handle .exe extension
+        - ${{ "Library/" if win }}bin/name${{ ".exe" if win }}
+
+        # Data files - consistent paths
+        - share/name/data/
+        - share/applications/name.desktop  # Linux only
+        - share/icons/hicolor/*/apps/name.png
+----
+
+== Troubleshooting Examples
+
+=== Library Not Found in Tests
+
+**Problem**: Test fails with "No match for file glob: lib64/libname.so*"
+
+**Solution**: Use flexible pattern
+[source,yaml]
+----
+# Before (rigid)
+- lib64/libname.so*
+
+# After (flexible)
+- lib*/libname.so*
+----
+
+=== Dependency Conflicts
+
+**Problem**: Complex dependency resolution failures during testing
+
+**Solution**: Simplify tests and disable problematic features
+[source,yaml]
+----
+build:
+  script:
+    content: |
+      ^meson setup build \
+        -Dintrospection=disabled \
+        -Dvapi=false \
+        -Dsysprof=false
+
+tests:
+  # Use only package_contents, avoid script tests
+  - package_contents:
+      files:
+        - lib*/libname.so*
+----
+
+=== Cross-Platform Build Issues
+
+**Problem**: Builds work locally but fail on different platforms
+
+**Solution**: Comprehensive PKG_CONFIG_PATH and explicit libdir
+[source,bash]
+----
+$env.PKG_CONFIG_PATH = (
+  ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+  ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+  ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+  ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+  ($env.PKG_CONFIG_PATH | default "")
+)
+
+^meson setup build --prefix=($env.PREFIX) --libdir=lib64
+----
+
+== Best Practices Summary
+
+1. **Always use `--libdir=lib64`** for consistent library placement
+2. **Set comprehensive PKG_CONFIG_PATH** including both lib and lib64
+3. **Use flexible `lib*/` patterns** in tests for cross-platform compatibility
+4. **Disable problematic features** (introspection, vapi) for complex packages
+5. **Focus on package_contents tests** rather than complex script tests
+6. **Handle Windows paths** with `${{ "Library/" if win }}` prefix
+7. **Test across platforms** before considering the recipe complete
+
+This skeleton and these examples provide a robust foundation for packaging C++ projects with meson in conda-forge style packages.

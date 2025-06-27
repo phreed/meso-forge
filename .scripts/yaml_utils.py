@@ -184,7 +184,7 @@ def main():
 Examples:
   %(prog)s --format pkgs/fd/recipe.yaml          # Format single file
   %(prog)s --validate pkgs/*/recipe.yaml         # Validate multiple files
-  %(prog)s --format-all                          # Format all recipe files
+  %(prog)s --format-each                         # Format all recipe files
         """
     )
 
@@ -192,7 +192,7 @@ Examples:
                         help='Format specified YAML files')
     parser.add_argument('--validate', metavar='FILE', nargs='+',
                         help='Validate specified YAML files')
-    parser.add_argument('--format-all', action='store_true',
+    parser.add_argument('--format-each', action='store_true',
                         help='Format all recipe.yaml files in pkgs/')
     parser.add_argument('--no-backup', action='store_true',
                         help='Skip creating backup files when formatting')

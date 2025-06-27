@@ -395,7 +395,7 @@ def validate-installation [] {
     # Check total installation size
     let all_files = (ls $config.install_prefix --all | where type == "file")
     if ($all_files | length) > 0 {
-        let total_size = ($all_files | get size | math sum)
+        let total_size = ($all_files | get size u| math sum)
         let size_mb = (($total_size / 1048576) | math round --precision 2)
         log info $"Total installation size: ($size_mb) MB"
     }

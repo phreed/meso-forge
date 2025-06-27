@@ -27,7 +27,7 @@ The scripts are primarily invoked through pixi tasks defined in `pixi.toml`. The
 |`.scripts/build.nu`
 |Build individual packages
 
-|`pixi run build-all`
+|`pixi run build-each`
 |Multiple build tasks
 |Build all packages for a platform
 
@@ -46,7 +46,7 @@ pixi run build pwgen
 pixi run build pwgen linux-64
 
 # Build all packages
-pixi run build-all linux-64
+pixi run build-each linux-64
 ----
 
 ==== Package Management Tasks
@@ -91,8 +91,8 @@ pixi run clean numpy linux-64
 |`.scripts/test_package.nu`
 |Test individual packages
 
-|`pixi run test-all`
-|`.scripts/test_package.nu` (test-all function)
+|`pixi run test-each`
+|`.scripts/test_package.nu` (test-each function)
 |Test all packages
 
 |`pixi run test-status`
@@ -107,7 +107,7 @@ pixi run clean numpy linux-64
 pixi run test numpy linux-64
 
 # Test all packages
-pixi run test-all linux-64
+pixi run test-each linux-64
 
 # Show test status
 pixi run test-status
@@ -127,12 +127,12 @@ pixi run test-status
 |`.scripts/package_publish.nu`
 |Publish to S3
 
-|`pixi run publish-pd-all`
-|`.scripts/package_publish.nu` (publish-all function)
+|`pixi run publish-each-pd`
+|`.scripts/package_publish.nu` (publish-each function)
 |Publish all packages to prefix.dev
 
-|`pixi run publish-s3-all`
-|`.scripts/package_publish.nu` (publish-all function)
+|`pixi run publish-each-s3`
+|`.scripts/package_publish.nu` (publish-each function)
 |Publish all packages to S3
 |===
 
@@ -146,7 +146,7 @@ pixi run publish-pd numpy linux-64
 pixi run publish-s3 numpy linux-64
 
 # Publish all packages to prefix.dev
-pixi run publish-pd-all linux-64
+pixi run publish-each-pd linux-64
 
 # Dry run
 pixi run publish-pd-dry numpy linux-64
@@ -217,12 +217,12 @@ The scripts are used in CI/CD workflows for automated building and publishing.
 - name: Build all packages
   env:
     TARGET_PLATFORM: ${{ matrix.target }}
-  run: pixi run build-all $TARGET_PLATFORM
+  run: pixi run build-each $TARGET_PLATFORM
 ----
 
 *Script Usage:*
 
-* Uses `pixi run build-all` which internally calls multiple instances of `.scripts/build.nu`
+* Uses `pixi run build-each` which internally calls multiple instances of `.scripts/build.nu`
 * Builds packages for multiple platforms (currently linux-64)
 * Uploads artifacts for the publish workflow
 
@@ -239,12 +239,12 @@ The scripts are used in CI/CD workflows for automated building and publishing.
 - name: Publish packages
   env:
     TARGET_PLATFORM: ${{ matrix.target }}
-  run: pixi run publish-all-pd
+  run: pixi run publish-each-pd
 ----
 
 *Script Usage:*
 
-* Uses `pixi run publish-all-pd` which calls `.scripts/package_publish.nu`
+* Uses `pixi run publish-each-pd` which calls `.scripts/package_publish.nu`
 * Publishes built packages to prefix.dev
 * Downloads artifacts from build workflow
 
@@ -413,8 +413,8 @@ pixi run publish-pd mypackage
 [source,bash]
 ----
 # Automated in GitHub Actions
-pixi run build-all linux-64        # Build all packages
-pixi run publish-all-pd linux-64   # Publish all packages
+pixi run build-each linux-64        # Build all packages
+pixi run publish-each-pd linux-64   # Publish all packages
 ----
 
 === Maintenance Workflow

@@ -127,7 +127,7 @@ export def list-packages [
 }
 
 # List all conda files for a given package across all platforms
-export def list-all-conda-files [
+export def list-each-conda-files [
     package_name: string,                    # Name of the package to find
     platform: string = "",                   # Target platform (empty for all)
     output_dir: string = "./pkgs-out"        # Output directory (default: ./pkgs-out)
@@ -429,7 +429,7 @@ export def manifest-help [] {
     print "  get-package-path <pkg>               - Get conda file path for a package"
     print "  find-conda-file <pkg>                - Find conda file (alias for get-package-path)"
     print "  list-packages                        - List all packages"
-    print "  list-all-conda-files <pkg>           - List all conda files for a package"
+    print "  list-each-conda-files <pkg>          - List all conda files for a package"
     print "  get-built-packages                   - List only built packages"
     print "  get-skipped-packages                 - List only skipped packages"
     print "  package-exists <pkg>                 - Check if package is in manifest"
@@ -456,7 +456,7 @@ export def main [
     package_name: string,                    # Name of the package to find
     platform: string = "linux-64",           # Target platform (default: linux-64)
     --output-dir: string = "./pkgs-out",     # Output directory (default: ./pkgs-out)
-    --list-all                               # List all matching files instead of just the latest
+    --list-each                              # List all matching files instead of just the latest
     --quiet (-q)                             # Suppress stderr output
     --info                                   # Show file info instead of just path
     --exists                                 # Check if file exists (exit code 0/1)
@@ -469,8 +469,8 @@ export def main [
         }
     }
 
-    if $list_all {
-        let files = list-all-conda-files $package_name $platform $output_dir
+    if $list_each {
+        let files = list-each-conda-files $package_name $platform $output_dir
         if ($files | is-empty) {
             if not $quiet {
                 print -e $"No conda files found for package '($package_name)'"

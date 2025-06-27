@@ -90,16 +90,18 @@ build:
       # cp ${{ main_header }} ($include_dir | path join ${{ main_header }})
 
       # Optional: Install CMake config files for find_package support
+      # Use flexible lib* pattern for cross-platform compatibility
       # if (("cmake" | path exists) and (ls cmake | where name =~ ".*Config\.cmake\.in") | length) > 0) {
-      #     let cmake_dir = ($env.PREFIX | path join "lib" "cmake" ${{ name }})
+      #     let cmake_dir = ($env.PREFIX | path join "lib64" "cmake" ${{ name }})
       #     mkdir $cmake_dir
       #     cp cmake/*Config.cmake $cmake_dir/
       #     cp cmake/*ConfigVersion.cmake $cmake_dir/
       # }
 
       # Optional: Install pkg-config file
+      # Use lib64 for consistent placement across platforms
       # if ("${{ name }}.pc.in" | path exists) {
-      #     let pkgconfig_dir = ($env.PREFIX | path join "lib" "pkgconfig")
+      #     let pkgconfig_dir = ($env.PREFIX | path join "lib64" "pkgconfig")
       #     mkdir $pkgconfig_dir
       #     # Process .pc.in template (simple substitution)
       #     let pc_content = (open ${{ name }}.pc.in | str replace "@VERSION@" $env.PKG_VERSION | str replace "@PREFIX@" $env.PREFIX)
@@ -143,9 +145,9 @@ tests:
         # - include/${{ library_namespace }}/utils.hpp
         # - include/${{ library_namespace }}/detail/impl.hpp
 
-        # Optional: CMake and pkg-config files
-        # - lib/cmake/${{ name }}/${{ name }}Config.cmake
-        # - lib/pkgconfig/${{ name }}.pc
+        # Optional: CMake and pkg-config files (use flexible patterns)
+        # - lib*/cmake/${{ name }}/${{ name }}Config.cmake
+        # - lib*/pkgconfig/${{ name }}.pc
 
   # Test 2: Header compilation test
   - requirements:
@@ -188,7 +190,8 @@ tests:
         #   echo "int main(){return 0;}" | save test.cpp
         #   mkdir build
         #   cd build
-        #   ^cmake .. $"-DCMAKE_PREFIX_PATH=($env.PREFIX)"
+        #   # Use explicit libdir for consistent library placement
+        #   ^cmake .. $"-DCMAKE_PREFIX_PATH=($env.PREFIX)" $"-DCMAKE_INSTALL_LIBDIR=lib64"
         #   ^cmake --build .
         #   echo "✓ CMake integration works"
 
@@ -260,3 +263,6 @@ extra:
   # - Keep directory structure consistent with upstream project
   # - Verify all headers are properly installed
   # - Test with different C++ standards if library supports multiple
+  # - Use flexible lib*/ patterns in tests for cross-platform compatibility
+  # - Use lib64 for CMake/pkg-config files for consistent placement
+  # - Avoid hardcoded lib64/ or lib/ paths in package_contents tests

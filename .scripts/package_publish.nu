@@ -171,7 +171,7 @@ def main [
 }
 
 # Helper function to publish all packages using a specific method
-export def publish-all [
+export def publish-each [
     --method: string = "pd",                 # Publishing method: "pd" for prefix.dev, "s3" for S3
     --channel: string,                       # Channel name (e.g., "meso-forge" for pd, "s3://pixi/meso-forge" for s3)
     --url: string = "",                      # Endpoint URL for S3 (required when method is "s3")
@@ -433,7 +433,7 @@ export def publish-help [] {
     print ""
     print "Available commands:"
     print "  main <pkg> --method <pd|s3>        - Publish a specific package"
-    print "  publish-all --method <pd|s3>       - Publish all built packages (from manifest)"
+    print "  publish-each --method <pd|s3>      - Publish all built packages (from manifest)"
     print "  publish-directory <dir> --method   - Publish all conda files in a directory"
     print "  publish-status                     - Show packages available for publishing"
     print ""
@@ -448,7 +448,7 @@ export def publish-help [] {
     print "  use .scripts/package_publish.nu *"
     print "  main pwgen --method pd"
     print "  main fd --method s3 --dry-run"
-    print "  publish-all --method pd --channel meso-forge --continue-on-error"
+    print "  publish-each --method pd --channel meso-forge --continue-on-error"
     print "  publish-directory ./pkgs-out --method pd --recursive"
     print "  publish-status"
 }

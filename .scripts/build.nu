@@ -379,7 +379,7 @@ export def "list-builds" [
 }
 
 # Helper function for batch builds with smart checking
-export def "build-all" [
+export def "build-each" [
     --platform: string = "linux-64",
     --force,                                # Force rebuild all
     --check-prefix,                         # Check prefix.dev

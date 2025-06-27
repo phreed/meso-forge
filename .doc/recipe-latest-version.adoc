@@ -264,7 +264,7 @@ To test your version patterns and mode configuration:
 pixi run -e update python .scripts/version_ctl.py --package your-package --dry-run
 
 # Check multiple packages
-pixi run -e update python .scripts/version_ctl.py --all --dry-run
+pixi run -e update python .scripts/version_ctl.py --each --dry-run
 ----
 
 The output will show:
