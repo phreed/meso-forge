@@ -157,18 +157,18 @@ build:
         if ($nu.os-info.name == "windows") {
           # Windows batch script
           let wrapper_content = $"@echo off
-setlocal
-set JAVA_HOME=(%CONDA_PREFIX%\\Library)
-set JAR_PATH=%CONDA_PREFIX%\\Library\\lib\\${{ name }}.jar
-\"%JAVA_HOME%\\bin\\java.exe\" ${{ "-cp %JAR_PATH% " + main_class if main_class != "" else "-jar %JAR_PATH%" }} %*
-endlocal"
+          setlocal
+          set JAVA_HOME=(%CONDA_PREFIX%\\Library)
+          set JAR_PATH=%CONDA_PREFIX%\\Library\\lib\\${{ name }}.jar
+          \"%JAVA_HOME%\\bin\\java.exe\" ${{ "-cp %JAR_PATH% " + main_class if main_class != "" else "-jar %JAR_PATH%" }} %*
+          endlocal"
           $wrapper_content | save ($bin_dir | path join "${{ binary_name }}.bat")
         } else {
           # Unix shell script
           let wrapper_content = $"#!/bin/bash
-JAVA_HOME=\"$CONDA_PREFIX\"
-JAR_PATH=\"$CONDA_PREFIX/lib/${{ name }}.jar\"
-exec \"$JAVA_HOME/bin/java\" ${{ "-cp \"$JAR_PATH\" " + main_class if main_class != "" else "-jar \"$JAR_PATH\"" }} \"$@\""
+          JAVA_HOME=\"$CONDA_PREFIX\"
+          JAR_PATH=\"$CONDA_PREFIX/lib/${{ name }}.jar\"
+          exec \"$JAVA_HOME/bin/java\" ${{ "-cp \"$JAR_PATH\" " + main_class if main_class != "" else "-jar \"$JAR_PATH\"" }} \"$@\""
           $wrapper_content | save ($bin_dir | path join ${{ binary_name }})
           chmod +x ($bin_dir | path join ${{ binary_name }})
         }
