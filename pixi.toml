@@ -9,6 +9,7 @@ channels = ["conda-forge", "https://prefix.dev/meso-forge"]
 platforms = [
     # "osx-arm64",
     "linux-64",
+    "linux-aarch64",
     # "win-64",
     # "osx-64",
 ]
@@ -134,25 +135,26 @@ cmd = [
 ]
 
 [tasks.build-skeletons]
+args = [{ arg = "tgt_platform", default = "linux-64" }]
 depends-on = [
     { task = "build", args = [
         "_skeleton_go",
-        "linux-64",
+        "{{ tgt_platform }}",
         "--pkg-dir=./pkg-skeletons",
     ] },
     { task = "build", args = [
         "_skeleton_js",
-        "linux-64",
+        "{{ tgt_platform }}",
         "--pkg-dir=./pkg-skeletons",
     ] },
     { task = "build", args = [
         "_skeleton_python",
-        "linux-64",
+        "{{ tgt_platform }}",
         "--pkg-dir=./pkg-skeletons",
     ] },
     { task = "build", args = [
         "_skeleton_rust",
-        "linux-64",
+        "{{ tgt_platform }}",
         "--pkg-dir=./pkg-skeletons",
     ] },
 ]
@@ -203,9 +205,7 @@ depends-on = [
 ]
 
 [tasks.build-each-force]
-args = [
-    { arg = "tgt_platform", default = "linux-64" }
-    ]
+args = [ { arg = "tgt_platform", default = "linux-64" } ]
 depends-on = [ { task = "build-each", args = ["true", "{{ tgt_platform }}"] } ]
 
 [tasks.test]
