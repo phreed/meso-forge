@@ -14,10 +14,10 @@ export def get_current_platform [] {
 
 # Find packages marked as noarch
 export def find_noarch_packages [
-    --in-dir: string = "./pkgs",
+    --src-dir: string = "./pkgs",
     --verbose,                              # Enable verbose output
 ] {
-    ls $in_dir
+    ls $src_dir
     | where type == dir
     | get name
     | where {|pkg|
@@ -46,10 +46,10 @@ export def find_noarch_packages [
 
 # Find packages that are platform-specific (not noarch)
 export def find_platform_specific_packages [
-    --in-dir: string = "./pkgs",
+    --src-dir: string = "./pkgs",
     --verbose,                              # Enable verbose output
 ] {
-    ls $in_dir
+    ls $src_dir
     | where type == dir
     | get name
     | where {|pkg|

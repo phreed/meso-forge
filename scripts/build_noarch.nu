@@ -5,12 +5,12 @@ use build_mod.nu find_noarch_packages
 
 # Build only noarch packages
 def main [
---in-dir: string = "./pkgs",
---out-dir: string = "./output",
+--src-dir: string = "./pkgs",
+--tgt-dir: string = "./output",
 ] {
     print "📦 Building noarch packages only..."
 
-    let noarch_packages = find_noarch_packages --in-dir $in_dir
+    let noarch_packages = find_noarch_packages --src-dir $src_dir
 
     if ($noarch_packages | length) == 0 {
         print "ℹ️  No noarch packages found"
@@ -24,7 +24,7 @@ def main [
         let recipe_path = $"($package)/recipe.yaml"
 
         try {
-            rattler-build build --recipe $recipe_path --output-dir $out_dir
+            rattler-build build --recipe $recipe_path --output-dir $tgt_dir
             print $"✅ Successfully built ($package)"
         } catch {
             print $"❌ Failed to build ($package)"

@@ -5,6 +5,8 @@ use build_mod.nu find_platform_specific_packages
 
 # Build platform-specific packages for current or specified platform
 def main [
+    --src-dir: string = "./pkgs",
+    --tgt-dir: string = "./output",
     --platform (-p): string = ""  # Target platform (default: current)
     --all-platforms (-a)          # Build for all supported platforms
 ] {
@@ -18,7 +20,7 @@ def main [
         [$platform]
     }
 
-    let platform_packages = find_platform_specific_packages --in-dir $in_dir
+    let platform_packages = find_platform_specific_packages --src-dir $src_dir
 
     if ($platform_packages | length) == 0 {
         print "ℹ️  No platform-specific packages found"
