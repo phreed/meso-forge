@@ -3,9 +3,10 @@
 [workspace]
 name = "meso-forge"
 version = "0.1.0"
-description = "Packages needed by my projects"
+description = "Multi-package build suite"
 authors = ["Fred Eisele <fred.eisele@vanderbilt.edu>"]
 channels = ["conda-forge", "https://prefix.dev/meso-forge"]
+
 platforms = [
     # "osx-arm64",
     "linux-64",
@@ -16,8 +17,10 @@ platforms = [
 preview = ["pixi-build"]
 
 [dependencies]
+# Core build dependencies available on all platforms
 rattler-build = ">=0.40.0,<0.41"
 rattler-index = ">=0.22.4,<0.23"
+git = ">=2.49.0,<3.0"
 nushell = ">=0.103.0,<0.104"
 typer = ">=0.16.0,<0.17"
 pyyaml = ">=6.0.2,<7"
@@ -25,447 +28,349 @@ glib = ">=2.84.0,<3.0"
 glib-tools = ">=2.84.0,<3.0"
 libzlib = ">=1.3.0,<2.0"
 
+# Platform-specific build dependencies
+[target.linux-64.dependencies]
+gcc_linux-64 = "*"
+gxx_linux-64 = "*"
 
+[target.linux-aarch64.dependencies]
+gcc_linux-aarch64 = "*"
+gxx_linux-aarch64 = "*"
+
+# Build all packages for current platform
+[tasks.build-all]
+cmd = "nu scripts/build_all.nu"
+cwd = "."
+
+# Build specific package types
+[tasks.build-noarch]
+cmd = "nu scripts/build_noarch.nu"
+cwd = "."
+
+[tasks.build-platform-specific]
+cmd = "nu scripts/build_platform.nu"
+cwd = "."
+
+# Build for all platforms
+[tasks.build-all-platforms]
+cmd = "nu scripts/build_platform_specific.nu --all-platforms"
+cwd = "."
+
+# Build for specific platform
+[tasks.build-for-platform]
+cmd = "nu scripts/build_platform_specific.nu --platform"
+cwd = "."
+
+# Individual package builds (examples)
+[tasks.build-pkg-asciidoctor-revealjs]
+cmd = "rattler-build build --recipe pkgs/sciidoctor-revealjs/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-asyncio]
+cmd = "rattler-build build --recipe pkgs/asyncio/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-bash-preexec]
+cmd = "rattler-build build --recipe pkgs/bash-preexec/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-bitwarden-cli]
+cmd = "rattler-build build --recipe pkgs/bitwarden-cli/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-ble-sh]
+cmd = "rattler-build build --recipe pkgs/ble-sh/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-devcontainer-cli]
+cmd = "rattler-build build --recipe pkgs/devcontainer-cli/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-digitalpy]
+cmd = "rattler-build build --recipe pkgs/digitalpy/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-doctl]
+cmd = "rattler-build build --recipe pkgs/doctl/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-dysk]
+cmd = "rattler-build build --recipe pkgs/dysk/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-fd]
+cmd = "rattler-build build --recipe pkgs/fd/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-flask-jwt-extended]
+cmd = "rattler-build build --recipe pkgs/flask-jwt-extended/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-freetakserver]
+cmd = "rattler-build build --recipe pkgs/freetakserver/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-freetakserver-ui]
+cmd = "rattler-build build --recipe pkgs/freetakserver-ui/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-fsarchiver]
+cmd = "rattler-build build --recipe pkgs/fsarchiver/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-gtksourceview]
+cmd = "rattler-build build --recipe pkgs/gtksourceview/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-iamb]
+cmd = "rattler-build build --recipe pkgs/iamb/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-internxt-cli]
+cmd = "rattler-build build --recipe pkgs/internxt-cli/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-jank]
+cmd = "rattler-build build --recipe pkgs/jank/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-mediamtx]
+cmd = "rattler-build build --recipe pkgs/mediamtx/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-mumble-voip]
+cmd = "rattler-build build --recipe pkgs/mumble-voip/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-nifi]
+cmd = "rattler-build build --recipe pkgs/nifi/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-node-red]
+cmd = "rattler-build build --recipe pkgs/node-red/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-node-red-worldmap]
+cmd = "rattler-build build --recipe pkgs/node-red-worldmap/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-opendal-oli]
+cmd = "rattler-build build --recipe pkgs/opendal-oli/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-podlet]
+cmd = "rattler-build build --recipe pkgs/podlet/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-pwgen]
+cmd = "rattler-build build --recipe pkgs/pwgen/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-pytak]
+cmd = "rattler-build build --recipe pkgs/pytak/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-ratatui]
+cmd = "rattler-build build --recipe pkgs/ratatui/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-takproto]
+cmd = "rattler-build build --recipe pkgs/takproto/recipe.yaml"
+cwd = "."
+
+[tasks.build-pkg-testresources]
+cmd = "rattler-build build --recipe pkgs/testresources/recipe.yaml"
+cwd = "."
+
+# Clean build artifacts
 [tasks.clean]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/manifest_utils.nu *; if (conda-file-exists {{ pkg }} {{ tgt_platform }}) { remove-conda-file {{ pkg }} {{ tgt_platform }} } else { print 'No conda file found for {{ pkg }} on {{ tgt_platform }}' }",
-]
-# interpreter = "nu"
+cmd = "rm -rf output/"
+cwd = "."
 
-[tasks.clean-all]
-cmd = ["rm", "-rf", "pkgs-out"]
+# Lint all recipes
+[tasks.lint-recipes]
+cmd = "nu scripts/lint_recipes.nu"
+cwd = "."
 
-[tasks.clean-cache-pkgs]
-description = "Clean downloaded conda packages cache"
-cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/pkgs"]
-
-[tasks.clean-cache-envs]
-description = "Clean cached environments and build tool environments"
-cmd = [
-    "rm",
-    "-rf",
-    "$HOME/.cache/rattler/cache/cached-envs-v0",
-    "$HOME/.cache/rattler/cache/cached-build-tool-envs-v0",
-]
-
-[tasks.clean-cache-repodata]
-description = "Clean repository metadata cache"
-cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/repodata"]
-
-[tasks.clean-cache-all]
-description = "Clean all rattler system caches"
-cmd = ["rm", "-rf", "$HOME/.cache/rattler"]
-
-[tasks.clean-cache-source-builds]
-description = "Clean built packages from source cache"
-cmd = ["rm", "-rf", "$HOME/.cache/rattler/cache/source-builds-v0"]
-
-[tasks.clean-everything]
-description = "Clean all project outputs and system caches"
-depends-on = ["clean-all", "clean-cache-all"]
-
-[tasks.analyze-recipes]
-cmd = ["python", ".scripts/analyze_recipes.py"]
-
-[tasks.fix-recipe-indentation]
-cmd = ["python", ".scripts/fix_recipe_indentation.py"]
-
-[tasks.generate-readmes]
-cmd = ["python", ".scripts/generate_readmes.py"]
+[tasks.lint-recipes-fix]
+cmd = "nu scripts/lint_recipes.nu --fix"
+cwd = "."
 
 
-[tasks.build]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "force", default = "false" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    ".scripts/build.nu",
-    "{{ pkg }}",
-    "--target-platform={{ tgt_platform }}",
-    "--no-test",
-    "{{ '--force' if force == 'true' else '' }}",
-]
+# Test built packages
+[tasks.test-packages]
+cmd = "nu scripts/test_packages.nu"
+cwd = "."
 
-[tasks.build-force]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-depends-on = [ { task = "build" , args = ["{{ pkg }}", "true","{{ tgt_platform }}"] }]
+[tasks.test-platform]
+cmd = "nu scripts/test_packages.nu --platform"
+cwd = "."
 
-[tasks.check-package]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    ".scripts/check_package_exists.nu",
-    "{{ pkg }}",
-    "--platform={{ tgt_platform }}",
-    "--check_all",
-    "--check_local",
-]
-
-[tasks.list-manifest]
-cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-summary"]
-
-[tasks.clean-manifest]
-cmd = ["nu", "-c", "use .scripts/manifest_utils.nu *; manifest-cleanup"]
+[tasks.test-package]
+cmd = "nu scripts/test_packages.nu --package"
+cwd = "."
 
 
-[tasks.package-status]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/build.nu *; package-status {{ pkg }} --platform {{ tgt_platform }}",
-]
+# Platform-specific build environments
+[environments]
+# Default environment for the current platform
+default = { solve-group = "default" }
 
-[tasks.build-skeletons]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-depends-on = [
-    { task = "build", args = [
-        "_skeleton_go",
-        "{{ tgt_platform }}",
-        "--pkg-dir=./pkg-skeletons",
-    ] },
-    { task = "build", args = [
-        "_skeleton_js",
-        "{{ tgt_platform }}",
-        "--pkg-dir=./pkg-skeletons",
-    ] },
-    { task = "build", args = [
-        "_skeleton_python",
-        "{{ tgt_platform }}",
-        "--pkg-dir=./pkg-skeletons",
-    ] },
-    { task = "build", args = [
-        "_skeleton_rust",
-        "{{ tgt_platform }}",
-        "--pkg-dir=./pkg-skeletons",
-    ] },
-]
+# Cross-compilation environment (typically run on linux-64)
+[environments.cross-build]
+features = ["cross-compile"]
+solve-group = "cross-build"
 
-[tasks.build-large]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-depends-on = [{ task = "build", args = ["nifi", "{{ tgt_platform }}"] }]
+[environments.python-build]
+features = ["python-packages"]
+solve-group = "python-build"
 
-[tasks.build-wip]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-depends-on = [{ task = "build", args = ["metashell", "{{ tgt_platform }}"] }]
+[environments.cpp-build]
+features = ["cpp-packages"]
+solve-group = "cpp-build"
 
-[tasks.build-each]
-args = [
-    { arg = "force", default = "false" },
-    { arg = "tgt_platform", default = "linux-64" }
-    ]
-depends-on = [
-    { task = "build", args = ["asciidoctor-revealjs", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["asyncio", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["bash-preexec", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["ble-sh", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["bitwarden-cli", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["devcontainer-cli", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["digitalpy", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["dysk", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["fd", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["flask-jwt-extended", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["freetakserver", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["freetakserver-ui", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["fsarchiver", "{{ force }}", "{{ tgt_platform }}"] },
-    # { task = "build", args = ["gitql", "{{ force }}", "{{ tgt_platform }}" ] },
-    { task = "build", args = ["gtksourceview5", "{{ force }}", "{{ tgt_platform }}"] },
-    # { task = "build", args = ["iamb", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["internxt-cli", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["jank", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["mediamtx", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["mumble-voip", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["node-red", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["node-red-worldmap", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["podlet", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["pwgen", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["pytak", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["ratatui", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["testresources", "{{ force }}", "{{ tgt_platform }}"] },
-    { task = "build", args = ["takproto", "{{ force }}", "{{ tgt_platform }}" ] },
-    # { task = "build", args = ["trippy", "{{ force }}", "{{ tgt_platform }}" ] },
-]
+[environments.full-build]
+features = ["python-packages", "cpp-packages", "cross-compile"]
+solve-group = "full-build"
 
-[tasks.build-each-force]
-args = [ { arg = "tgt_platform", default = "linux-64" } ]
-depends-on = [ { task = "build-each", args = ["true", "{{ tgt_platform }}"] } ]
 
-[tasks.test]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    ".scripts/test_package.nu",
-    "{{ pkg }}",
-    "--target-platform={{ tgt_platform }}",
-]
-depends-on = [{ task = "build", args = ["{{ pkg }}", "{{ tgt_platform }}"] }]
+# [tasks.analyze-recipes]
+# cmd = ["python", ".scripts/analyze_recipes.py"]
 
-[tasks.test-each]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/test_package.nu *; test-each --platform {{ tgt_platform }} --continue-on-error",
-]
+# [tasks.fix-recipe-indentation]
+# cmd = ["python", ".scripts/fix_recipe_indentation.py"]
 
-[tasks.test-status]
-cmd = ["nu", "-c", "use .scripts/test_package.nu *; test-status"]
+# [tasks.generate-readmes]
+# cmd = ["python", ".scripts/generate_readmes.py"]
+
+[feature.cross-compile.dependencies]
+# Additional dependencies needed for cross-compilation
+# Most cross-compilation with rattler-build works without additional tools
+# qemu-user-static = "*"  # For emulation if needed
+
+# Example feature for specific package groups
+[feature.cpp-packages.dependencies]
+"cmake" = "*"
+"ninja" = "*"
+"pkg-config" = "*"
+
+[feature.python-packages.dependencies]
+"python" = ">=3.12,<4.0"
+"setuptools" = "*"
+"wheel" = "*"
+"pip" = "*"
 
 
 [tasks.publish-pd]
 args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "force", default = "" },
+    {arg = "force", default = "" },
+    {arg = "channel", default = "s3://pixi/meso-forge" },
 ]
+cwd = "."
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    ".scripts/package_publish.nu",
-    "{{ pkg }}",
-    "--method=pd",
-    "--target-platform={{ tgt_platform }}",
+    "scripts/publish.nu",
+    "--mode", "pd",
+    "--channel", "{{ channel }}",
     "{{ '--force' if force != '' else '' }}",
 ]
 
 [tasks.publish-s3]
 args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
+    {arg = "force", default = "" },
+    {arg = "dry_run", default = "" },
+    {arg = "channel", default = "s3://pixi/meso-forge" },
+    {arg = "url", default = "https://minio.isis.vanderbilt.edu" },
 ]
+cwd = "."
 # the upload expects the RATTLER_AUTH_FILE variable to be set
 cmd = [
     "nu",
-    ".scripts/package_publish.nu",
-    "{{ pkg }}",
-    "--method=s3",
-    "--channel=s3://pixi/meso-forge",
-    "--url=https://minio.isis.vanderbilt.edu",
-    "--target-platform={{ tgt_platform }}",
-]
-depends-on = [
-    { task = "build", args = [
-        "{{ pkg }}",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "index-s3" },
-]
-
-[tasks.publish-s3-local]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-# the upload expects the RATTLER_AUTH_FILE variable to be set
-cmd = [
-    "nu",
-    ".scripts/package_publish.nu",
-    "{{ pkg }}",
-    "--method=s3",
-    "--channel=s3://pixi-local/meso-forge",
-    "--url=http://127.0.0.1",
-    "--target-platform={{ tgt_platform }}",
-]
-depends-on = [
-    { task = "build", args = [
-        "{{ pkg }}",
-        "{{ tgt_platform }}",
-    ] },
-    { task = "index-s3-local" },
-]
-
-[tasks.publish-status]
-cmd = ["nu", "-c", "use .scripts/package_publish.nu *; publish-status"]
-
-[tasks.publish-each-pd]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/package_publish.nu *; publish-each --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error",
-]
-
-[tasks.publish-each-s3]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/package_publish.nu *; publish-each --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error",
-]
-
-[tasks.publish-pd-dry]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "force", default = "" },
-]
-cmd = [
-    "nu",
-    ".scripts/package_publish.nu",
-    "{{ pkg }}",
-    "--method=pd",
-    "--target-platform={{ tgt_platform }}",
+    "scripts/publish.nu",
+    "--mode", "s3",
+    "--channel", "{{ channel }}",
+    "--url", "{{ url }}",
     "{{ '--force' if force != '' else '' }}",
-    "--dry-run",
+    "{{ '--dry-run' if dry_run != '' else '' }}",
 ]
 
-[tasks.publish-s3-dry]
+[tasks.publish-local]
 args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "tgt_platform", default = "linux-64" },
-]
-cmd = [
-    "nu",
-    ".scripts/package_publish.nu",
-    "{{ pkg }}",
-    "--method=s3",
-    "--target-platform={{ tgt_platform }}",
-    "--dry-run",
-]
-
-[tasks.publish-each-pd-dry]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/package_publish.nu *; publish-each --method pd --channel meso-forge --platform {{ tgt_platform }} --continue-on-error --dry-run",
-]
-
-[tasks.publish-each-s3-dry]
-args = [{ arg = "tgt_platform", default = "linux-64" }]
-cmd = [
-    "nu",
-    "-c",
-    "use .scripts/package_publish.nu *; publish-each --method s3 --channel 's3://pixi/meso-forge' --platform {{ tgt_platform }} --continue-on-error --dry-run",
-]
-
-# Package retraction tasks
-[tasks.retract-pd]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "channel", default = "meso-forge" },
-    { arg = "versions", default = "1.0.0" },
-    { arg = "tgt_platform", default = "linux-64" },
     { arg = "force", default = "" },
-]
-# the retraction expects the RATTLER_AUTH_FILE variable to be set
-cmd = [
-    "nu",
-    ".scripts/package_retract.nu",
-    "{{ pkg }}",
-    "--channel={{ channel }}",
-    "--versions={{ versions }}",
-    "--method=pd",
-    "--target-platform={{ tgt_platform }}",
-    "{{ '--force' if force != '' else '' }}",
-]
-
-[tasks.retract-s3]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "channel", default = "s3://pixi/meso-forge" },
-    { arg = "versions", default = "1.0.0" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
-    { arg = "force", default = "" },
-]
-# the retraction expects AWS credentials to be configured
-cmd = [
-    "nu",
-    ".scripts/package_retract.nu",
-    "{{ pkg }}",
-    "--channel={{ channel }}",
-    "--versions={{ versions }}",
-    "--method=s3",
-    "--url={{ url }}",
-    "--target-platform={{ tgt_platform }}",
-    "{{ '--force' if force != '' else '' }}",
-]
-
-[tasks.retract-s3-local]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
     { arg = "channel", default = "s3://pixi-local/meso-forge" },
-    { arg = "versions", default = "1.0.0" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "force", default = "" },
+    { arg = "url", default = "http://127.0.0.1" },
 ]
-# the retraction expects AWS credentials to be configured
-cmd = [
-    "nu",
-    ".scripts/package_retract.nu",
-    "{{ pkg }}",
-    "--channel={{ channel }}",
-    "--versions={{ versions }}",
-    "--method=s3",
-    "--url=http://127.0.0.1",
-    "--target-platform={{ tgt_platform }}",
-    "{{ '--force' if force != '' else '' }}",
-]
+# the upload expects the RATTLER_AUTH_FILE variable to be set
+depends-on = [
+  { task = "publish-s3", args = ["--channel", "{{ channel }}", "--url", "{{ url }}", "{{ '--force' if force != '' else '' }}"] } ]
 
-[tasks.retract-pd-dry]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "channel", default = "meso-forge" },
-    { arg = "versions", default = "1.0.0" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "force", default = "" },
-]
-cmd = [
-    "nu",
-    ".scripts/package_retract.nu",
-    "{{ pkg }}",
-    "--channel={{ channel }}",
-    "--versions={{ versions }}",
-    "--method=pd",
-    "--target-platform={{ tgt_platform }}",
-    "{{ '--force' if force != '' else '' }}",
-    "--dry-run",
-]
+# [tasks.publish-status]
+# cmd = ["nu", "-c", "use .scripts/package_publish.nu *; publish-status"]
 
-[tasks.retract-s3-dry]
-args = [
-    { arg = "pkg", default = "_skeleton_python" },
-    { arg = "channel", default = "s3://pixi/meso-forge" },
-    { arg = "versions", default = "1.0.0" },
-    { arg = "tgt_platform", default = "linux-64" },
-    { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
-    { arg = "force", default = "" },
-]
-cmd = [
-    "nu",
-    ".scripts/package_retract.nu",
-    "{{ pkg }}",
-    "--channel={{ channel }}",
-    "--versions={{ versions }}",
-    "--method=s3",
-    "--url={{ url }}",
-    "--target-platform={{ tgt_platform }}",
-    "{{ '--force' if force != '' else '' }}",
-    "--dry-run",
-]
+# # Package retraction tasks
+# [tasks.retract-pd]
+# args = [
+#     { arg = "pkg", default = "_skeleton_python" },
+#     { arg = "channel", default = "meso-forge" },
+#     { arg = "versions", default = "1.0.0" },
+#     { arg = "tgt_platform", default = "linux-64" },
+#     { arg = "force", default = "" },
+# ]
+# # the retraction expects the RATTLER_AUTH_FILE variable to be set
+# cmd = [
+#     "nu",
+#     ".scripts/package_retract.nu",
+#     "{{ pkg }}",
+#     "--channel={{ channel }}",
+#     "--versions={{ versions }}",
+#     "--method=pd",
+#     "--target-platform={{ tgt_platform }}",
+#     "{{ '--force' if force != '' else '' }}",
+# ]
 
+# [tasks.retract-s3]
+# args = [
+#     { arg = "pkg", default = "_skeleton_python" },
+#     { arg = "channel", default = "s3://pixi/meso-forge" },
+#     { arg = "versions", default = "1.0.0" },
+#     { arg = "tgt_platform", default = "linux-64" },
+#     { arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+#     { arg = "force", default = "" },
+# ]
+# # the retraction expects AWS credentials to be configured
+# cmd = [
+#     "nu",
+#     ".scripts/package_retract.nu",
+#     "{{ pkg }}",
+#     "--channel={{ channel }}",
+#     "--versions={{ versions }}",
+#     "--method=s3",
+#     "--url={{ url }}",
+#     "--target-platform={{ tgt_platform }}",
+#     "{{ '--force' if force != '' else '' }}",
+# ]
+
+# [tasks.retract-s3-local]
+# args = [
+#     { arg = "pkg", default = "_skeleton_python" },
+#     { arg = "channel", default = "s3://pixi-local/meso-forge" },
+#     { arg = "versions", default = "1.0.0" },
+#     { arg = "tgt_platform", default = "linux-64" },
+#     { arg = "force", default = "" },
+# ]
+# # the retraction expects AWS credentials to be configured
+# cmd = [
+#     "nu",
+#     ".scripts/package_retract.nu",
+#     "{{ pkg }}",
+#     "--channel={{ channel }}",
+#     "--versions={{ versions }}",
+#     "--method=s3",
+#     "--url=http://127.0.0.1",
+#     "--target-platform={{ tgt_platform }}",
+#     "{{ '--force' if force != '' else '' }}",
+# ]
 
 [tasks.index-s3]
 args = [
@@ -488,11 +393,10 @@ cmd = [
 [tasks.index-s3-local]
 depends-on = [
     { task = "index-s3", args = [
-        "http://127.0.0.1",
-        "s3://pixi-local/meso-forge",
+       "http://127.0.0.1",
+       "s3://pixi-local/meso-forge",
     ] },
 ]
-
 
 [feature.version-ctl.dependencies]
 python = "3.12.*"
@@ -526,11 +430,11 @@ cmd = ["python", ".scripts/version_ctl.py", "--update", "--each"]
 [environments.update]
 features = ["version-ctl"]
 
-# Zed editor tasks
-[tasks.zed-env-default]
-description = "Configure Zed to use default pixi environment"
-cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/default/bin/python' | upsert env.PIXI_ENVIRONMENT 'default' | save .zed/settings.json"]
+# # Zed editor tasks
+# [tasks.zed-env-default]
+# description = "Configure Zed to use default pixi environment"
+# cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/default/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/default/bin/python' | upsert env.PIXI_ENVIRONMENT 'default' | save .zed/settings.json"]
 
-[tasks.zed-env-update]
-description = "Configure Zed to use update pixi environment (with Python tools)"
-cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/update/bin/python' | upsert env.PIXI_ENVIRONMENT 'update' | save .zed/settings.json"]
+# [tasks.zed-env-update]
+# description = "Configure Zed to use update pixi environment (with Python tools)"
+# cmd = ["nu", "-c", "open .zed/settings.json | upsert python.interpreter.path '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.pythonPath '.pixi/envs/update/bin/python' | upsert lsp.pyright.initialization_options.settings.python.defaultInterpreterPath '.pixi/envs/update/bin/python' | upsert env.PIXI_ENVIRONMENT 'update' | save .zed/settings.json"]

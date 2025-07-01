@@ -259,6 +259,9 @@ extra:
   recipe-maintainers:
   - phreed
 
+  filter:
+    tarball-size: 54612
+
   version:
     github-tags:
     - ^rel/nifi-(\d+\.\d+\.\d+)

@@ -99,3 +99,6 @@ about:
 extra:
   recipe-maintainers:
     - phreed
+
+  filter:
+    conda-size: 4356
