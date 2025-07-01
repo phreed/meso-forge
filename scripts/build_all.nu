@@ -1,8 +1,10 @@
 #!/usr/bin/env nu
 
-use build_mod.nu get_current_platform
-use build_mod.nu find_noarch_packages
-use build_mod.nu find_platform_specific_packages
+use build_mod.nu [
+    get_current_platform
+    find_noarch_packages
+    find_platform_specific_packages
+    build_with_rattler]
 
 # Build all packages for the current platform
 def main [
@@ -21,13 +23,11 @@ def main [
 
     # Build noarch packages first (only once)
     print "📦 Building noarch packages..."
-    build_noarch_packages --tgt-dir $tgt_dir
-    --src-dir: string = "./pkgs",
-    --tgt-dir: string = "./output",
+    build_noarch_packages  --src-dir $src_dir --tgt-dir $tgt_dir
 
     # Build platform-specific packages
-    print $"🔧 Building platform-specific packages for ($current_platform)..."
-    build_platform_specific_packages --platform $current_platform --src-dir $src_dir
+    print $"🔧 Building platform specific packages for ($current_platform)..."
+    build_platform_packages --platform $current_platform --src-dir $src_dir
 
     print "✅ All packages built successfully!"
 }
@@ -46,7 +46,7 @@ def build_noarch_packages [
         let recipe_path = $"($package)/recipe.yaml"
 
         try {
-            rattler-build build --recipe $recipe_path --output-dir $tgt_dir
+            build_with_rattler --recipe $recipe_path --output-dir $tgt_dir
         } catch {
             print $"❌ Failed to build ($package)"
             continue
@@ -56,8 +56,8 @@ def build_noarch_packages [
     }
 }
 
-# Build platform-specific packages
-def build_platform_specific_packages [
+# Build platform specific packages
+def build_platform_packages [
     --platform: string,
     --src-dir: string = "./pkgs",
     --tgt-dir: string = "./output",
@@ -71,7 +71,7 @@ def build_platform_specific_packages [
         let recipe_path = $"($package)/recipe.yaml"
 
         try {
-            rattler-build build --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
+            build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
         } catch {
             print $"❌ Failed to build ($package) for ($platform)"
             continue

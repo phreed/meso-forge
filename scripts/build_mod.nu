@@ -12,6 +12,23 @@ export def get_current_platform [] {
     }
 }
 
+export def pkg_filter [] {
+    let recipe = $in
+    let upper_tarball_size = $env.PKG_MAX_TARBALL? | default --empty 32000
+    let upper_conda_size = $env.PKG_MAX_CONDA? | default --empty 3200
+
+    if ($recipe.extra?.filter?.tarball-size? | default 0) > $upper_tarball_size {
+        print $"Package tarball ($recipe.package?.name?) is too large"
+        return false
+    }
+    if ($recipe.extra?.filter?.conda-size? | default 0) > $upper_conda_size {
+        print $"Package conda ($recipe.package?.name?) is too large"
+        return false
+    }
+    print $"Package ($recipe.package?.name?) is within size limits"
+    true
+}
+
 # Find packages marked as noarch
 export def find_noarch_packages [
     --src-dir: string = "./pkgs",
@@ -27,11 +44,7 @@ export def find_noarch_packages [
         } else {
             print $"recipe.yaml found for ($pkg)"
             let recipe = open $"($pkg)/recipe.yaml"
-            if ($recipe.extra?.tarball-size? | default 0) > 30000 {
-                print $"Package ($pkg) is too large"
-                false
-            }
-            if ($recipe.extra?.conda-size? | default 0) > 3000 {
+            if ($recipe | pkg_filter) {
                 print $"Package ($pkg) is too large"
                 false
             }
@@ -57,15 +70,46 @@ export def find_platform_specific_packages [
             false
         } else {
             let recipe = open $"($pkg)/recipe.yaml"
-            if ($recipe.extra?.tarball-size? | default 0) > 30000 {
-                print $"Package ($pkg) is too large"
-                false
-            }
-            if ($recipe.extra?.conda-size? | default 0) > 3000 {
+            if ($recipe | pkg_filter) {
                 print $"Package ($pkg) is too large"
                 false
             }
             ($recipe.build?.noarch? | default false) == false
         }
+    }
+}
+
+export def --wrapped build_with_rattler [...rest] {
+    print $"Building package ($rest)..."
+    if '--recipe' in $rest {
+        let recipes = $rest
+            | enumerate
+            | where ($it.item == "--recipe")
+            | each { |elt| $rest | get ($elt.index + 1) }
+        let recipe_path = $recipes.0
+        print $"Opening recipe ($recipe_path)"
+        let recipe = $recipe_path | open
+        if not ($recipe | pkg_filter) {
+            print $"Package ($recipe.name?) is too large"
+            return false
+        }
+        print $"Building package ($recipe.name?)..."
+        try {
+            let result = ^rattler-build build ...$rest | complete
+            return $result
+        } catch {
+            print $"❌ Failed to build ($recipe)"
+            exit 1
+        }
+        # if result == 0 {
+        #     print $"Package ($recipe) built successfully"
+        #     true
+        # } else {
+        #     print $"Failed to build package ($recipe)"
+        #     false
+        # }
+    } else {
+        print $"No recipe specified ($rest)"
+        false
     }
 }

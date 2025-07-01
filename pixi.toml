@@ -66,123 +66,123 @@ cwd = "."
 
 # Individual package builds (examples)
 [tasks.build-pkg-asciidoctor-revealjs]
-cmd = "rattler-build build --recipe pkgs/sciidoctor-revealjs/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/sciidoctor-revealjs/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-asyncio]
-cmd = "rattler-build build --recipe pkgs/asyncio/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/asyncio/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-bash-preexec]
-cmd = "rattler-build build --recipe pkgs/bash-preexec/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/bash-preexec/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-bitwarden-cli]
-cmd = "rattler-build build --recipe pkgs/bitwarden-cli/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/bitwarden-cli/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-ble-sh]
-cmd = "rattler-build build --recipe pkgs/ble-sh/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/ble-sh/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-devcontainer-cli]
-cmd = "rattler-build build --recipe pkgs/devcontainer-cli/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/devcontainer-cli/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-digitalpy]
-cmd = "rattler-build build --recipe pkgs/digitalpy/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/digitalpy/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-doctl]
-cmd = "rattler-build build --recipe pkgs/doctl/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/doctl/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-dysk]
-cmd = "rattler-build build --recipe pkgs/dysk/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/dysk/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-fd]
-cmd = "rattler-build build --recipe pkgs/fd/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/fd/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-flask-jwt-extended]
-cmd = "rattler-build build --recipe pkgs/flask-jwt-extended/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/flask-jwt-extended/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-freetakserver]
-cmd = "rattler-build build --recipe pkgs/freetakserver/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/freetakserver/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-freetakserver-ui]
-cmd = "rattler-build build --recipe pkgs/freetakserver-ui/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/freetakserver-ui/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-fsarchiver]
-cmd = "rattler-build build --recipe pkgs/fsarchiver/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/fsarchiver/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-gtksourceview]
-cmd = "rattler-build build --recipe pkgs/gtksourceview/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/gtksourceview/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-iamb]
-cmd = "rattler-build build --recipe pkgs/iamb/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/iamb/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-internxt-cli]
-cmd = "rattler-build build --recipe pkgs/internxt-cli/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/internxt-cli/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-jank]
-cmd = "rattler-build build --recipe pkgs/jank/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/jank/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-mediamtx]
-cmd = "rattler-build build --recipe pkgs/mediamtx/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/mediamtx/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-mumble-voip]
-cmd = "rattler-build build --recipe pkgs/mumble-voip/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/mumble-voip/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-nifi]
-cmd = "rattler-build build --recipe pkgs/nifi/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/nifi/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-node-red]
-cmd = "rattler-build build --recipe pkgs/node-red/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/node-red/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-node-red-worldmap]
-cmd = "rattler-build build --recipe pkgs/node-red-worldmap/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/node-red-worldmap/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-opendal-oli]
-cmd = "rattler-build build --recipe pkgs/opendal-oli/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/opendal-oli/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-podlet]
-cmd = "rattler-build build --recipe pkgs/podlet/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/podlet/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-pwgen]
-cmd = "rattler-build build --recipe pkgs/pwgen/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/pwgen/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-pytak]
-cmd = "rattler-build build --recipe pkgs/pytak/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/pytak/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-ratatui]
-cmd = "rattler-build build --recipe pkgs/ratatui/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/ratatui/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-takproto]
-cmd = "rattler-build build --recipe pkgs/takproto/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/takproto/recipe.yaml"]
 cwd = "."
 
 [tasks.build-pkg-testresources]
-cmd = "rattler-build build --recipe pkgs/testresources/recipe.yaml"
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/testresources/recipe.yaml"]
 cwd = "."
 
 # Clean build artifacts
@@ -192,25 +192,25 @@ cwd = "."
 
 # Lint all recipes
 [tasks.lint-recipes]
-cmd = "nu scripts/lint_recipes.nu"
+cmd = ["nu", "scripts/lint_recipes.nu"]
 cwd = "."
 
 [tasks.lint-recipes-fix]
-cmd = "nu scripts/lint_recipes.nu --fix"
+cmd = ["nu", "scripts/lint_recipes.nu", "--fix"]
 cwd = "."
 
 
 # Test built packages
 [tasks.test-packages]
-cmd = "nu scripts/test_packages.nu"
+cmd = ["nu", "scripts/test_packages.nu"]
 cwd = "."
 
 [tasks.test-platform]
-cmd = "nu scripts/test_packages.nu --platform"
+cmd = ["nu", "scripts/test_packages.nu", "--platform"]
 cwd = "."
 
 [tasks.test-package]
-cmd = "nu scripts/test_packages.nu --package"
+cmd = ["nu", "scripts/test_packages.nu", "--package"]
 cwd = "."
 
 

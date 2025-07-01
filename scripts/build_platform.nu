@@ -1,7 +1,9 @@
 #!/usr/bin/env nu
 
-use build_mod.nu get_current_platform
-use build_mod.nu find_platform_specific_packages
+use build_mod.nu [
+    get_current_platform
+    find_platform_specific_packages
+    build_with_rattler]
 
 # Build platform-specific packages for current or specified platform
 def main [
@@ -38,7 +40,7 @@ def main [
             let recipe_path = $"($package)/recipe.yaml"
 
             try {
-                rattler-build build --recipe $recipe_path --target-platform $platform --output-dir output/
+                build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir output/
                 print $"  ✅ Successfully built ($package) for ($platform)"
             } catch {
                 print $"  ❌ Failed to build ($package) for ($platform)"

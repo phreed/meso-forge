@@ -1,7 +1,9 @@
 #!/usr/bin/env nu
 
-use build_mod.nu get_current_platform
-use build_mod.nu find_noarch_packages
+use build_mod.nu [
+    get_current_platform
+    find_noarch_packages
+    build_with_rattler]
 
 # Build only noarch packages
 def main [
@@ -24,7 +26,7 @@ def main [
         let recipe_path = $"($package)/recipe.yaml"
 
         try {
-            rattler-build build --recipe $recipe_path --output-dir $tgt_dir
+            build_with_rattler --recipe $recipe_path --output-dir $tgt_dir
             print $"✅ Successfully built ($package)"
         } catch {
             print $"❌ Failed to build ($package)"
