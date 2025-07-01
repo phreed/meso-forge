@@ -39,26 +39,29 @@ gxx_linux-aarch64 = "*"
 
 # Build all packages for current platform
 [tasks.build-all]
-cmd = "nu scripts/build_all.nu"
+cmd = ["nu", "scripts/build_all.nu"]
 cwd = "."
 
 # Build specific package types
 [tasks.build-noarch]
-cmd = "nu scripts/build_noarch.nu"
+cmd = ["nu", "scripts/build_noarch.nu"]
 cwd = "."
 
 [tasks.build-platform-specific]
-cmd = "nu scripts/build_platform.nu"
+cmd = ["nu", "scripts/build_platform.nu"]
 cwd = "."
 
 # Build for all platforms
 [tasks.build-all-platforms]
-cmd = "nu scripts/build_platform_specific.nu --all-platforms"
+cmd = ["nu", "scripts/build_platform.nu", "--all-platforms"]
 cwd = "."
 
 # Build for specific platform
 [tasks.build-for-platform]
-cmd = "nu scripts/build_platform_specific.nu --platform"
+args = [
+   {arg = "platform", default = "linux-64" },
+]
+cmd = ["nu", "scripts/build_platform.nu", "--platform", "{{ platform }}"]
 cwd = "."
 
 # Individual package builds (examples)
