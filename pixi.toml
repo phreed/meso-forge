@@ -267,7 +267,7 @@ solve-group = "full-build"
 [tasks.publish-pd]
 args = [
     {arg = "force", default = "" },
-    {arg = "channel", default = "s3://pixi/meso-forge" },
+    {arg = "channel", default = "meso-forge" },
 ]
 cwd = "."
 # the upload expects the RATTLER_AUTH_FILE variable to be set
