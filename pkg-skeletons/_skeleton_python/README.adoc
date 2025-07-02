@@ -16,6 +16,7 @@ This skeleton provides templates for creating conda-forge recipes for Python pac
    - Use `recipe.yaml` for more complex packages or when you need guidance
 
 2. Replace the following placeholders:
+
    - `{{ PACKAGE_NAME }}` - The Python package name (e.g., "numpy", "requests")
    - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
    - `{{ SHA256_HASH }}` - SHA256 hash of the source tarball

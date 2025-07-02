@@ -4,7 +4,8 @@ This directory contains the GitHub Actions workflows for building and publishing
 
 == Workflow Overview
 
-The package build and publish process uses two separate workflows with controlled trigger strategies to minimize unnecessary runs and provide better control over when packages are built and published.
+The package build and publish process uses separate workflows with controlled trigger strategies 
+to minimize unnecessary runs and provide better control over when packages are built and published.
 
 == Workflows
 
@@ -13,21 +14,25 @@ The package build and publish process uses two separate workflows with controlle
 *Purpose*: Builds conda packages for multiple platforms and creates artifacts.
 
 *Trigger Strategy*:
+
 * ✅ *Manual execution*: Always available via `workflow_dispatch`
 * ✅ *Automatic execution*: Only when pushing to or creating PR against the `build` branch
-* ❌ *No longer runs on*: `packages` branch or other development branches
+* ❌ *Does not run automatically on development branches*
 
 *What it does*:
+
 * Sets up the build environment with Pixi
 * Builds platform-specific packages using `pixi run build-for-platform`
 * Uploads built packages as GitHub artifacts (excludes files with colons to avoid upload errors)
 * Provides build status summary across all platforms
 
 *Platforms Supported*:
+
 * `linux-64` (x86_64)
 * `linux-aarch64` (ARM64)
 
 *Artifacts Created*:
+
 * `packages-linux-64` - Contains all `.conda` files for linux-64
 * `packages-linux-aarch64` - Contains all `.conda` files for linux-aarch64
 
@@ -36,18 +41,56 @@ The package build and publish process uses two separate workflows with controlle
 *Purpose*: Downloads build artifacts and publishes packages to repositories.
 
 *Trigger Strategy*:
+
 * ✅ *Manual execution*: Primary method - requires `run_id` parameter
 * ✅ *Push to publish branch*: Triggers workflow but requires manual re-run with `run_id`
 * ❌ *No longer runs automatically*: After build completion
 
 *What it does*:
+
 * Downloads artifacts from specified build workflow run
 * Sets up the publish environment with Pixi
 * Publishes packages using `pixi run publish-pd`
 * Provides publish status summary
 
 *Required Input*:
+
 * `run_id`: The workflow run ID from a successful build to download artifacts from
+
+=== 3. Build and Publish Single Package - `build-publish-package.yml`
+
+*Purpose*: Builds and publishes a specific package in a single workflow run.
+
+*Trigger Strategy*:
+
+* ✅ *Manual execution only*: Always requires `workflow_dispatch` with package name
+* ❌ *No automatic triggers*: Must be manually requested every time
+* 🎯 *Single package focus*: Builds and publishes only the specified package
+
+*What it does*:
+
+* Validates the specified package exists and has a valid recipe
+* Builds the package for the specified platform (default: linux-64)
+* Validates the built package structure
+* Optionally publishes the package (can be skipped with `skip_publish`)
+* Provides comprehensive logging and error reporting
+
+*Required Inputs*:
+
+* `package_name`: Name of the package to build (e.g., "fsarchiver", "doctl")
+
+*Optional Inputs*:
+
+* `target_platform`: Build platform (linux-64, linux-aarch64)
+* `skip_publish`: Build only, skip publishing step
+* `force_build`: Force rebuild even if package exists
+
+*Use Cases*:
+
+* Quick iteration on a single package
+* Hotfixes for specific packages
+* Testing package builds without full CI run
+* Publishing urgent updates without waiting for full builds
 
 == Branch Strategy
 
@@ -55,8 +98,8 @@ The package build and publish process uses two separate workflows with controlle
 
 [source]
 ----
-packages (main development)
     ↓ (development work)
+packages (main development)
     ↓ (when ready to build)
 build (triggers package builds)
     ↓ (when ready to publish)
@@ -66,17 +109,20 @@ publish (signals readiness to publish - requires manual trigger with run_id)
 === Branch Usage
 
 *`packages` branch*:
+
 * Main development branch
 * Use for ongoing development work
 * Does NOT trigger builds automatically
 * Safe for experimental changes
 
 *`build` branch*:
+
 * Use when packages are ready to be built
 * Push or PR to this branch triggers the build workflow
 * Should contain stable, tested package definitions
 
 *`publish` branch*:
+
 * Use to signal readiness to publish packages
 * Push to this branch requires manual workflow execution with `run_id`
 * Provides a clear audit trail of publication intentions
@@ -86,19 +132,22 @@ publish (signals readiness to publish - requires manual trigger with run_id)
 === Building Packages
 
 ==== Method 1: Manual Trigger
+
+Via GitHub CLI
 [source,bash]
 ----
-# Via GitHub CLI
 gh workflow run build-packages.yml
-
-# Via GitHub Web UI
-# Navigate to Actions → Build packages (CI) → Run workflow
 ----
+
+Via GitHub Web UI
+
+* Navigate to Actions → Build packages (CI) → Run workflow
 
 ==== Method 2: Push to Build Branch
+
+Switch to build branch and push changes
 [source,bash]
 ----
-# Switch to build branch and push changes
 git checkout build
 git merge packages  # or cherry-pick specific commits
 git push origin build
@@ -107,24 +156,43 @@ git push origin build
 === Publishing Packages
 
 ==== Method 1: Manual Trigger (Recommended)
+
+===== Command Line
+
+Get the run ID from a successful build.
 [source,bash]
 ----
-# Get the run ID from a successful build
-BUILD_RUN_ID=$(gh run list --workflow=build-packages.yml --status=success --limit=1 --json=databaseId --jq='.[0].databaseId')
+gh run list --workflow=build-packages.yml --status=success
 
-# Trigger publish with the build run ID
+BUILD_RUN_ID=$(gh run list --workflow=build-packages.yml --status=success --limit=1 --json=databaseId --jq='.[0].databaseId')
+----
+
+Trigger publish with the build run ID
+[source,bash]
+----
 gh workflow run publish-packages.yml -f run_id=$BUILD_RUN_ID
 ----
 
+===== GitHub Web UI
+
+* Navigate to Actions → Build packages (CI) → Run workflow
+
+You may provide the `run_id` parameter.
+If you do not provide the `run_id` parameter, it will try to find a successful build for the `build` branch.
+
 ==== Method 2: Push to Publish Branch
+
+Push to publish branch (will require manual re-run)
 [source,bash]
 ----
-# Push to publish branch (will require manual re-run)
 git checkout publish
 git merge build  # or specific commits
 git push origin publish
+----
 
-# Then manually trigger the failed workflow with run_id
+Then manually trigger the failed workflow with run_id
+[source,bash]
+----
 gh workflow run publish-packages.yml -f run_id=<BUILD_RUN_ID>
 ----
 
@@ -149,45 +217,45 @@ The workflows require the following secrets to be configured in the repository:
 
 === Build Issues
 
-*Colon in Filename Error*:
+==== Colon in Filename Error
+
 [source]
 ----
 Error: The path for one of the files in artifact is not valid:
 /path/to/App::Cpan.3. Contains the following character: Colon :
 ----
 
-*Solution*: The build workflow now excludes files with colons using the pattern `!**/*:*`
-
-*Platform-Specific Failures*:
-* Check if the issue is specific to `linux-aarch64` (cross-compilation)
-* Verify dependencies are available for the target platform
-* Review rattler-build logs for compilation errors
+*Solution*: The build workflow excludes files with colons using the pattern `!**/*:*`
 
 === Publish Issues
 
-*Missing Artifacts*:
+===== Missing Artifacts
+
 [source]
 ----
 Error: Artifact 'packages-linux-64' not found
 ----
-
 *Solutions*:
+
 * Verify the `run_id` corresponds to a successful build workflow
 * Check that the build workflow completed successfully
 * Ensure artifacts haven't expired (30-day retention)
 
-*Authentication Errors*:
+===== Authentication Errors
+
 * Verify `PREFIX_DEV_TOKEN` is configured and valid
 * Check token permissions for the target repository
 
 === General Workflow Issues
 
-*Workflow Not Triggering*:
+===== Workflow Not Triggering
+
 * Confirm you're pushing to the correct branch (`build` or `publish`)
 * Check workflow file syntax with `gh workflow list`
 * Verify branch protection rules aren't blocking the trigger
 
-*Manual Trigger Not Available*:
+==== Manual Trigger Not Available
+
 * Ensure you have write access to the repository
 * Check that the workflow file is on the default branch
 * Verify `workflow_dispatch` is properly configured
@@ -214,24 +282,11 @@ graph TB
 
 == Best Practices
 
-. *Use Manual Triggers*: For maximum control, prefer manual workflow execution
-. *Test Before Building*: Thoroughly test package changes before pushing to `build` branch
-. *Monitor Build Logs*: Always check build output for warnings or issues
-. *Verify Artifacts*: Confirm all expected packages are built before publishing
-. *Document Run IDs*: Keep track of successful build run IDs for publishing
-. *Branch Hygiene*: Keep `build` and `publish` branches clean and purpose-specific
-. *Artifact Lifecycle*: Remember that artifacts expire after 30 days
-. *Security*: Never commit secrets or tokens to the repository
-
-== Migration Notes
-
-*From Previous Workflow*:
-* The old `packages` branch trigger has been moved to `build` branch
-* Publishing now requires explicit run ID specification
-* Workflows are now fully independent and can be run separately
-* Artifact exclusion patterns have been added to handle problematic filenames
-
-*Action Required*:
-* Update any automation that relies on the old trigger patterns
-* Create `build` and `publish` branches if they don't exist
-* Update team workflows to use the new branch strategy
+Use Manual Triggers:: For maximum control, prefer manual workflow execution
+Test Before Building:: Thoroughly test package changes before pushing to `build` branch
+Monitor Build Logs:: Always check build output for warnings or issues
+Verify Artifacts:: Confirm all expected packages are built before publishing
+Document Run IDs:: Keep track of successful build run IDs for publishing
+Branch Hygiene:: Keep `build` and `publish` branches clean and purpose-specific
+Artifact Lifecycle:: Remember that artifacts expire after 30 days
+Security:: Never commit secrets or tokens to the repository

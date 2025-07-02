@@ -22,11 +22,13 @@ This skeleton has been updated based on experience building complex packages lik
 == Quick Start
 
 1. Choose the appropriate build pattern from `recipe.yaml`:
+
    - **Pattern 1**: Simple npm package installation (for most packages)
    - **Pattern 2**: Complex source builds (for monorepos, custom builds)
    - **Pattern 3**: Full application packaging (when bundling fails)
 
 2. Replace the following placeholders:
+
    - `{{ PACKAGE_NAME }}` - The npm package name (e.g., "express", "lodash")
    - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
    - `{{ SHA256_HASH }}` - SHA256 hash of the tarball
@@ -38,6 +40,7 @@ This skeleton has been updated based on experience building complex packages lik
    - `{{ MAINTAINER_GITHUB_USERNAME }}` - Your GitHub username
 
 3. Choose appropriate source:
+
    - npm tarball for simple packages
    - GitHub source for complex builds or monorepos
 

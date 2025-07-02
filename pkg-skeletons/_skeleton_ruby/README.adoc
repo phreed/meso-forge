@@ -6,6 +6,7 @@ This skeleton provides a template for creating conda packages from Ruby gems, ba
 
 1. Copy `recipe.yaml` and rename the directory to match your gem name
 2. Update the following in `recipe.yaml`:
+
    - `gemname` → your gem's actual name
    - `version` → the gem version
    - `sha256` → SHA256 hash of the gem file

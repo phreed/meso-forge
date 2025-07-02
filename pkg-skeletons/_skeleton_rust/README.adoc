@@ -16,6 +16,7 @@ This skeleton provides templates for creating conda-forge recipes for Rust packa
    - Use `recipe.yaml` for more complex packages or when you need guidance
 
 2. Replace the following placeholders:
+
    - `{{ PACKAGE_NAME }}` - The Rust package name (e.g., "ripgrep", "fd-find")
    - `{{ PACKAGE_VERSION }}` - The version number (e.g., "1.0.0")
    - `{{ SHA256_HASH }}` - SHA256 hash of the source tarball

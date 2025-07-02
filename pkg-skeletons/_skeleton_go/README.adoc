@@ -16,6 +16,7 @@ cp -r pkg-skeletons/_skeleton_go pkgs/my-go-package
 ----
 
 . Edit `recipe.yaml` and update all the `TODO` sections:
+
    * Set the correct package name, version, and GitHub information
    * Update the source URL and calculate the correct sha256
    * Adjust the build script for your specific Go project

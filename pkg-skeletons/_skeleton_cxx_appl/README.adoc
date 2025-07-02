@@ -71,6 +71,7 @@ build:
 ----
 
 Key features:
+
 - Automatic detection of build systems (CMake, Make, Meson)
 - Platform-specific path handling
 - Parallel build support
@@ -130,6 +131,7 @@ requirements:
 ==== Run Requirements
 
 Usually populated automatically via `run_exports` from host dependencies. Only add explicit run dependencies for:
+
 - Runtime-only tools
 - Optional features
 - Plugin systems

@@ -1,6 +1,0 @@
-= Github Action and Workflow
-
-== `rattler-build-action`
-
-https://github.com/prefix-dev/rattler-build-action
-
