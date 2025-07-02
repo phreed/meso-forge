@@ -279,7 +279,7 @@ def build-autotools [] {
     run-external make "-j" ($config.job_count | into string)
 
     # Test if enabled
-    if $config.build_tests and (open Makefile | str contains "check:") {
+    if $config.build_tests and (open Makefile --raw | str contains "check:") {
         log info "Running tests..."
         run-external make "check"
     }

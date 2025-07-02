@@ -11,7 +11,7 @@ def main [
     | par-each { |path|
         let package_json = ($path | path join "package.json")
         if ($package_json | path exists) {
-            open $package_json
+            open $package_json --raw
             | from json
             | select name version license? repository?
             | update license {|r| $r.license | default "UNKNOWN"}

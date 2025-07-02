@@ -61,7 +61,7 @@ def lint_recipe [recipe_path: string] {
     mut issues = []
 
     try {
-        let recipe = open $recipe_path
+        let recipe = open $recipe_path --raw | from yaml
 
         # Check required fields
         if ($recipe.package?.name? | is-empty) {
@@ -83,7 +83,7 @@ def lint_recipe [recipe_path: string] {
         }
 
         # Check for common formatting issues
-        let content = open $recipe_path | to text
+        let content = open $recipe_path --raw
         if ($content | str contains "\t") {
             $issues = ($issues | append "Contains tabs (should use spaces)")
         }
@@ -101,7 +101,7 @@ def lint_recipe [recipe_path: string] {
 
 # Fix common recipe issues
 def fix_recipe_issues [recipe_path: string, issues: list] {
-    let content = open $recipe_path | to text
+    let content = open $recipe_path --raw
 
     # Fix tabs to spaces
     let fixed_content = $content | str replace -a "\t" "  "

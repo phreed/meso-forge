@@ -225,7 +225,7 @@ def "main info" [
         print $"📁 Recipe: ($recipe_dir)"
         let recipe_file = $"($recipe_dir)/recipe.yaml"
         if ($recipe_file | path exists) {
-            let recipe_content = (open $recipe_file)
+            let recipe_content = (open $recipe_file --raw | from yaml)
             if ("package" in $recipe_content) and ("version" in $recipe_content.package) {
                 print $"   Version: ($recipe_content.package.version)"
             }
@@ -261,7 +261,7 @@ def "main build-each" [
         where { |pkg|
             let recipe_file = $"./pkgs/($pkg)/recipe.yaml"
             if ($recipe_file | path exists) {
-                let content = (open $recipe_file | to text)
+                let content = (open $recipe_file --raw)
                 ($content | str contains "meson") and ($content | str contains "ninja")
             } else {
                 false

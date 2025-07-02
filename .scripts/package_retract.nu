@@ -355,7 +355,7 @@ def get-prefix-api-token [channel: string, verbose: bool] {
 # Extract token from auth file for a specific channel
 def get-token-from-auth-file [auth_file: string, channel: string, verbose: bool] {
     try {
-        let auth_data = open $auth_file
+        let auth_data = open $auth_file --raw | from json
 
         # Handle different auth file formats
         let token = if ($auth_data | describe) == "record" {
