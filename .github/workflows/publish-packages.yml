@@ -1,35 +1,37 @@
 name: Publish packages (CI)
 
+# This workflow publishes built conda packages to the repository
+#
+# Trigger Strategy:
+# - Manual execution: Always available via workflow_dispatch (requires build run_id)
+# - Automatic execution: Only when pushing to the 'publish' branch
+# - For push triggers, the workflow will fail and require manual re-execution with run_id
+# - The 'publish' branch should be used to signal readiness to publish packages
+# - Manual execution is the primary method - provides build run_id to download artifacts
+
 # this is important for trusted publishing
 permissions:
   id-token: write
 
 on:
-  workflow_run:
-    workflows: ["Build packages (CI)"]
-    types:
-      - completed
-    branches:
-      - packages
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Build workflow run ID to download artifacts from"
-        required: false
+        description: "Build workflow run ID from which to download artifacts"
+        required: true
         type: string
+  push:
+    branches:
+      - publish
 
 jobs:
   publish:
-    # Only run if the build workflow was successful or if manually triggered
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event != 'pull_request')
 
     strategy:
       matrix:
         include:
           - { target: linux-64, os: ubuntu-24.04 }
+          - { target: linux-aarch64, os: ubuntu-24.04 }
           # - { target: win-64, os: windows-latest }
           # - { target: osx-64, os: macos-13 }
           # - { target: osx-arm64, os: macos-14 }
@@ -56,20 +58,26 @@ jobs:
         run: |
           echo "=== Workflow Run Debug Information ==="
           echo "Event name: ${{ github.event_name }}"
-          echo "Workflow run ID: ${{ github.event.workflow_run.id }}"
-          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
           echo "Manual run ID input: ${{ inputs.run_id }}"
-          echo "Using run ID: ${{ inputs.run_id || github.event.workflow_run.id }}"
           echo "Target platform: ${{ matrix.target }}"
           echo "Artifact name: packages-${{ matrix.target }}"
           echo "Repository: ${{ github.repository }}"
 
+          # For push events, require that run_id is provided
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            if [ -z "${{ inputs.run_id }}" ]; then
+              echo "ERROR: For push events, this workflow must be manually triggered with a build run ID"
+              echo "Please manually trigger this workflow and provide the run_id input"
+              exit 1
+            fi
+          fi
+
       - name: List available artifacts from build run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          RUN_ID: ${{ inputs.run_id }}
         run: |
-          echo "=== Available Artifacts ==="
+          echo "=== Available Artifacts from Run ID: $RUN_ID ==="
           curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" | \
             jq '.artifacts[] | {name: .name, size_in_bytes: .size_in_bytes, created_at: .created_at}' || echo "Failed to fetch artifacts"
@@ -79,7 +87,7 @@ jobs:
         with:
           name: packages-${{ matrix.target }}
           path: output/
-          run_id: ${{ inputs.run_id || github.event.workflow_run.id }}
+          run_id: ${{ inputs.run_id }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List downloaded artifacts

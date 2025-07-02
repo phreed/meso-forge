@@ -1,5 +1,13 @@
 name: Build packages (CI)
 
+# This workflow builds conda packages for multiple platforms
+#
+# Trigger Strategy:
+# - Manual execution: Always available via workflow_dispatch
+# - Automatic execution: Only when pushing to or creating PR against the 'build' branch
+# - The 'build' branch should be used for changes that are ready to build packages
+# - Use 'packages' or other branches for development work that shouldn't trigger builds
+
 # this is important for trusted publishing
 permissions:
   id-token: write
@@ -7,11 +15,11 @@ permissions:
 on:
   push:
     branches:
-      - packages
+      - build
   workflow_dispatch:
   pull_request:
     branches:
-      - packages
+      - build
 
 jobs:
   build:
