@@ -2,9 +2,8 @@
 
 use build_mod.nu [
     get_current_platform
-    find_noarch_packages
-    find_platform_packages
-    build_with_rattler]
+    build_noarch_packages
+    build_platform_packages]
 
 # Build all packages for the current platform
 def main [
@@ -23,60 +22,11 @@ def main [
 
     # Build noarch packages first (only once)
     print "📦 Building noarch packages..."
-    build_noarch_packages  --src-dir $src_dir --tgt-dir $tgt_dir
+    build_noarch_packages --src-dir $src_dir --tgt-dir $tgt_dir
 
     # Build platform-specific packages
     print $"🔧 Building platform specific packages for ($current_platform)..."
-    build_platform_packages --platform $current_platform --src-dir $src_dir
+    build_platform_packages --platform $current_platform --src-dir $src_dir --tgt-dir $tgt_dir
 
     print "✅ All packages built successfully!"
-}
-
-# Build noarch packages
-def build_noarch_packages [
-    --src-dir: string = "./pkgs",
-    --tgt-dir: string = "./output",
-    --dry-run,                              # Show command without executing
-    --verbose,                              # Enable verbose output
-] {
-    let noarch_packages = find_noarch_packages --src-dir $src_dir
-
-    for package in $noarch_packages {
-        print $"  Building noarch package: ($package)"
-        let recipe_path = $"($package)/recipe.yaml"
-
-        try {
-            build_with_rattler --recipe $recipe_path --output-dir $tgt_dir
-        } catch {
-            print $"❌ Failed to build ($package)"
-            continue
-        }
-
-        print $"  ✅ Built ($package)"
-    }
-}
-
-# Build platform specific packages
-def build_platform_packages [
-    --platform: string,
-    --src-dir: string = "./pkgs",
-    --tgt-dir: string = "./output",
-    --dry-run,                              # Show command without executing
-    --verbose,                              # Enable verbose output
-  ] {
-    let platform_packages = find_platform_packages --src-dir $src_dir
-
-    for package in $platform_packages {
-        print $"  Building platform package: ($package) for ($platform)"
-        let recipe_path = $"($package)/recipe.yaml"
-
-        try {
-            build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
-        } catch {
-            print $"❌ Failed to build ($package) for ($platform)"
-            continue
-        }
-
-        print $"  ✅ Built ($package) for ($platform)"
-    }
 }

@@ -2,8 +2,7 @@
 
 use build_mod.nu [
     get_current_platform
-    find_platform_packages
-    build_with_rattler]
+    build_platform_packages]
 
 # Build platform-specific packages for current or specified platform
 def main [
@@ -17,35 +16,16 @@ def main [
     let target_platforms = if $all_platforms {
         ["linux-64", "linux-aarch64"]
     } else if ($platform | is-empty) {
-        [get_current_platform]
+        [(get_current_platform)]
     } else {
         [$platform]
     }
 
-    let platform_packages = find_platform_packages --src-dir $src_dir
-
-    if ($platform_packages | length) == 0 {
-        print "ℹ️  No platform-specific packages found"
-        return
-    }
-
-    print $"Found ($platform_packages | length) platform-specific packages"
     print $"Target platforms: ($target_platforms | str join ', ')"
 
     for platform in $target_platforms {
         print $"\n🏗️  Building for platform: ($platform)"
-
-        for package in $platform_packages {
-            print $"  Building: ($package)"
-            let recipe_path = $"($package)/recipe.yaml"
-
-            try {
-                build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir output/
-                print $"  ✅ Successfully built ($package) for ($platform)"
-            } catch {
-                print $"  ❌ Failed to build ($package) for ($platform)"
-            }
-        }
+        build_platform_packages --platform $platform --src-dir $src_dir --tgt-dir $tgt_dir
     }
 
     print "🔧 Platform-specific package build complete!"

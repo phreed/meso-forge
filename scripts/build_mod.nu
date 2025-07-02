@@ -118,3 +118,62 @@ export def --wrapped build_with_rattler [...rest] {
         false
     }
 }
+
+# Build noarch packages
+export def build_noarch_packages [
+    --src-dir: string = "./pkgs",
+    --tgt-dir: string = "./output",
+    --dry-run,                              # Show command without executing
+    --verbose,                              # Enable verbose output
+] {
+    let noarch_packages = find_noarch_packages --src-dir $src_dir
+
+    if ($noarch_packages | length) == 0 {
+        print "ℹ️  No noarch packages found"
+        return
+    }
+
+    print $"Found ($noarch_packages | length) noarch packages"
+
+    for package in $noarch_packages {
+        print $"Building: ($package)"
+        let recipe_path = ($src_dir | path join $package "recipe.yaml")
+
+        try {
+            build_with_rattler --recipe $recipe_path --output-dir $tgt_dir
+            print $"✅ Successfully built ($package)"
+        } catch {
+            print $"❌ Failed to build ($package)"
+        }
+    }
+}
+
+# Build platform specific packages
+export def build_platform_packages [
+    --platform: string,
+    --src-dir: string = "./pkgs",
+    --tgt-dir: string = "./output",
+    --dry-run,                              # Show command without executing
+    --verbose,                              # Enable verbose output
+] {
+    let platform_packages = find_platform_packages --src-dir $src_dir
+
+    if ($platform_packages | length) == 0 {
+        print "ℹ️  No platform-specific packages found"
+        return
+    }
+
+    print $"Found ($platform_packages | length) platform-specific packages"
+
+    for package in $platform_packages {
+        print $"Building: ($package) for ($platform)"
+        let recipe_path = ($src_dir | path join $package "recipe.yaml")
+
+        try {
+            build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
+            print $"✅ Successfully built ($package) for ($platform)"
+        } catch {
+            print $"❌ Failed to build ($package) for ($platform)"
+        }
+    }
+}

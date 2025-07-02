@@ -47,7 +47,7 @@ cwd = "."
 cmd = ["nu", "scripts/build_noarch.nu"]
 cwd = "."
 
-[tasks.build-platform-specific]
+[tasks.build-platform]
 cmd = ["nu", "scripts/build_platform.nu"]
 cwd = "."
 
