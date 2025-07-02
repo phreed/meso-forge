@@ -48,11 +48,19 @@ jobs:
           TARGET_PLATFORM: ${{ matrix.target }}
         run: pixi run build-for-platform $TARGET_PLATFORM
 
+      # https://github.com/actions/upload-artifact?tab=readme-ov-file#upload-using-multiple-paths-and-exclusions
+      #
+      # Alternative approach: Clean problematic files before upload
+      # - name: Clean files with colons (if exclusion doesn't work)
+      #   run: find output/ -name "*:*" -delete || true
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages-${{ matrix.target }}
-          path: output/
+          path: |
+            output/
+            !**/*:*
           retention-days: 30
           include-hidden-files: false
           if-no-files-found: error

@@ -26,7 +26,7 @@ export def pkg_filter [] {
         return false
     }
     print $"Package ($recipe.package?.name?) is within size limits"
-    true
+    return true
 }
 
 # Find packages marked as noarch
