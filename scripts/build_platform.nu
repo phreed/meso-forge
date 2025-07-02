@@ -2,7 +2,7 @@
 
 use build_mod.nu [
     get_current_platform
-    find_platform_specific_packages
+    find_platform_packages
     build_with_rattler]
 
 # Build platform-specific packages for current or specified platform
@@ -22,7 +22,7 @@ def main [
         [$platform]
     }
 
-    let platform_packages = find_platform_specific_packages --src-dir $src_dir
+    let platform_packages = find_platform_packages --src-dir $src_dir
 
     if ($platform_packages | length) == 0 {
         print "ℹ️  No platform-specific packages found"

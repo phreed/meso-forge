@@ -17,6 +17,7 @@ def main [
     glob ($src_dir | path join "**/repodata.json") | each { |file|
         let dir = ($file | path dirname)
         open $file
+        | from json
         | get "packages.conda"
         | transpose key value
         | each {|pkg|

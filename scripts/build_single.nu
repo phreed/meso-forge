@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use build_mod.nu [build_with_rattler]
+use build_mod.nu [build_with_rattler resolve_recipe]
 
 # Build a package for the current platform
 def main [

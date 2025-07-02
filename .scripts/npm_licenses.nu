@@ -12,6 +12,7 @@ def main [
         let package_json = ($path | path join "package.json")
         if ($package_json | path exists) {
             open $package_json
+            | from json
             | select name version license? repository?
             | update license {|r| $r.license | default "UNKNOWN"}
             | update repository {|r| $r.repository? | default $r.repository.url? | default ""}

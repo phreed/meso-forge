@@ -29,6 +29,16 @@ export def pkg_filter [] {
     return true
 }
 
+export def resolve_recipe [
+    --recipe: string,
+    --verbose,                              # Enable verbose output
+] {
+    let recipe_yaml = (rattler-build build --render-only $recipe | from yaml)
+    if not ($recipe_yaml | pkg_filter) {
+        return nothing
+    }
+}
+
 # Find packages marked as noarch
 export def find_noarch_packages [
     --src-dir: string = "./pkgs",
@@ -43,11 +53,7 @@ export def find_noarch_packages [
             false
         } else {
             print $"recipe.yaml found for ($pkg)"
-            let recipe = open $"($pkg)/recipe.yaml"
-            if ($recipe | pkg_filter) {
-                print $"Package ($pkg) is too large"
-                false
-            }
+            let recipe = resolve_recipe --recipe "($pkg)/recipe.yaml"
             match $recipe.build?.noarch? {
                 "python" => true,
                 "generic" => true,
@@ -58,7 +64,7 @@ export def find_noarch_packages [
 }
 
 # Find packages that are platform-specific (not noarch)
-export def find_platform_specific_packages [
+export def find_platform_packages [
     --src-dir: string = "./pkgs",
     --verbose,                              # Enable verbose output
 ] {
@@ -69,11 +75,7 @@ export def find_platform_specific_packages [
         if not ($"($pkg)/recipe.yaml" | path exists) {
             false
         } else {
-            let recipe = open $"($pkg)/recipe.yaml"
-            if ($recipe | pkg_filter) {
-                print $"Package ($pkg) is too large"
-                false
-            }
+            let recipe = resolve_recipe --recipe "($pkg)/recipe.yaml"
             ($recipe.build?.noarch? | default false) == false
         }
     }
@@ -87,18 +89,11 @@ export def --wrapped build_with_rattler [...rest] {
             | where ($it.item == "--recipe")
             | each { |elt| $rest | get ($elt.index + 1) }
         let recipe_path = $recipes.0
-        print $"Opening recipe ($recipe_path)"
-        let recipe = $recipe_path | open
-        if not ($recipe | pkg_filter) {
-            print $"Package ($recipe.name?) is too large"
-            return false
-        }
-        print $"Building package ($recipe.name?)..."
         try {
             let result = ^rattler-build build ...$rest | complete
             return $result
         } catch {
-            print $"❌ Failed to build ($recipe)"
+            print $"❌ Failed to build ($recipe_path)"
             exit 1
         }
         # if result == 0 {

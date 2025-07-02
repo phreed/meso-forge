@@ -3,7 +3,7 @@
 use build_mod.nu [
     get_current_platform
     find_noarch_packages
-    find_platform_specific_packages
+    find_platform_packages
     build_with_rattler]
 
 # Build all packages for the current platform
@@ -64,7 +64,7 @@ def build_platform_packages [
     --dry-run,                              # Show command without executing
     --verbose,                              # Enable verbose output
   ] {
-    let platform_packages = find_platform_specific_packages --src-dir $src_dir
+    let platform_packages = find_platform_packages --src-dir $src_dir
 
     for package in $platform_packages {
         print $"  Building platform package: ($package) for ($platform)"
