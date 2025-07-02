@@ -44,34 +44,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      - uses: prefix-dev/setup-pixi@v0.8.10
-        with:
-          pixi-version: v0.47.0
-          cache: true
-          log-level: vvv
-          run-install: true
-          # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-
-      - name: Debug workflow run information
-        run: |
-          echo "=== Workflow Run Debug Information ==="
-          echo "Event name: ${{ github.event_name }}"
-          echo "Manual run ID input: ${{ inputs.run_id }}"
-          echo "Target platform: ${{ matrix.target }}"
-          echo "Artifact name: packages-${{ matrix.target }}"
-          echo "Repository: ${{ github.repository }}"
-
-          # For push events, require that run_id is provided
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            if [ -z "${{ inputs.run_id }}" ]; then
-              echo "ERROR: For push events, this workflow must be manually triggered with a build run ID"
-              echo "Please manually trigger this workflow and provide the run_id input"
-              exit 1
-            fi
-          fi
-
       - name: Get latest successful run_id of 'build-packages.yml' on 'build' branch
         uses: actions/github-script@v7
         id: get_run_id # Give it an ID to access its outputs
@@ -116,6 +88,30 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Or a PAT with appropriate permissions
+
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/share/swift
+          echo "Disk space after cleanup:"
+          df -h
+
+      - uses: prefix-dev/setup-pixi@v0.8.10
+        with:
+          pixi-version: v0.47.0
+          cache: true
+          log-level: vvv
+          run-install: true
+          # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
+          auth-host: prefix.dev
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 
       - name: Download build artifacts
         if: ${{ steps.get_run_id.outputs.run_id != '' }}
