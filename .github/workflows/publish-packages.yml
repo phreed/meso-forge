@@ -78,20 +78,21 @@ jobs:
         with:
           result-encoding: json # To correctly handle output
           script: |
-            if (github.context.payload.inputs && github.context.payload.inputs.run_id) {
+            if (context.payload.workflow_dispatch.inputs && context.payload.workflow_dispatch.inputs.run_id) {
               console.log('Manual run ID provided');
-              core.setOutput('run_id', github.context.payload.inputs.run_id);
+              core.setOutput('run_id', context.payload.workflow_dispatch.inputs.run_id);
               return;
             }
             console.log('No manual run ID provided');
-            const { owner, repo } = github.context.repo;
             const workflow_id = 'build-packages.yml';
             const branch = 'build';
 
             try {
               // Get only the latest one
               const response = await github.rest.actions.listWorkflowRunsForRepo({
-                owner, repo, workflow_id, branch, status: 'success', per_page: 1,
+                owner: github.context.repo.owner, repo: github.context.repo.repo,
+                workflow_id, branch,
+                status: 'success', per_page: 1,
               });
               const runs = response.data.workflow_runs;
 
