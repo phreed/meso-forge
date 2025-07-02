@@ -1,0 +1,247 @@
+name: Build and Publish Single Package
+
+# This workflow builds and publishes a specific package in one run
+#
+# Trigger Strategy:
+# - Manual execution only: Always requires workflow_dispatch with package name
+# - Combines build and publish steps for faster single-package deployments
+# - Useful for hotfixes, testing specific packages, or iterative development
+
+# this is important for trusted publishing
+permissions:
+  id-token: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: "Name of the package to build and publish (e.g., fsarchiver, doctl)"
+        required: true
+        type: string
+      target_platform:
+        description: "Target platform for the build"
+        required: false
+        default: "linux-64"
+        type: choice
+        options:
+          - "linux-64"
+          - "linux-aarch64"
+      skip_publish:
+        description: "Skip publishing step (build only)"
+        required: false
+        default: false
+        type: boolean
+      force_build:
+        description: "Force rebuild even if package exists"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-and-publish:
+    name: Build and Publish ${{ inputs.package_name }} (${{ inputs.target_platform }})
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: prefix-dev/setup-pixi@v0.8.10
+        with:
+          pixi-version: v0.49.0
+          cache: true
+          log-level: vvv
+          run-install: true
+          auth-host: prefix.dev
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+
+      - name: Validate package exists
+        run: |
+          PACKAGE_DIR="pkgs/${{ inputs.package_name }}"
+          if [ ! -d "$PACKAGE_DIR" ]; then
+            echo "❌ Error: Package directory '$PACKAGE_DIR' does not exist"
+            echo "Available packages:"
+            ls -1 pkgs/ | grep -E '^[^.]' | head -10
+            echo "..."
+            exit 1
+          fi
+
+          if [ ! -f "$PACKAGE_DIR/recipe.yaml" ]; then
+            echo "❌ Error: Recipe file '$PACKAGE_DIR/recipe.yaml' does not exist"
+            exit 1
+          fi
+
+          echo "✅ Package '${{ inputs.package_name }}' found and validated"
+          echo "📄 Recipe: $PACKAGE_DIR/recipe.yaml"
+
+      - name: Display package information
+        run: |
+          echo "=== Package Build Information ==="
+          echo "Package: ${{ inputs.package_name }}"
+          echo "Platform: ${{ inputs.target_platform }}"
+          echo "Skip publish: ${{ inputs.skip_publish }}"
+          echo "Force build: ${{ inputs.force_build }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "================================="
+
+      - name: Build package
+        env:
+          TARGET_PLATFORM: ${{ inputs.target_platform }}
+          PACKAGE_NAME: ${{ inputs.package_name }}
+        run: |
+          echo "🏗️ Building package: $PACKAGE_NAME for $TARGET_PLATFORM"
+
+          # Create output directory
+          mkdir -p output/
+
+          # Build the specific package
+          RECIPE_PATH="pkgs/$PACKAGE_NAME/recipe.yaml"
+
+          echo "Building with recipe: $RECIPE_PATH"
+
+          # Use rattler-build directly for single package
+          pixi run -e default rattler-build build "$RECIPE_PATH" \
+            --target-platform "$TARGET_PLATFORM" \
+            --output-dir output/ \
+            ${{ inputs.force_build == true && '--force' || '' }}
+
+          echo "✅ Build completed for $PACKAGE_NAME"
+
+      - name: List build artifacts
+        run: |
+          echo "📦 Build artifacts created:"
+          find output/ -name "*.conda" -type f | while read -r file; do
+            echo "  - $(basename "$file") ($(du -h "$file" | cut -f1))"
+          done
+
+          CONDA_COUNT=$(find output/ -name "*.conda" -type f | wc -l)
+          echo "Total .conda files: $CONDA_COUNT"
+
+          if [ "$CONDA_COUNT" -eq 0 ]; then
+            echo "❌ No .conda files were created!"
+            echo "Build may have failed or produced no output"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ inputs.package_name }}-${{ inputs.target_platform }}
+          path: |
+            output/
+            !**/*:*
+          retention-days: 30
+          include-hidden-files: false
+          if-no-files-found: error
+
+      - name: Test package (basic validation)
+        run: |
+          echo "🧪 Running basic package validation..."
+
+          # Check if package files are valid conda packages
+          for pkg in output/*.conda; do
+            if [ -f "$pkg" ]; then
+              echo "Validating: $(basename "$pkg")"
+              # Use conda/mamba to inspect package
+              pixi run -e default python -c "
+              import tarfile
+              import sys
+              try:
+                  with tarfile.open('$pkg', 'r') as tar:
+                      members = tar.getnames()
+                      if 'info/index.json' in members:
+                          print('✅ Valid conda package structure')
+                      else:
+                          print('❌ Missing info/index.json')
+                          sys.exit(1)
+              except Exception as e:
+                  print(f'❌ Package validation failed: {e}')
+                  sys.exit(1)
+              " || exit 1
+            fi
+          done
+
+          echo "✅ Package validation completed"
+
+      - name: Publish package
+        if: ${{ !inputs.skip_publish }}
+        env:
+          TARGET_PLATFORM: ${{ inputs.target_platform }}
+          PACKAGE_NAME: ${{ inputs.package_name }}
+        run: |
+          echo "📤 Publishing package: $PACKAGE_NAME"
+
+          # Verify we have packages to publish
+          CONDA_FILES=$(find output/ -name "*.conda" -type f)
+          if [ -z "$CONDA_FILES" ]; then
+            echo "❌ No .conda files found to publish"
+            exit 1
+          fi
+
+          echo "Publishing files:"
+          echo "$CONDA_FILES"
+
+          # Use the publish command from pixi
+          # This will upload to prefix.dev using the configured token
+          pixi run publish-pd
+
+          echo "✅ Package published successfully"
+
+      - name: Publish summary
+        if: ${{ !inputs.skip_publish }}
+        run: |
+          echo "🎉 Build and Publish Summary"
+          echo "=========================="
+          echo "Package: ${{ inputs.package_name }}"
+          echo "Platform: ${{ inputs.target_platform }}"
+          echo "Status: ✅ Successfully built and published"
+          echo "Artifacts uploaded to: prefix.dev/meso-forge"
+          echo ""
+          echo "You can now install the package with:"
+          echo "  pixi add --channel https://prefix.dev/meso-forge ${{ inputs.package_name }}"
+          echo "  # or"
+          echo "  conda install -c https://prefix.dev/meso-forge ${{ inputs.package_name }}"
+
+      - name: Build-only summary
+        if: ${{ inputs.skip_publish }}
+        run: |
+          echo "🏗️ Build-Only Summary"
+          echo "===================="
+          echo "Package: ${{ inputs.package_name }}"
+          echo "Platform: ${{ inputs.target_platform }}"
+          echo "Status: ✅ Successfully built (publish skipped)"
+          echo "Artifacts are available as GitHub artifacts for 30 days"
+          echo ""
+          echo "To publish later, you can:"
+          echo "1. Download the artifacts from this run"
+          echo "2. Run the publish-packages.yml workflow with run_id: ${{ github.run_id }}"
+
+  summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: build-and-publish
+    if: always()
+    steps:
+      - name: Report results
+        run: |
+          echo "=== Workflow Execution Summary ==="
+          echo "Package: ${{ inputs.package_name }}"
+          echo "Platform: ${{ inputs.target_platform }}"
+          echo "Build and Publish job: ${{ needs.build-and-publish.result }}"
+          echo "Skip publish: ${{ inputs.skip_publish }}"
+          echo "Force build: ${{ inputs.force_build }}"
+
+          if [[ "${{ needs.build-and-publish.result }}" == "success" ]]; then
+            if [[ "${{ inputs.skip_publish }}" == "true" ]]; then
+              echo "✅ Package built successfully (publish skipped)"
+            else
+              echo "✅ Package built and published successfully"
+            fi
+          else
+            echo "❌ Workflow failed"
+            echo "Check the build-and-publish job logs for details"
+            exit 1
+          fi
