@@ -17,11 +17,14 @@ export def pkg_filter [] {
     let upper_tarball_size = $env.PKG_MAX_TARBALL? | default --empty 32000
     let upper_conda_size = $env.PKG_MAX_CONDA? | default --empty 3200
 
-    if ($recipe.extra?.filter?.tarball-size? | default 0) > $upper_tarball_size {
+    let tarball_size = ($recipe.extra?.filter?.tarball-size? | default 0)
+    let conda_size = ($recipe.extra?.filter?.conda-size? | default 0)
+
+    if (($tarball_size | describe) == "int" or ($tarball_size | describe) == "float") and $tarball_size > $upper_tarball_size {
         print $"Package tarball ($recipe.package?.name?) is too large"
         return false
     }
-    if ($recipe.extra?.filter?.conda-size? | default 0) > $upper_conda_size {
+    if (($conda_size | describe) == "int" or ($conda_size | describe) == "float") and $conda_size > $upper_conda_size {
         print $"Package conda ($recipe.package?.name?) is too large"
         return false
     }
@@ -33,10 +36,13 @@ export def resolve_recipe [
     --recipe: string,
     --verbose,                              # Enable verbose output
 ] {
-    let recipe_yaml = (rattler-build build --render-only $recipe | from yaml)
-    if not ($recipe_yaml | pkg_filter) {
+    let recipe_yaml = (rattler-build build --render-only --recipe $recipe | from yaml)
+    # rattler-build returns an array of recipes, we want the first one
+    let first_recipe = $recipe_yaml | first
+    if not ($first_recipe.recipe | pkg_filter) {
         return nothing
     }
+    return $first_recipe.recipe
 }
 
 # Find packages marked as noarch
@@ -47,13 +53,15 @@ export def find_noarch_packages [
     ls $src_dir
     | where type == dir
     | get name
+    | each {|pkg| $pkg | path basename}
     | where {|pkg|
-        if not ($"($pkg)/recipe.yaml" | path exists) {
+        let recipe_path = ($src_dir | path join $pkg "recipe.yaml")
+        if not ($recipe_path | path exists) {
             print $"No recipe.yaml found for ($pkg)"
             false
         } else {
             print $"recipe.yaml found for ($pkg)"
-            let recipe = resolve_recipe --recipe "($pkg)/recipe.yaml"
+            let recipe = resolve_recipe --recipe $recipe_path
             match $recipe.build?.noarch? {
                 "python" => true,
                 "generic" => true,
@@ -71,11 +79,13 @@ export def find_platform_packages [
     ls $src_dir
     | where type == dir
     | get name
+    | each {|pkg| $pkg | path basename}
     | where {|pkg|
-        if not ($"($pkg)/recipe.yaml" | path exists) {
+        let recipe_path = ($src_dir | path join $pkg "recipe.yaml")
+        if not ($recipe_path | path exists) {
             false
         } else {
-            let recipe = resolve_recipe --recipe "($pkg)/recipe.yaml"
+            let recipe = resolve_recipe --recipe $recipe_path
             ($recipe.build?.noarch? | default false) == false
         }
     }
