@@ -14,18 +14,18 @@ export def get_current_platform [] {
 
 export def pkg_filter [] {
     let recipe = $in
-    let upper_tarball_size = $env.PKG_MAX_TARBALL? | default --empty 32000
-    let upper_conda_size = $env.PKG_MAX_CONDA? | default --empty 3200
+    let upper_tarball_size = try { $env.PKG_MAX_TARBALL? | into int } catch { 32000 }
+    let upper_conda_size = try { $env.PKG_MAX_CONDA? | into int } catch { 3200 }
 
-    let tarball_size = ($recipe.extra?.filter?.tarball-size? | default 0)
-    let conda_size = ($recipe.extra?.filter?.conda-size? | default 0)
+    let tarball_size = try { ($recipe.extra?.filter?.tarball-size? | default 0) | into int } catch { 0 }
+    let conda_size = try { ($recipe.extra?.filter?.conda-size? | default 0) | into int } catch { 0 }
 
-    if (($tarball_size | describe) == "int" or ($tarball_size | describe) == "float") and $tarball_size > $upper_tarball_size {
-        print $"Package tarball ($recipe.package?.name?) is too large"
+    if $tarball_size > $upper_tarball_size {
+        print $"Package tarball ($recipe.package?.name?) is too large ($tarball_size) > ($upper_tarball_size)"
         return false
     }
-    if (($conda_size | describe) == "int" or ($conda_size | describe) == "float") and $conda_size > $upper_conda_size {
-        print $"Package conda ($recipe.package?.name?) is too large"
+    if $conda_size > $upper_conda_size {
+        print $"Package conda ($recipe.package?.name?) is too large ($conda_size) > ($upper_conda_size)"
         return false
     }
     print $"Package ($recipe.package?.name?) is within size limits"
@@ -62,6 +62,10 @@ export def find_noarch_packages [
         } else {
             print $"recipe.yaml found for ($pkg)"
             let recipe = resolve_recipe --recipe $recipe_path
+            if ($recipe == nothing) {
+                print "❌ Package filtered out due to size constraints"
+                return
+            }
             match $recipe.build?.noarch? {
                 "python" => true,
                 "generic" => true,
@@ -86,31 +90,37 @@ export def find_platform_packages [
             false
         } else {
             let recipe = resolve_recipe --recipe $recipe_path
+            if ($recipe == nothing) {
+                print "❌ Package filtered out due to size constraints"
+                return
+            }
             ($recipe.build?.noarch? | default false) == false
         }
     }
 }
 
-export def --wrapped build_with_rattler [...rest] {
+
+export def --wrapped build_with_rattler_dry_run [package: string, ...rest] {
+    let rest_str = $rest | flatten | str join ' '
+    print $"build_with_rattler_dry_run ($package) ($rest_str)"
+    print $"rattler-build build ($rest_str)"
+}
+
+export def --wrapped build_with_rattler [package: string, ...rest] {
     print $"Building package ($rest)..."
     if '--recipe' in $rest {
-        let recipes = $rest
-            | enumerate
-            | where ($it.item == "--recipe")
-            | each { |elt| $rest | get ($elt.index + 1) }
-        let recipe_path = $recipes.0
         try {
             let result = ^rattler-build build ...$rest | complete
             return $result
         } catch {
-            print $"❌ Failed to build ($recipe_path)"
+            print $"❌ Failed to build ($package)"
             exit 1
         }
         # if result == 0 {
-        #     print $"Package ($recipe) built successfully"
+        #     print $"Package ($package) built successfully"
         #     true
         # } else {
-        #     print $"Failed to build package ($recipe)"
+        #     print $"Failed to build package ($package)"
         #     false
         # }
     } else {
@@ -118,6 +128,7 @@ export def --wrapped build_with_rattler [...rest] {
         false
     }
 }
+
 
 # Build noarch packages
 export def build_noarch_packages [
@@ -139,11 +150,15 @@ export def build_noarch_packages [
         print $"Building: ($package)"
         let recipe_path = ($src_dir | path join $package "recipe.yaml")
 
-        try {
-            build_with_rattler --recipe $recipe_path --output-dir $tgt_dir
-            print $"✅ Successfully built ($package)"
-        } catch {
-            print $"❌ Failed to build ($package)"
+        if ($dry_run) {
+            build_with_rattler_dry_run $package --recipe $recipe_path --output-dir $tgt_dir
+        } else {
+            try {
+                build_with_rattler $package --recipe $recipe_path --output-dir $tgt_dir
+                print $"✅ Successfully built ($package)"
+            } catch {
+                print $"❌ Failed to build ($package)"
+            }
         }
     }
 }
@@ -169,11 +184,15 @@ export def build_platform_packages [
         print $"Building: ($package) for ($platform)"
         let recipe_path = ($src_dir | path join $package "recipe.yaml")
 
-        try {
-            build_with_rattler --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
-            print $"✅ Successfully built ($package) for ($platform)"
-        } catch {
-            print $"❌ Failed to build ($package) for ($platform)"
+        if ($dry_run) {
+            build_with_rattler_dry_run $package --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
+        } else {
+            try {
+                build_with_rattler $package --recipe $recipe_path --target-platform $platform --output-dir $tgt_dir
+                print $"✅ Successfully built ($package) for ($platform)"
+            } catch {
+                print $"❌ Failed to build ($package) for ($platform)"
+            }
         }
     }
 }
