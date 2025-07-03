@@ -65,124 +65,18 @@ cmd = ["nu", "scripts/build_platform.nu", "--platform", "{{ platform }}"]
 cwd = "."
 
 # Individual package builds (examples)
-[tasks.build-pkg-asciidoctor-revealjs]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/sciidoctor-revealjs/recipe.yaml"]
+[tasks.build-pkg]
+args = [
+   {arg = "pkg", default = "asciidoctor-revealjs" },
+]
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/{{ pkg }}/recipe.yaml"]
 cwd = "."
 
-[tasks.build-pkg-asyncio]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/asyncio/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-bash-preexec]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/bash-preexec/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-bitwarden-cli]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/bitwarden-cli/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-ble-sh]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/ble-sh/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-devcontainer-cli]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/devcontainer-cli/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-digitalpy]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/digitalpy/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-doctl]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/doctl/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-dysk]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/dysk/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-fd]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/fd/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-flask-jwt-extended]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/flask-jwt-extended/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-freetakserver]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/freetakserver/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-freetakserver-ui]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/freetakserver-ui/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-fsarchiver]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/fsarchiver/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-gtksourceview]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/gtksourceview/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-iamb]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/iamb/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-internxt-cli]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/internxt-cli/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-jank]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/jank/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-mediamtx]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/mediamtx/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-mumble-voip]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/mumble-voip/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-nifi]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/nifi/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-node-red]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/node-red/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-node-red-worldmap]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/node-red-worldmap/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-opendal-oli]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/opendal-oli/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-podlet]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/podlet/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-pwgen]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/pwgen/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-pytak]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/pytak/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-ratatui]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/ratatui/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-takproto]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/takproto/recipe.yaml"]
-cwd = "."
-
-[tasks.build-pkg-testresources]
-cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/testresources/recipe.yaml"]
+[tasks.build-dry]
+args = [
+   {arg = "pkg", default = "asciidoctor-revealjs" },
+]
+cmd = ["nu", "scripts/build_single.nu", "--recipe", "pkgs/{{ pkg }}/recipe.yaml", "--dry-run"]
 cwd = "."
 
 # Clean build artifacts

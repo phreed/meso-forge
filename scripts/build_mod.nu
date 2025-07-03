@@ -32,17 +32,20 @@ export def pkg_filter [] {
     return true
 }
 
-export def resolve_recipe [
-    --recipe: string,
-    --verbose,                              # Enable verbose output
-] {
-    let recipe_yaml = (rattler-build build --render-only --recipe $recipe | from yaml)
-    # rattler-build returns an array of recipes, we want the first one
-    let first_recipe = $recipe_yaml | first
-    if not ($first_recipe.recipe | pkg_filter) {
+export def resolve_recipe [ --recipe: string ] {
+    if not ($recipe | path exists) {
+        print $"Recipe ($recipe) does not exist"
         return nothing
     }
-    return $first_recipe.recipe
+    try {
+        let recipe_yaml = (^rattler-build build --render-only --recipe $recipe | from yaml)
+        print $"Here is a recipe: ($recipe)"
+        # rattler-build returns an array of recipes, we want the first one
+        return ($recipe_yaml | first).recipe
+    } catch {
+        print $"Failed to parse recipe ($recipe)"
+        return nothing
+    }
 }
 
 # Find packages marked as noarch
@@ -63,6 +66,10 @@ export def find_noarch_packages [
             print $"recipe.yaml found for ($pkg)"
             let recipe = resolve_recipe --recipe $recipe_path
             if ($recipe == nothing) {
+                print "❌ Package recipe does not exist"
+                return false
+            }
+            if not ($recipe | pkg_filter) {
                 print "❌ Package filtered out due to size constraints"
                 return false
             }
@@ -92,8 +99,12 @@ export def find_platform_packages [
         } else {
             let recipe = resolve_recipe --recipe $recipe_path
             if ($recipe == nothing) {
+                print "❌ Package recipe is missing or defective"
+                return false
+            }
+            if not ($recipe | pkg_filter) {
                 print "❌ Package filtered out due to size constraints"
-                return
+                return false
             }
             if $recipe.build == nothing {
                 print "❌ Package filtered because build section is missing"

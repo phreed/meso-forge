@@ -12,7 +12,7 @@ def main [
 ] {
     let recipe_obj = resolve_recipe --recipe $recipe
     if ($recipe_obj == nothing) {
-        print "❌ Package filtered out due to size constraints"
+        print "❌ Package recipe is missing or defective"
         return
     }
     let pkg_name = $recipe_obj.package?.name? | default "unknown"
