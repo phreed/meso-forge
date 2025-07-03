@@ -38,7 +38,7 @@ export def resolve_recipe [ --recipe: string ] {
         return nothing
     }
     try {
-        let recipe_yaml = (^rattler-build build --render-only --recipe $recipe | from yaml)
+        let recipe_yaml = (^rattler-build build --render-only --recipe $recipe | complete | get stdout | from yaml)
         print $"Here is a recipe: ($recipe)"
         # rattler-build returns an array of recipes, we want the first one
         return ($recipe_yaml | first).recipe
@@ -134,19 +134,19 @@ export def --wrapped build_with_rattler [package: string, ...rest] {
     print $"Building package ($rest)..."
     if '--recipe' in $rest {
         try {
-            let result = ^rattler-build build ...$rest | complete
+            let result = (^rattler-build build ...$rest | complete)
+            # if $result.error_code == 0 {
+            #     print $"Package ($package) built successfully"
+            #     return $result
+            # } else {
+            #     print $"Failed to build package ($package)"
+            #     return nothing
+            # }
             return $result
         } catch {
             print $"❌ Failed to build ($package)"
-            exit 1
+            return nothing
         }
-        # if result == 0 {
-        #     print $"Package ($package) built successfully"
-        #     true
-        # } else {
-        #     print $"Failed to build package ($package)"
-        #     false
-        # }
     } else {
         print $"No recipe specified ($rest)"
         false
