@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "0.1.2"
+  version: "0.1.3"
 
 package:
   name: meso-forge-tooling
@@ -53,7 +53,20 @@ build:
 
       case "$1" in
           build|build-pkg)
-              nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_single.nu" "${@:2}"
+              if [[ -n "$2" ]]; then
+                  # Build specific package - construct recipe path
+                  RECIPE_PATH="./pkgs/$2/recipe.yaml"
+                  if [[ -f "$RECIPE_PATH" ]]; then
+                      nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_single.nu" --recipe "$RECIPE_PATH" "${@:3}"
+                  else
+                      echo "Error: Recipe not found at $RECIPE_PATH"
+                      exit 1
+                  fi
+              else
+                  echo "Error: Package name required for build command"
+                  echo "Usage: meso-forge build <package-name>"
+                  exit 1
+              fi
               ;;
           build-all)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_all.nu" "${@:2}"
@@ -137,7 +150,7 @@ build:
       mkdir -p $PREFIX/etc/conda/activate.d
       cat > $PREFIX/etc/conda/activate.d/meso-forge-tooling.sh << 'EOF'
       export MESO_FORGE_TOOLING_ROOT="$CONDA_PREFIX/share/meso-forge-tooling"
-      export MESO_FORGE_VERSION="0.1.2"
+      export MESO_FORGE_VERSION="0.1.3"
       EOF
 
 requirements:
