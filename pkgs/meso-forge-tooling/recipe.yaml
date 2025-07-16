@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "0.1.1"
+  version: "0.1.2"
 
 package:
   name: meso-forge-tooling
@@ -52,8 +52,17 @@ build:
       cd "$(pwd)"
 
       case "$1" in
-          build|build-all|build-noarch|build-platform|build-pkg)
+          build|build-pkg)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_single.nu" "${@:2}"
+              ;;
+          build-all)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_all.nu" "${@:2}"
+              ;;
+          build-noarch)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_noarch.nu" "${@:2}"
+              ;;
+          build-platform)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_platform.nu" "${@:2}"
               ;;
           publish|publish-pd|publish-s3)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/publish.nu" "${@:2}"
@@ -128,7 +137,7 @@ build:
       mkdir -p $PREFIX/etc/conda/activate.d
       cat > $PREFIX/etc/conda/activate.d/meso-forge-tooling.sh << 'EOF'
       export MESO_FORGE_TOOLING_ROOT="$CONDA_PREFIX/share/meso-forge-tooling"
-      export MESO_FORGE_VERSION="0.1.1"
+      export MESO_FORGE_VERSION="0.1.2"
       EOF
 
 requirements:
