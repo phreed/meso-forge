@@ -43,14 +43,34 @@ pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge -c conda
 meso-forge help
 ----
 
-=== Phase 2: Create Domain Branches
+=== Phase 2: Merge Packages Branch into Main
 
-==== 2.1 Create tactical-packages branch
+Before creating domain branches, we need to merge the `packages` branch into `main` to get all packages in one place.
 
 [source,bash]
 ----
-# Create and checkout new branch
-git checkout -b pkgs/tactical
+# Switch to main branch
+git checkout main
+
+# Merge packages branch to get all packages
+git merge packages
+
+# Verify all packages are present
+ls pkgs/
+
+# Push updated main branch
+git push origin main
+----
+
+=== Phase 3: Create Domain Branches
+
+==== 3.1 Create tactical-packages branch
+
+[source,bash]
+----
+# Start from main branch
+git checkout main
+# Create and checkout new orphan branch
 git checkout --orphan pkgs/tactical
 
 # Remove everything except tactical packages
@@ -103,12 +123,11 @@ git commit -m "Create tactical-packages branch"
 git push -u origin pkgs/tactical
 ----
 
-==== 2.2 Create system-tools branch
+==== 3.2 Create system-tools branch
 
 [source,bash]
 ----
 git checkout main
-git checkout -b pkgs/system-tools
 git checkout --orphan pkgs/system-tools
 
 # Keep only system tools packages
@@ -145,12 +164,11 @@ git commit -m "Create system-tools branch"
 git push -u origin pkgs/system-tools
 ----
 
-==== 2.3 Create development-tools branch
+==== 3.3 Create development-tools branch
 
 [source,bash]
 ----
 git checkout main
-git checkout -b pkgs/development-tools
 git checkout --orphan pkgs/development-tools
 
 # Keep only development tools
@@ -178,7 +196,7 @@ git commit -m "Create development-tools branch"
 git push -u origin pkgs/development-tools
 ----
 
-==== 2.4 Create remaining domain branches
+==== 3.4 Create remaining domain branches
 
 Repeat the process for:
 
@@ -187,9 +205,9 @@ Repeat the process for:
 * `pkgs/communication-media`
 * `pkgs/data-processing`
 
-=== Phase 3: Update Main Branch
+=== Phase 4: Update Main Branch
 
-==== 3.1 Create tooling-only main branch
+==== 4.1 Create tooling-only main branch
 
 [source,bash]
 ----
@@ -239,7 +257,6 @@ meso-forge test
 [source,bash]
 ----
 # Create new domain branch
-git checkout -b pkgs/my-domain
 git checkout --orphan pkgs/my-domain
 
 # Copy template
@@ -256,9 +273,9 @@ git commit -m "Convert main branch to tooling-only"
 git push
 ----
 
-=== Phase 4: Update CI/CD
+=== Phase 5: Update CI/CD
 
-==== 4.1 Create GitHub Actions for branches
+==== 5.1 Create GitHub Actions for branches
 
 Create `.github/workflows/build-packages.yml`:
 
@@ -299,7 +316,7 @@ jobs:
       run: pixi run test
 ----
 
-==== 4.2 Update tooling CI
+==== 5.2 Update tooling CI
 
 Create `.github/workflows/build-tooling.yml`:
 
@@ -327,9 +344,9 @@ jobs:
         RATTLER_AUTH_FILE: ${{ secrets.RATTLER_AUTH_FILE }}
 ----
 
-=== Phase 5: Validation and Testing
+=== Phase 6: Validation and Testing
 
-==== 5.1 Test each branch independently
+==== 6.1 Test each branch independently
 
 [source,bash]
 ----
@@ -340,7 +357,7 @@ pixi run build-all
 pixi run test
 ----
 
-==== 5.2 Verify package publishing
+==== 6.2 Verify package publishing
 
 [source,bash]
 ----
@@ -349,7 +366,7 @@ pixi search freetakserver -c https://prefix.dev/meso-forge
 pixi search rotz -c https://prefix.dev/meso-forge
 ----
 
-==== 5.3 Test new package creation
+==== 6.3 Test new package creation
 
 [source,bash]
 ----
@@ -389,10 +406,11 @@ If issues arise, rollback is possible:
 == Timeline
 
 * *Week 1:* Build and test tooling package
-* *Week 2:* Create first domain branch (tactical)
-* *Week 3:* Create remaining domain branches
-* *Week 4:* Update CI/CD and documentation
-* *Week 5:* Validation and cleanup
+* *Week 2:* Merge packages branch into main
+* *Week 3:* Create first domain branch (tactical)
+* *Week 4:* Create remaining domain branches
+* *Week 5:* Update CI/CD and documentation
+* *Week 6:* Validation and cleanup
 
 == Success Criteria
 
