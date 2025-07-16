@@ -14,6 +14,12 @@ export def get_current_platform [] {
 
 export def pkg_filter [] {
     let recipe = $in
+
+    if ($recipe == nothing) {
+        print "❌ Recipe is null or missing"
+        return false
+    }
+
     let upper_tarball_size = try { $env.PKG_MAX_TARBALL? | into int } catch { 32000 }
     let upper_conda_size = try { $env.PKG_MAX_CONDA? | into int } catch { 3200 }
 
