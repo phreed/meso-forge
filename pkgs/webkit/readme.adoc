@@ -1,0 +1,102 @@
+= WebKit Package
+
+== Overview
+
+WebKit is a cross-platform web browser engine that powers Safari, Mail, Apple Books, and many other applications. This package provides the WebKitGTK port which allows embedding a full-featured web browser engine in GTK applications on Linux and other Unix-like systems.
+
+== Features
+
+* Full HTML5, CSS3, and JavaScript support
+* Hardware acceleration support
+* Media playback capabilities
+* Developer tools integration
+* Accessibility support
+* Modern web standards compliance
+* GTK4 integration
+
+== Libraries Included
+
+* *WebKit2GTK* - Modern WebKit API for embedding web content in GTK applications
+* *JavaScriptCore* - Standalone JavaScript execution engine
+* *MiniBrowser* - Simple browser application for testing
+
+== Development Files
+
+This package includes development headers and pkg-config files needed to build applications that use WebKit:
+
+* Header files in `include/webkitgtk-4.1/`
+* pkg-config files: `webkit2gtk-4.1.pc`, `javascriptcoregtk-4.1.pc`
+* GObject introspection files for language bindings
+
+== Usage Examples
+
+=== C/C++ Development
+
+[source,c]
+----
+#include <webkit2/webkit2.h>
+
+int main() {
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
+
+    gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(webview));
+    webkit_web_view_load_uri(webview, "https://webkit.org");
+
+    gtk_widget_show_all(window);
+    gtk_main();
+    return 0;
+}
+----
+
+Compile with:
+----
+gcc -o myapp myapp.c `pkg-config --cflags --libs webkit2gtk-4.1`
+----
+
+=== Python Development (with PyGObject)
+
+[source,python]
+----
+import gi
+gi.require_version('WebKit2', '4.1')
+from gi.repository import Gtk, WebKit2
+
+window = Gtk.Window()
+webview = WebKit2.WebView()
+window.add(webview)
+webview.load_uri("https://webkit.org")
+window.show_all()
+Gtk.main()
+----
+
+== Dependencies
+
+The package automatically handles most runtime dependencies. For development, you'll need:
+
+* GTK4 development files
+* GLib development files
+* C/C++ compiler
+* pkg-config
+
+== Related Packages
+
+* `webkit-dev` - Additional development tools and debugging features
+* `gtk4` - GTK toolkit (required dependency)
+* `gstreamer` - Media playback support
+
+== Version Information
+
+This package tracks the stable WebKitGTK releases. The version follows the upstream WebKitGTK versioning scheme (e.g., 2.44.2).
+
+== License
+
+WebKit is licensed under LGPL-2.1-or-later and BSD-2-Clause licenses. See the license files included in the package for complete terms.
+
+== Upstream Resources
+
+* Website: https://webkit.org/
+* WebKitGTK: https://webkitgtk.org/
+* Source Code: https://github.com/WebKit/WebKit
+* Documentation: https://webkitgtk.org/reference/webkit2gtk/stable/
+* Bug Reports: https://bugs.webkit.org/

@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# Expat Package Recipe
+# ====================
+#
+# Expat is a stream-oriented XML parser library written in C. It excels
+# with files too large to fit RAM, and where performance and flexibility
+# are crucial. Expat is widely used in many applications including WebKit,
+# Python, Apache HTTP Server, and many other software projects.
+
+context:
+  version: "2.5.0"
+
+package:
+  name: expat
+  version: ${{ version }}
+
+source:
+  url: https://github.com/libexpat/libexpat/releases/download/R_${{ version.replace(".", "_") }}/expat-${{ version }}.tar.xz
+  sha256: 6f0e6e01f7b30025fa05c85fdad1e5d0ec7fd35d9f61b22f34998de11969ff67
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building Expat ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Configure build with CMake for better cross-platform support
+      ^cmake -S . -B build $"-DCMAKE_INSTALL_PREFIX=($env.PREFIX)" "-DCMAKE_BUILD_TYPE=Release" "-DCMAKE_INSTALL_LIBDIR=lib64" "-DEXPAT_BUILD_TESTS=OFF" "-DEXPAT_BUILD_EXAMPLES=OFF" "-DEXPAT_BUILD_DOCS=OFF" "-DEXPAT_SHARED_LIBS=ON" "-DEXPAT_BUILD_TOOLS=ON"
+
+      # Build
+      ^cmake --build build --parallel
+
+      # Install
+      ^cmake --install build
+
+      echo "Expat build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - cmake
+    - make
+    - ${{ compiler('c') }}
+
+  host:
+    # No host dependencies - expat is a fundamental library
+
+  run:
+    # No specific runtime dependencies
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Library files
+        - ${{ "Library/" if win }}lib*/libexpat${{ ".dll" if win else ".so*" }}
+        - ${{ "Library/" if win }}lib*/libexpat.a
+
+        # Header files
+        - ${{ "Library/" if win }}include/expat.h
+        - ${{ "Library/" if win }}include/expat_external.h
+
+        # pkg-config file
+        - ${{ "Library/" if win }}lib*/pkgconfig/expat.pc
+
+        # Command line tool
+        - ${{ "Library/" if win }}bin/xmlwf${{ ".exe" if win }}
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+        - ${{ compiler('c') }}
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find expat
+        ^pkg-config --exists expat
+
+        # Get version information
+        let expat_version = (^pkg-config --modversion expat | str trim)
+        echo $"Expat version detected: ($expat_version)"
+
+        # Test compilation against expat
+        let test_code = '
+        #include <expat.h>
+        #include <stdio.h>
+        int main() {
+            printf("Expat version: %s\\n", XML_ExpatVersion());
+            return 0;
+        }'
+
+        echo $test_code | save test_expat.c
+
+        # Compile test program
+        let cflags = (^pkg-config --cflags expat | str trim)
+        let libs = (^pkg-config --libs expat | str trim)
+        ^gcc $cflags -o test_expat test_expat.c $libs
+
+        # Run test program
+        ^./test_expat
+
+        echo "Expat compilation and functionality test passed!"
+
+        # Test xmlwf tool
+        let xmlwf_path = ($env.PREFIX | path join "bin" "xmlwf")
+        if ($xmlwf_path | path exists) {
+          # Create a simple XML file to test
+          let test_xml = '<?xml version="1.0"?><root><element>test</element></root>'
+          echo $test_xml | save test.xml
+
+          # Test xmlwf can parse it
+          ^$xmlwf_path test.xml
+          echo "xmlwf tool test passed!"
+        }
+
+about:
+  homepage: https://libexpat.github.io/
+  repository: https://github.com/libexpat/libexpat
+  license: MIT
+  license_file: COPYING
+  summary: Fast streaming XML parser written in C
+  description: |
+    Expat is a stream-oriented XML parser library written in C. It excels
+    with files too large to fit RAM, and where performance and flexibility
+    are crucial.
+
+    Key features:
+    - Fast, lightweight XML parsing
+    - Stream-oriented processing
+    - Excellent performance with large files
+    - Widely portable C library
+    - Thread-safe when used properly
+    - Supports XML namespaces
+    - Includes xmlwf command-line tool for well-formedness checking
+
+    Expat is used by many major software projects including Python (in the
+    xml.parsers.expat module), Apache HTTP Server, Mozilla Firefox, and
+    many others. It's a fundamental dependency for WebKit and other web
+    browser engines.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    github-releases:
+      - ^R_(\d+)_(\d+)_(\d+)$

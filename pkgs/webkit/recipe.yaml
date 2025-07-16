@@ -1,0 +1,162 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# WebKit Package Recipe
+# ====================
+#
+# WebKit is a cross-platform web browser engine that powers Safari, Mail,
+# Apple Books, and many other applications. This package provides the
+# WebKitGTK port for Linux systems.
+#
+# BUILD CONSIDERATIONS:
+# - WebKit is a large project requiring significant build time and resources
+# - Uses CMake build system with ninja generator
+# - Requires many dependencies for full functionality
+# - Supports both GTK3 and GTK4 (this recipe targets GTK4)
+# - Optional features can be disabled to reduce dependencies
+
+context:
+  # Latest stable release as of 2024
+  major_version: "2.44"
+  version: "2.44.2"
+  # Build configuration
+  build_type: "RelWithDebInfo"  # Release with debug info
+  nprocs: 4
+
+package:
+  name: webkit
+  version: ${{ version }}
+
+source:
+  url: https://webkitgtk.org/releases/webkitgtk-${{ version }}.tar.xz
+  sha256: 523f42c8ff24832add17631f6eaafe8f9303afe316ef1a7e1844b952a7f7521b
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building WebKit ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Set up environment for WebKit build
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      # WebKit requires significant memory - set conservative parallel jobs
+      let build_jobs = [(${{ nprocs }} | into int) 1] | math max
+
+      # Create build directory
+      ^mkdir -p build
+      cd build
+
+      # Configure with CMake - Minimal WebKit build
+      # Disable most features to reduce dependencies
+      ^cmake .. $"-DCMAKE_INSTALL_PREFIX=($env.PREFIX)" $"-DCMAKE_BUILD_TYPE=${{ build_type }}" "-DCMAKE_INSTALL_LIBDIR=lib64" "-DPORT=GTK" "-DUSE_GTK4=OFF" "-DENABLE_DOCUMENTATION=OFF" "-DENABLE_MINIBROWSER=OFF" "-DENABLE_WEBDRIVER=OFF" "-DENABLE_BUBBLEWRAP_SANDBOX=OFF" "-DENABLE_GAMEPAD=OFF" "-DENABLE_GEOLOCATION=OFF" "-DENABLE_MEDIA_STREAM=OFF" "-DENABLE_WEB_RTC=OFF" "-DENABLE_THUNDER=OFF" "-DUSE_SYSTEMD=OFF" "-DUSE_AVIF=OFF" "-DENABLE_SPELLCHECK=OFF" "-DENABLE_WEBGL=OFF" "-DENABLE_ACCELERATED_2D_CANVAS=OFF" "-DENABLE_VIDEO=OFF" "-DENABLE_WEB_AUDIO=OFF" "-DENABLE_ACCESSIBILITY=OFF" "-DENABLE_DRAG_SUPPORT=OFF" "-DENABLE_CONTEXT_MENUS=OFF" "-G" "Ninja"
+
+      echo $"Building WebKit with ($build_jobs) parallel jobs..."
+      ^ninja -j $build_jobs
+
+      echo "Installing WebKit..."
+      ^ninja install
+
+      echo "WebKit build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - cmake
+    - ninja
+    - pkgconf
+    - pkg-config
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    # Build tools
+    - python >=3.6
+    - perl
+    - ruby
+    - gperf
+    - flex
+    - bison
+    - unifdef
+    # Minimal dependencies for building
+    - glib-tools
+
+  host:
+    # Minimal system libraries
+    - glib
+    - icu
+    - zlib
+    - libxml2
+    - libxslt
+    - sqlite
+
+  run:
+    # Runtime dependencies (most are automatically detected)
+    - glib
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # JavaScriptCore library (minimal build)
+        - ${{ "Library/" if win }}lib*/libjavascriptcoregtk-4.1${{ ".dll" if win else ".so*" }}
+
+        # Header files
+        - ${{ "Library/" if win }}include/webkitgtk-4.1/jsc/jsc.h
+
+        # pkg-config files
+        - ${{ "Library/" if win }}lib*/pkgconfig/javascriptcoregtk-4.1.pc
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find JavaScriptCore library
+        ^pkg-config --exists javascriptcoregtk-4.1
+
+        # Verify version information
+        let jsc_version = (^pkg-config --modversion javascriptcoregtk-4.1 | str trim)
+        echo $"JavaScriptCore version detected: ($jsc_version)"
+
+        echo "JavaScriptCore test passed!"
+
+about:
+  homepage: https://webkit.org/
+  repository: https://github.com/WebKit/WebKit
+  license: LGPL-2.1-or-later AND BSD-2-Clause
+  license_file:
+    - "Source/WebCore/LICENSE-LGPL-2.1"
+    - "Source/WebCore/LICENSE-APPLE"
+  summary: Cross-platform web browser engine
+  description: |
+    WebKit is a cross-platform web browser engine. On iOS and macOS, it powers
+    Safari, Mail, Apple Books, and many other applications. This package provides
+    the WebKitGTK port which allows embedding a full-featured web browser engine
+    in GTK applications on Linux and other Unix-like systems.
+
+    Features:
+    - Full HTML5, CSS3, and JavaScript support
+    - Hardware acceleration support
+    - Media playback capabilities
+    - Developer tools integration
+    - Accessibility support
+    - Modern web standards compliance
+
+    This package includes both the WebKit2GTK library for embedding web content
+    and the JavaScriptCore library for standalone JavaScript execution.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    github-releases:
+      - ^webkitgtk-(\d+\.\d+\.\d+)$

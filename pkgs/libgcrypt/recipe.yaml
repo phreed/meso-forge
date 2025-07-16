@@ -1,0 +1,155 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# Libgcrypt Package Recipe
+# ========================
+#
+# Libgcrypt is a general purpose cryptographic library originally based on
+# code from GnuPG. It provides functions for all cryptographic building blocks:
+# symmetric ciphers, hash algorithms, MACs, public key algorithms, large
+# integer functions, and random number generation.
+
+context:
+  version: "1.10.3"
+
+package:
+  name: libgcrypt
+  version: ${{ version }}
+
+source:
+  url: https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-${{ version }}.tar.bz2
+  sha256: 8b0870897ac5ac67ded568dcfadf45969cfa8a6beb0fd60af2a9eadc2a3272aa
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building Libgcrypt ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Configure with autotools
+      ^./configure $"--prefix=($env.PREFIX)" "--libdir=($env.PREFIX)/lib64" "--enable-shared" "--disable-static" "--disable-doc" "--with-libgpg-error-prefix=($env.PREFIX)"
+
+      # Build
+      ^make -j ($env.CPU_COUNT | default "4")
+
+      # Install
+      ^make install
+
+      echo "Libgcrypt build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - make
+    - autoconf
+    - automake
+    - libtool
+    - ${{ compiler('c') }}
+
+  host:
+    - libgpg-error
+
+  run:
+    - libgpg-error
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Library files
+        - ${{ "Library/" if win }}lib*/libgcrypt${{ ".dll" if win else ".so*" }}
+
+        # Header files
+        - ${{ "Library/" if win }}include/gcrypt.h
+
+        # Binary tools
+        - ${{ "Library/" if win }}bin/libgcrypt-config${{ ".exe" if win }}
+
+        # pkg-config and other config files
+        - ${{ "Library/" if win }}lib*/pkgconfig/libgcrypt.pc
+        - ${{ "Library/" if win }}share/aclocal/libgcrypt.m4
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+        - ${{ compiler('c') }}
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find libgcrypt
+        ^pkg-config --exists libgcrypt
+
+        # Get version information
+        let gcrypt_version = (^pkg-config --modversion libgcrypt | str trim)
+        echo $"Libgcrypt version detected: ($gcrypt_version)"
+
+        # Test compilation against libgcrypt
+        let test_code = '
+        #include <gcrypt.h>
+        #include <stdio.h>
+        int main() {
+            if (!gcry_check_version(GCRYPT_VERSION)) {
+                fprintf(stderr, "libgcrypt version mismatch\\n");
+                return 1;
+            }
+            printf("Libgcrypt version: %s\\n", gcry_check_version(NULL));
+            gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
+            gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
+            return 0;
+        }'
+
+        echo $test_code | save test_gcrypt.c
+
+        # Compile test program
+        let cflags = (^pkg-config --cflags libgcrypt | str trim)
+        let libs = (^pkg-config --libs libgcrypt | str trim)
+        ^gcc $cflags -o test_gcrypt test_gcrypt.c $libs
+
+        # Run test program
+        ^./test_gcrypt
+
+        echo "Libgcrypt compilation and functionality test passed!"
+
+        # Test libgcrypt-config tool
+        let config_path = ($env.PREFIX | path join "bin" "libgcrypt-config")
+        if ($config_path | path exists) {
+          ^$config_path --version
+          echo "libgcrypt-config tool test passed!"
+        }
+
+about:
+  homepage: https://gnupg.org/software/libgcrypt/
+  repository: https://dev.gnupg.org/source/libgcrypt/
+  license: LGPL-2.1-or-later
+  license_file: COPYING.LIB
+  summary: General purpose cryptographic library
+  description: |
+    Libgcrypt is a general purpose cryptographic library originally based on
+    code from GnuPG. It provides functions for all cryptographic building
+    blocks: symmetric ciphers, hash algorithms, MACs, public key algorithms,
+    large integer functions, and random number generation.
+
+    Key features:
+    - Comprehensive cryptographic functionality
+    - Symmetric and asymmetric encryption algorithms
+    - Hash functions (SHA-1, SHA-2, SHA-3, MD5, etc.)
+    - Message Authentication Codes (MACs)
+    - Public key algorithms (RSA, ECC, DSA, etc.)
+    - Random number generation
+    - Large integer arithmetic
+    - Thread-safe operation
+    - FIPS 140-2 compliance mode available
+
+    Libgcrypt is used by many security-critical applications including GnuPG,
+    systemd, NetworkManager, and web browsers like Firefox and WebKit for
+    cryptographic operations.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    url: https://gnupg.org/ftp/gcrypt/libgcrypt/
+    regex: libgcrypt-(\d+\.\d+\.\d+)\.tar\.bz2

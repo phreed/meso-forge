@@ -1,0 +1,155 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# Libgpg-error Package Recipe
+# ===========================
+#
+# Libgpg-error is a small library that originally defined common error values
+# for all GnuPG components. Among these are GPG, GPGSM, GPGME, GPG-Agent,
+# libgcrypt, Libksba, DirMngr, Pinentry, SmartCard Daemon and more.
+
+context:
+  version: "1.47"
+
+package:
+  name: libgpg-error
+  version: ${{ version }}
+
+source:
+  url: https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-${{ version }}.tar.bz2
+  sha256: 9e3c670966b96ecc746c28c2c419541e3bcb787d1a73930f5e5f5e1bcbbb9bdb
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building Libgpg-error ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Configure with autotools
+      ^./configure $"--prefix=($env.PREFIX)" "--libdir=($env.PREFIX)/lib64" "--enable-shared" "--disable-static" "--disable-doc" "--disable-nls"
+
+      # Build
+      ^make -j ($env.CPU_COUNT | default "4")
+
+      # Install
+      ^make install
+
+      echo "Libgpg-error build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - make
+    - autoconf
+    - automake
+    - libtool
+    - ${{ compiler('c') }}
+
+  host:
+    # No host dependencies - this is a fundamental library
+
+  run:
+    # No specific runtime dependencies
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Library files
+        - ${{ "Library/" if win }}lib*/libgpg-error${{ ".dll" if win else ".so*" }}
+
+        # Header files
+        - ${{ "Library/" if win }}include/gpg-error.h
+        - ${{ "Library/" if win }}include/gpgrt.h
+
+        # Binary tools
+        - ${{ "Library/" if win }}bin/gpg-error-config${{ ".exe" if win }}
+        - ${{ "Library/" if win }}bin/gpgrt-config${{ ".exe" if win }}
+
+        # pkg-config and other config files
+        - ${{ "Library/" if win }}lib*/pkgconfig/gpg-error.pc
+        - ${{ "Library/" if win }}share/aclocal/gpg-error.m4
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+        - ${{ compiler('c') }}
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find libgpg-error
+        ^pkg-config --exists gpg-error
+
+        # Get version information
+        let gpg_error_version = (^pkg-config --modversion gpg-error | str trim)
+        echo $"Libgpg-error version detected: ($gpg_error_version)"
+
+        # Test compilation against libgpg-error
+        let test_code = '
+        #include <gpg-error.h>
+        #include <stdio.h>
+        int main() {
+            printf("Libgpg-error version: %s\\n", gpg_error_check_version(NULL));
+            gpg_error_t err = GPG_ERR_NO_ERROR;
+            printf("Error source: %s\\n", gpg_strsource(err));
+            printf("Error string: %s\\n", gpg_strerror(err));
+            return 0;
+        }'
+
+        echo $test_code | save test_gpg_error.c
+
+        # Compile test program
+        let cflags = (^pkg-config --cflags gpg-error | str trim)
+        let libs = (^pkg-config --libs gpg-error | str trim)
+        ^gcc $cflags -o test_gpg_error test_gpg_error.c $libs
+
+        # Run test program
+        ^./test_gpg_error
+
+        echo "Libgpg-error compilation and functionality test passed!"
+
+        # Test config tools
+        let config_path = ($env.PREFIX | path join "bin" "gpg-error-config")
+        if ($config_path | path exists) {
+          ^$config_path --version
+          echo "gpg-error-config tool test passed!"
+        }
+
+        let gpgrt_config_path = ($env.PREFIX | path join "bin" "gpgrt-config")
+        if ($gpgrt_config_path | path exists) {
+          ^$gpgrt_config_path --version
+          echo "gpgrt-config tool test passed!"
+        }
+
+about:
+  homepage: https://gnupg.org/software/libgpg-error/
+  repository: https://dev.gnupg.org/source/libgpg-error/
+  license: LGPL-2.1-or-later
+  license_file: COPYING.LIB
+  summary: Common error values for all GnuPG components
+  description: |
+    Libgpg-error is a small library that originally defined common error values
+    for all GnuPG components. Among these are GPG, GPGSM, GPGME, GPG-Agent,
+    libgcrypt, Libksba, DirMngr, Pinentry, SmartCard Daemon and more.
+
+    Key features:
+    - Common error codes and descriptions for GnuPG ecosystem
+    - Thread-safe error handling
+    - Internationalization support for error messages
+    - Cross-platform compatibility
+    - Lightweight and efficient implementation
+
+    This library provides error codes and common functions used throughout
+    the GnuPG suite and is a fundamental dependency for libgcrypt and other
+    cryptographic libraries. It's essential for applications that need
+    standardized error handling in cryptographic contexts.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    url: https://gnupg.org/ftp/gcrypt/libgpg-error/
+    regex: libgpg-error-(\d+\.\d+)\.tar\.bz2

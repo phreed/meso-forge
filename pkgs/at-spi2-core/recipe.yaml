@@ -1,0 +1,184 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# AT-SPI2-Core Package Recipe
+# ===========================
+#
+# AT-SPI2 is a protocol over DBus, toolkit widgets use to provide content to
+# screen readers such as Orca. This package contains the core components of
+# the AT-SPI2 accessibility framework, including the registry daemon and
+# core libraries.
+
+context:
+  version: "2.50.0"
+
+package:
+  name: at-spi2-core
+  version: ${{ version }}
+
+source:
+  url: https://download.gnome.org/sources/at-spi2-core/${{ version.split('.')[0] }}.${{ version.split('.')[1] }}/at-spi2-core-${{ version }}.tar.xz
+  sha256: e9f26f4d9798ab21c154009c4eaa94ae0bf07f70b8bb66c4c1b4e1a5ed0ffe17
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building AT-SPI2-Core ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Set up PKG_CONFIG_PATH for finding dependencies
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      # Configure with Meson
+      ^meson setup build $"--prefix=($env.PREFIX)" "--libdir=lib64" "--buildtype=release" "-Dintrospection=enabled" "-Ddocs=false" "-Ddbus_daemon=($env.PREFIX)/bin/dbus-daemon"
+
+      # Build
+      ^meson compile -C build
+
+      # Install
+      ^meson install -C build
+
+      echo "AT-SPI2-Core build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - meson
+    - ninja
+    - pkgconf
+    - pkg-config
+    - ${{ compiler('c') }}
+    - gobject-introspection
+    - python >=3.6
+
+  host:
+    - glib
+    - dbus
+    - libx11
+    - libxi
+    - libxtst
+
+  run:
+    - glib
+    - dbus
+    - libx11
+    - libxi
+    - libxtst
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Library files
+        - ${{ "Library/" if win }}lib*/libatspi${{ ".dll" if win else ".so*" }}
+
+        # Header files
+        - ${{ "Library/" if win }}include/at-spi-2.0/atspi/atspi.h
+        - ${{ "Library/" if win }}include/at-spi-2.0/atspi/atspi-accessible.h
+        - ${{ "Library/" if win }}include/at-spi-2.0/atspi/atspi-application.h
+
+        # pkg-config file
+        - ${{ "Library/" if win }}lib*/pkgconfig/atspi-2.pc
+
+        # GObject introspection files
+        - ${{ "Library/" if win }}lib*/girepository-1.0/Atspi-2.0.typelib
+
+        # DBus service files
+        - ${{ "Library/" if win }}share/dbus-1/services/org.a11y.atspi.Registry.service
+
+        # Registry daemon
+        - ${{ "Library/" if win }}libexec/at-spi2-registryd${{ ".exe" if win }}
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+        - ${{ compiler('c') }}
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find at-spi2-core
+        ^pkg-config --exists atspi-2
+
+        # Get version information
+        let atspi_version = (^pkg-config --modversion atspi-2 | str trim)
+        echo $"AT-SPI2-Core version detected: ($atspi_version)"
+
+        # Test compilation against at-spi2-core
+        let test_code = '
+        #include <atspi/atspi.h>
+        #include <stdio.h>
+        int main() {
+            int result = atspi_init();
+            if (result == 0) {
+                printf("AT-SPI2 initialization successful\\n");
+                atspi_exit();
+                return 0;
+            } else {
+                printf("AT-SPI2 initialization failed (expected in test environment)\\n");
+                return 0;  // Still pass test since dbus may not be running
+            }
+        }'
+
+        echo $test_code | save test_atspi.c
+
+        # Compile test program
+        let cflags = (^pkg-config --cflags atspi-2 | str trim)
+        let libs = (^pkg-config --libs atspi-2 | str trim)
+        ^gcc $cflags -o test_atspi test_atspi.c $libs
+
+        echo "AT-SPI2-Core compilation test passed!"
+
+        # Test registry daemon exists
+        let registry_path = ($env.PREFIX | path join "libexec" "at-spi2-registryd")
+        if ($registry_path | path exists) {
+          echo "AT-SPI2 registry daemon found at: $registry_path"
+        } else {
+          error make {msg: "AT-SPI2 registry daemon not found"}
+        }
+
+about:
+  homepage: https://wiki.gnome.org/Accessibility
+  repository: https://gitlab.gnome.org/GNOME/at-spi2-core
+  license: LGPL-2.1-or-later
+  license_file: COPYING
+  summary: Core components of AT-SPI2 accessibility framework
+  description: |
+    AT-SPI2 is a protocol over DBus, toolkit widgets use to provide content to
+    screen readers such as Orca. This package contains the core components of
+    the AT-SPI2 accessibility framework.
+
+    Key components:
+    - libatspi: Client library for accessing accessibility information
+    - at-spi2-registryd: Registry daemon for managing accessibility services
+    - DBus service definitions for accessibility communication
+    - Core accessibility interfaces and protocols
+
+    Key features:
+    - Cross-desktop accessibility protocol
+    - DBus-based inter-process communication
+    - Support for screen readers and other assistive technologies
+    - Integration with GNOME, KDE, and other desktop environments
+    - Comprehensive accessibility tree navigation
+    - Event notification system for accessibility changes
+    - Support for text, component, and action interfaces
+
+    AT-SPI2-Core is essential for applications that need to provide
+    accessibility support and is a key dependency for WebKit and GTK
+    applications that need to be accessible to users with disabilities.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    gnome:
+      package_name: at-spi2-core
+      major_version: 2

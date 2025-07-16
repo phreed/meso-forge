@@ -1,0 +1,235 @@
+= WebKit Development Package
+
+== Overview
+
+The WebKit Development Package provides additional development tools, debugging capabilities, and advanced features for WebKit-based application development. This package extends the base `webkit` package with comprehensive development infrastructure, testing tools, and optional features.
+
+== Purpose
+
+This package is designed for:
+
+* WebKit engine developers
+* Application developers needing advanced WebKit features
+* Automated testing and CI/CD pipelines
+* Applications requiring full web standards compliance
+* Development environments and debugging workflows
+
+== Additional Features
+
+=== Development Tools
+
+* *WebKitWebDriver* - WebDriver implementation for automated testing
+* *Development Scripts* - Build and development utilities from WebKit Tools
+* *Test Infrastructure* - WebKit test framework and utilities
+* *Documentation Tools* - API documentation generation capabilities
+
+=== Enhanced Web Features
+
+* *WebRTC Support* - Real-time communication capabilities
+* *Media Streaming* - Advanced media stream processing
+* *Geolocation API* - Location services integration
+* *Gamepad API* - Game controller support
+* *Advanced Codecs* - AVIF and JPEG XL image format support
+* *Web Audio API* - Advanced audio processing capabilities
+* *Hardware Acceleration* - Enhanced GPU acceleration features
+
+=== Debugging and Development
+
+* *Debug Builds* - WebKit libraries compiled with debugging symbols
+* *Developer Mode* - Additional debugging and inspection features
+* *Sandbox Support* - Bubblewrap process sandboxing
+* *Enhanced Accessibility* - Complete accessibility feature set
+* *Spell Checking* - Integrated spell checking capabilities
+
+== Differences from Base Package
+
+[cols="1,1,1"]
+|===
+|Feature |webkit |webkit-dev
+
+|Basic HTML/CSS/JS
+|✓
+|✓
+
+|GTK4 Integration
+|✓
+|✓
+
+|Media Playback
+|Basic
+|Full (including streaming)
+
+|WebDriver
+|✗
+|✓
+
+|WebRTC
+|✗
+|✓
+
+|Advanced Codecs
+|✗
+|✓ (AVIF, JPEG XL)
+
+|Debugging Tools
+|Limited
+|Complete
+
+|Build Scripts
+|✗
+|✓
+
+|Test Framework
+|✗
+|✓
+
+|Package Size
+|Smaller
+|Larger
+
+|Build Type
+|Release
+|Debug
+|===
+
+== Usage Examples
+
+=== WebDriver for Automated Testing
+
+[source,bash]
+----
+# Start WebKitWebDriver for Selenium testing
+WebKitWebDriver --port=9515
+
+# Use with Selenium in Python
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+caps = DesiredCapabilities.SAFARI
+driver = webdriver.Remote(
+    command_executor='http://localhost:9515',
+    desired_capabilities=caps
+)
+driver.get("https://example.com")
+----
+
+=== Development with Advanced Features
+
+[source,c]
+----
+#include <webkit2/webkit2.h>
+
+// Enable WebRTC and media features
+WebKitWebView *webview = webkit_web_view_new();
+WebKitSettings *settings = webkit_web_view_get_settings(webview);
+
+webkit_settings_set_enable_webrtc(settings, TRUE);
+webkit_settings_set_enable_media_stream(settings, TRUE);
+webkit_settings_set_enable_webgl(settings, TRUE);
+webkit_settings_set_enable_webaudio(settings, TRUE);
+
+webkit_web_view_load_uri(webview, "https://webrtc-demo.example.com");
+----
+
+=== Using Development Scripts
+
+[source,bash]
+----
+# Access WebKit development tools
+cd $CONDA_PREFIX/share/webkit-dev/tools
+
+# Run WebKit tests (if test data available)
+./run-webkit-tests --gtk
+
+# Build analysis tools
+./build-webkit --debug --gtk
+----
+
+== Installation and Dependencies
+
+The webkit-dev package automatically installs the base webkit package and adds development-specific dependencies:
+
+* Additional GStreamer plugins for media support
+* Bubblewrap for process sandboxing
+* Advanced codec libraries (libavif, libjxl)
+* WebRTC dependencies (libvpx, opus)
+* Development tools (Python, Perl, Ruby)
+
+== Performance Considerations
+
+The webkit-dev package includes debug builds and additional features that may impact performance:
+
+* Larger memory footprint due to debug symbols
+* Additional startup time for feature initialization
+* More comprehensive but slower media codec support
+* Enhanced security features with some performance overhead
+
+For production deployments, consider using the base `webkit` package unless the additional features are required.
+
+== Development Workflow
+
+=== Setting up a Development Environment
+
+[source,bash]
+----
+# Install the development package
+conda install webkit-dev
+
+# Verify WebDriver functionality
+WebKitWebDriver --version
+
+# Check available development tools
+ls $CONDA_PREFIX/share/webkit-dev/tools/
+----
+
+=== Building Custom WebKit Applications
+
+[source,bash]
+----
+# Compile with all development features
+gcc -o advanced-browser browser.c \
+    `pkg-config --cflags --libs webkit2gtk-4.1` \
+    -DWEBKIT_DEVELOPMENT_MODE
+----
+
+== Testing and Quality Assurance
+
+The webkit-dev package includes comprehensive testing infrastructure:
+
+* Layout tests for web standards compliance
+* API tests for WebKit functionality
+* Performance benchmarks
+* Memory leak detection tools
+* Security testing utilities
+
+== Troubleshooting
+
+=== Common Issues
+
+* *Missing WebDriver*: Ensure the package installed correctly and check `$CONDA_PREFIX/bin/WebKitWebDriver`
+* *Media Playback Issues*: Verify GStreamer plugins are available
+* *Sandbox Errors*: Check that bubblewrap is properly installed and configured
+* *Performance Issues*: Consider using the base webkit package for production
+
+=== Debug Information
+
+Enable WebKit debugging output:
+
+[source,bash]
+----
+export WEBKIT_DEBUG=all
+export G_MESSAGES_DEBUG=all
+----
+
+== License
+
+WebKit is licensed under LGPL-2.1-or-later and BSD-2-Clause licenses. Additional development tools may have their own licenses. See the license files included in the package for complete terms.
+
+== Upstream Resources
+
+* WebKit Homepage: https://webkit.org/
+* WebKitGTK: https://webkitgtk.org/
+* WebDriver Specification: https://www.w3.org/TR/webdriver/
+* WebKit Development Guide: https://webkit.org/contributing/
+* Bug Reports: https://bugs.webkit.org/
+* Development Documentation: https://trac.webkit.org/wiki

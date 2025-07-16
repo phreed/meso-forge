@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# Unifdef Package Recipe
+# ======================
+#
+# Unifdef is a utility for removing or conditioning preprocessor lines
+# from source code. It is useful for creating a single source file from
+# a file that has been written to compile under multiple different
+# environments. It's commonly used in build systems like WebKit.
+
+context:
+  version: "2.12"
+
+package:
+  name: unifdef
+  version: ${{ version }}
+
+source:
+  url: https://dotat.at/prog/unifdef/unifdef-${{ version }}.tar.xz
+  sha256: 43ce0f02ecdcdc723b2475575563dd11e9ca9f089dc2894c2e8a825eb4f6b90a
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building Unifdef ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Unifdef uses a simple Makefile-based build system
+      # Set prefix and other variables
+      ^make PREFIX=($env.PREFIX) CC=gcc CFLAGS="-O2 -g"
+
+      # Install
+      ^make install PREFIX=($env.PREFIX) BINDIR=($env.PREFIX)/bin MANDIR=($env.PREFIX)/share/man
+
+      echo "Unifdef build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - make
+    - ${{ compiler('c') }}
+
+  host:
+    # No host dependencies - unifdef is a simple standalone tool
+
+  run:
+    # No specific runtime dependencies
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Binary executable
+        - ${{ "Library/" if win }}bin/unifdef${{ ".exe" if win }}
+
+        # Man page
+        - ${{ "Library/" if win }}share/man/man1/unifdef.1
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        # Test unifdef functionality with a simple example
+        let test_code = '
+        #ifdef DEBUG
+        printf("Debug mode enabled\\n");
+        #endif
+        #ifndef DEBUG
+        printf("Release mode\\n");
+        #endif
+        printf("Common code\\n");'
+
+        echo $test_code | save test_input.c
+
+        # Test removing DEBUG sections
+        ^unifdef -UDEBUG test_input.c | save test_output_release.c
+
+        # Test keeping DEBUG sections
+        ^unifdef -DDEBUG test_input.c | save test_output_debug.c
+
+        # Verify unifdef can process the file
+        if not (test_output_release.c | path exists) {
+          error make {msg: "unifdef failed to create output file"}
+        }
+
+        if not (test_output_debug.c | path exists) {
+          error make {msg: "unifdef failed to create debug output file"}
+        }
+
+        echo "Unifdef functionality test passed!"
+
+        # Test version output
+        try {
+          ^unifdef -V
+          echo "Unifdef version test passed!"
+        } catch {
+          echo "Note: unifdef may not support -V flag in this version"
+        }
+
+about:
+  homepage: https://dotat.at/prog/unifdef/
+  repository: https://github.com/fanf2/unifdef
+  license: BSD-2-Clause
+  license_file: COPYING
+  summary: Remove preprocessor conditionals from source code
+  description: |
+    Unifdef is a utility for removing or conditioning preprocessor lines
+    from source code. It is useful for creating a single source file from
+    a file that has been written to compile under multiple different
+    environments.
+
+    Key features:
+    - Removes #ifdef, #ifndef, #if, #else, #elif, and #endif lines
+    - Can define or undefine preprocessor symbols
+    - Preserves the structure of the remaining code
+    - Supports complex conditional expressions
+    - Handles nested conditionals correctly
+    - Can process multiple files
+    - Provides detailed error reporting
+
+    Unifdef is commonly used in build systems and software distribution
+    to create platform-specific or configuration-specific versions of
+    source code. It's a build dependency for WebKit and many other
+    large software projects that use conditional compilation.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    url: https://dotat.at/prog/unifdef/
+    regex: unifdef-(\d+\.\d+)\.tar\.xz

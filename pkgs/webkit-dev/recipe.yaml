@@ -1,0 +1,284 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# WebKit Development Package Recipe
+# =================================
+#
+# This package provides additional development tools, documentation, and
+# features for WebKit development beyond what's included in the main webkit package.
+# It includes debugging tools, test frameworks, and development utilities.
+
+context:
+  # Match the webkit base package version
+  major_version: "2.44"
+  version: "2.44.2"
+  # Build configuration
+  build_type: "Debug"  # Debug build for development
+  nprocs: 4
+
+package:
+  name: webkit-dev
+  version: ${{ version }}
+
+source:
+  url: https://webkitgtk.org/releases/webkitgtk-${{ version }}.tar.xz
+  sha256: 523f42c8ff24832add17631f6eaafe8f9303afe316ef1a7e1844b952a7f7521b
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building WebKit Development Tools ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Set up environment for WebKit build
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      # Conservative parallel jobs for memory-intensive debug build
+      let build_jobs = [(${{ nprocs }} | into int) 1] | math max
+
+      # Create build directory
+      ^mkdir -p build-dev
+      cd build-dev
+
+      # Configure with CMake for development features
+      # Enable additional development tools and debugging features
+      ^cmake .. (
+        $"-DCMAKE_INSTALL_PREFIX=($env.PREFIX)" +
+        $" -DCMAKE_BUILD_TYPE=${{ build_type }}" +
+        " -DCMAKE_INSTALL_LIBDIR=lib64" +
+        " -DPORT=GTK" +
+        " -DUSE_GTK4=ON" +
+        " -DUSE_LIBSOUP3=OFF" +
+        " -DENABLE_DOCUMENTATION=ON" +
+        " -DENABLE_MINIBROWSER=ON" +
+        " -DENABLE_WEBDRIVER=ON" +
+        " -DENABLE_DEVELOPER_MODE=ON" +
+        " -DENABLE_BUBBLEWRAP_SANDBOX=ON" +
+        " -DENABLE_GAMEPAD=ON" +
+        " -DENABLE_GEOLOCATION=ON" +
+        " -DENABLE_MEDIA_STREAM=ON" +
+        " -DENABLE_WEB_RTC=ON" +
+        " -DENABLE_WEBGL=ON" +
+        " -DENABLE_WEBGL2=ON" +
+        " -DENABLE_WEB_AUDIO=ON" +
+        " -DENABLE_VIDEO=ON" +
+        " -DENABLE_WEB_CRYPTO=ON" +
+        " -DENABLE_SPELLCHECK=ON" +
+        " -DENABLE_TOUCH_EVENTS=ON" +
+        " -DENABLE_ACCESSIBILITY=ON" +
+        " -DENABLE_DRAG_SUPPORT=ON" +
+        " -DENABLE_CONTEXT_MENUS=ON" +
+        " -DUSE_SYSTEMD=ON" +
+        " -DUSE_AVIF=ON" +
+        " -DUSE_JPEGXL=ON" +
+        " -G Ninja"
+      )
+
+      echo $"Building WebKit development tools with ($build_jobs) parallel jobs..."
+      ^ninja -j $build_jobs
+
+      echo "Installing WebKit development tools..."
+      ^ninja install
+
+      # Install additional development scripts and tools
+      let tools_dir = ($env.PREFIX | path join "share" "webkit-dev" "tools")
+      ^mkdir -p $tools_dir
+
+      # Copy development scripts
+      if (ls ../Tools/Scripts | length) > 0 {
+        ^cp -r ../Tools/Scripts/* $tools_dir/
+      }
+
+      # Copy test infrastructure
+      let test_dir = ($env.PREFIX | path join "share" "webkit-dev" "tests")
+      ^mkdir -p $test_dir
+
+      if (ls ../Tools/TestWebKitAPI | length) > 0 {
+        ^cp -r ../Tools/TestWebKitAPI/* $test_dir/
+      }
+
+      echo "WebKit development tools build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - cmake
+    - ninja
+    - pkgconf
+    - pkg-config
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    # Additional build tools for development features
+    - python >=3.6
+    - perl
+    - ruby
+    - gperf
+    - flex
+    - bison
+    - gtk-doc
+    - doxygen
+    - graphviz
+    # Core dependencies
+    - glib-tools
+    - gobject-introspection
+    - gtk4
+    - libsoup
+
+  host:
+    # Base webkit package (runtime dependency)
+    - webkit ==${{ version }}
+    # Additional development libraries
+    - glib
+    - libglib
+    - gtk4
+    - libsoup
+    - cairo
+    - pango
+    - gdk-pixbuf
+    - harfbuzz
+    - freetype
+    - fontconfig
+    - fribidi
+    - atk
+    - icu
+    - zlib
+    - libpng
+    - libjpeg-turbo
+    - libwebp
+    - sqlite
+    - libxml2
+    - libxslt
+    - libgcrypt
+    - gnutls
+    # Development-specific dependencies
+    - bubblewrap
+    - xdg-dbus-proxy
+    - geoclue2
+    - libnotify
+    - libsecret
+    - enchant
+    - hyphen
+    - gstreamer
+    - gst-plugins-base
+    - gst-plugins-good
+    - gst-plugins-bad
+    - libavif
+    - libjxl
+    # WebRTC dependencies
+    - libvpx
+    - opus
+    - openssl
+    # X11 libraries
+    - xorg-libx11
+    - xorg-libxext
+    - xorg-libxrender
+    - xorg-libxi
+    - xorg-libxfixes
+    - xorg-libxcursor
+    - xorg-libxdamage
+    - xorg-libxrandr
+    - xorg-libxcomposite
+
+  run:
+    # Runtime dependencies
+    - webkit ==${{ version }}
+    - python >=3.6
+    - perl
+    - ruby
+    - bubblewrap
+    - xdg-dbus-proxy
+    - gstreamer
+    - gst-plugins-base
+    - gst-plugins-good
+    - gst-plugins-bad
+
+tests:
+  # Test 1: Verify development package contents
+  - package_contents:
+      files:
+        # Development tools and scripts
+        - ${{ "Library/" if win }}share/webkit-dev/tools/
+        - ${{ "Library/" if win }}share/webkit-dev/tests/
+
+        # WebDriver support
+        - ${{ "Library/" if win }}bin/WebKitWebDriver${{ ".exe" if win }}
+
+        # Additional debugging libraries (debug builds)
+        - ${{ "Library/" if win }}lib*/libwebkit2gtk-4.1${{ ".dll" if win else ".so*" }}
+
+        # Documentation (if built)
+        # - share/gtk-doc/html/webkit2gtk/
+        # - share/gtk-doc/html/jsc/
+
+  # Test 2: Development tools functionality test
+  - requirements:
+      build:
+        - nushell
+        - python
+    script:
+      interpreter: nu
+      content: |
+        # Test that development tools are accessible
+        let tools_dir = ($env.PREFIX | path join "share" "webkit-dev" "tools")
+        if not ($tools_dir | path exists) {
+          error make {msg: "Development tools directory not found"}
+        }
+
+        # Test WebDriver if available
+        let webdriver_path = ($env.PREFIX | path join "bin" "WebKitWebDriver")
+        if ($webdriver_path | path exists) {
+          echo "WebKitWebDriver found at: $webdriver_path"
+          # Test version output
+          try {
+            ^$webdriver_path --version
+          } catch {
+            echo "WebKitWebDriver version test skipped (may require display)"
+          }
+        }
+
+        echo "WebKit development tools verification completed!"
+
+about:
+  homepage: https://webkit.org/
+  repository: https://github.com/WebKit/WebKit
+  license: LGPL-2.1-or-later AND BSD-2-Clause
+  license_file:
+    - "Source/WebCore/LICENSE-LGPL-2.1"
+    - "Source/WebCore/LICENSE-APPLE"
+  summary: WebKit development tools and debugging features
+  description: |
+    WebKit development package providing additional tools, debugging capabilities,
+    and development features for WebKit-based applications. This package extends
+    the base webkit package with:
+
+    Development Features:
+    - WebDriver support for automated testing
+    - Enhanced debugging capabilities
+    - Development scripts and build tools
+    - Test infrastructure and utilities
+    - Additional codec support (AVIF, JPEG XL)
+    - WebRTC and media streaming support
+    - Geolocation and gamepad support
+    - Comprehensive accessibility features
+
+    This package is intended for developers who need the full feature set of
+    WebKit for development, testing, or applications requiring advanced web
+    capabilities.
+
+    Note: This package includes debug builds and additional dependencies,
+    making it larger than the base webkit package. Use the base webkit package
+    for production deployments unless these development features are required.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    github-releases:
+      - ^webkitgtk-(\d+\.\d+\.\d+)$

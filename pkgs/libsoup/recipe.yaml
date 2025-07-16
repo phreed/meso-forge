@@ -1,0 +1,177 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# Libsoup Package Recipe
+# ======================
+#
+# Libsoup is an HTTP client/server library for GNOME. It uses GObjects and
+# the GLib main loop to integrate well with GNOME applications, and also has
+# a synchronous API for use in threaded applications. It supports HTTP/1.1,
+# HTTP/2, WebSockets, and various authentication mechanisms.
+
+context:
+  version: "3.4.4"
+
+package:
+  name: libsoup
+  version: ${{ version }}
+
+source:
+  url: https://download.gnome.org/sources/libsoup/${{ version.split('.')[0] }}.${{ version.split('.')[1] }}/libsoup-${{ version }}.tar.xz
+  sha256: 291c67725f36ed90ea43efff25064b69c5a2d1981488477c05c481a3b4b0c5aa
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building Libsoup ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Set up PKG_CONFIG_PATH for finding dependencies
+      $env.PKG_CONFIG_PATH = (
+        ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib" "pkgconfig") + ":" +
+        ($env.BUILD_PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PREFIX | path join "lib64" "pkgconfig") + ":" +
+        ($env.PKG_CONFIG_PATH | default "")
+      )
+
+      # Configure with Meson
+      ^meson setup build $"--prefix=($env.PREFIX)" "--libdir=lib64" "--buildtype=release" "-Dgssapi=disabled" "-Dntlm=disabled" "-Dbrotli=disabled" "-Dtls_check=false" "-Dintrospection=enabled" "-Dvapi=disabled" "-Ddocs=disabled" "-Dtests=false" "-Dsysprof=disabled"
+
+      # Build
+      ^meson compile -C build
+
+      # Install
+      ^meson install -C build
+
+      echo "Libsoup build and installation completed successfully!"
+
+requirements:
+  build:
+    - nushell
+    - meson
+    - ninja
+    - pkgconf
+    - pkg-config
+    - ${{ compiler('c') }}
+    - gobject-introspection
+    - python >=3.6
+
+  host:
+    - glib
+    - libxml2
+    - sqlite
+    - libpsl
+    - nghttp2
+    - gnutls
+
+  run:
+    - glib
+    - libxml2
+    - sqlite
+    - libpsl
+    - nghttp2
+    - gnutls
+
+tests:
+  # Test 1: Verify package contents
+  - package_contents:
+      files:
+        # Library files
+        - ${{ "Library/" if win }}lib*/libsoup-3.0${{ ".dll" if win else ".so*" }}
+
+        # Header files
+        - ${{ "Library/" if win }}include/libsoup-3.0/libsoup/soup.h
+        - ${{ "Library/" if win }}include/libsoup-3.0/libsoup/soup-session.h
+        - ${{ "Library/" if win }}include/libsoup-3.0/libsoup/soup-message.h
+
+        # pkg-config file
+        - ${{ "Library/" if win }}lib*/pkgconfig/libsoup-3.0.pc
+
+        # GObject introspection files
+        - ${{ "Library/" if win }}lib*/girepository-1.0/Soup-3.0.typelib
+
+  # Test 2: Basic functionality test
+  - requirements:
+      build:
+        - nushell
+        - pkg-config
+        - ${{ compiler('c') }}
+    script:
+      interpreter: nu
+      content: |
+        # Test that pkg-config can find libsoup
+        ^pkg-config --exists libsoup-3.0
+
+        # Get version information
+        let soup_version = (^pkg-config --modversion libsoup-3.0 | str trim)
+        echo $"Libsoup version detected: ($soup_version)"
+
+        # Test compilation against libsoup
+        let test_code = '
+        #include <libsoup/soup.h>
+        #include <stdio.h>
+        int main() {
+            printf("Libsoup version: %u.%u.%u\\n",
+                   soup_get_major_version(),
+                   soup_get_minor_version(),
+                   soup_get_micro_version());
+
+            // Test basic session creation
+            SoupSession *session = soup_session_new();
+            if (session) {
+                g_object_unref(session);
+                printf("Basic session creation test passed\\n");
+            }
+            return 0;
+        }'
+
+        echo $test_code | save test_soup.c
+
+        # Compile test program
+        let cflags = (^pkg-config --cflags libsoup-3.0 | str trim)
+        let libs = (^pkg-config --libs libsoup-3.0 | str trim)
+        ^gcc $cflags -o test_soup test_soup.c $libs
+
+        # Run test program
+        ^./test_soup
+
+        echo "Libsoup compilation and functionality test passed!"
+
+about:
+  homepage: https://wiki.gnome.org/Projects/libsoup
+  repository: https://gitlab.gnome.org/GNOME/libsoup
+  license: LGPL-2.1-or-later
+  license_file: COPYING
+  summary: HTTP client/server library for GNOME
+  description: |
+    Libsoup is an HTTP client/server library for GNOME. It uses GObjects and
+    the GLib main loop to integrate well with GNOME applications, and also has
+    a synchronous API for use in threaded applications.
+
+    Key features:
+    - HTTP/1.1 and HTTP/2 support
+    - WebSocket client and server support
+    - Asynchronous and synchronous APIs
+    - Cookie jar support with persistent storage
+    - SSL/TLS support via GnuTLS
+    - Proxy support (HTTP, SOCKS4, SOCKS5)
+    - Authentication support (Basic, Digest, NTLM, Negotiate)
+    - Content encoding support (gzip, deflate, brotli)
+    - Automatic redirect handling
+    - Connection pooling and keep-alive
+    - GObject introspection support
+
+    Libsoup is used by many GNOME applications and is a key dependency for
+    WebKit-based applications. It provides the networking foundation for
+    web browsers, RSS readers, and other applications that need HTTP
+    functionality.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    gnome:
+      package_name: libsoup
+      major_version: 3
