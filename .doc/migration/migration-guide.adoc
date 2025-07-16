@@ -50,8 +50,8 @@ meso-forge help
 [source,bash]
 ----
 # Create and checkout new branch
-git checkout -b packages/tactical
-git checkout --orphan packages/tactical
+git checkout -b pkgs/tactical
+git checkout --orphan pkgs/tactical
 
 # Remove everything except tactical packages
 find pkgs -maxdepth 1 -type d ! -name pkgs ! -name freetakserver ! -name freetakserver-ui ! -name pytak ! -name takproto ! -name digitalpy -exec rm -rf {} +
@@ -60,22 +60,23 @@ find pkgs -maxdepth 1 -type d ! -name pkgs ! -name freetakserver ! -name freetak
 cp templates/package-branch-pixi.toml pixi.toml
 
 # Create branch-specific README
-cat > README.md << 'EOF'
-# Tactical Packages - meso-forge
+cat > README.adoc << 'EOF'
+= Tactical Packages - meso-forge
 
 This branch contains packages for military, defense, and tactical data systems.
 
-## Packages
+== Packages
 
-- **freetakserver** - FreeTAK Server for tactical data
-- **freetakserver-ui** - UI for FreeTAK Server
-- **pytak** - Python TAK (Team Awareness Kit) library
-- **takproto** - TAK protocol implementation
-- **digitalpy** - Digital Python framework for tactical systems
+* *freetakserver* - FreeTAK Server for tactical data
+* *freetakserver-ui* - UI for FreeTAK Server
+* *pytak* - Python TAK (Team Awareness Kit) library
+* *takproto* - TAK protocol implementation
+* *digitalpy* - Digital Python framework for tactical systems
 
-## Usage
+== Usage
 
-```bash
+[source,bash]
+----
 # Install meso-forge-tooling first
 pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
 
@@ -87,9 +88,9 @@ pixi run build freetakserver
 
 # Publish packages
 pixi run publish
-```
+----
 
-## Contributing
+== Contributing
 
 1. Packages should relate to tactical/military domains
 2. Follow the package template structure
@@ -99,7 +100,7 @@ EOF
 # Commit the tactical branch
 git add .
 git commit -m "Create tactical-packages branch"
-git push -u origin packages/tactical
+git push -u origin pkgs/tactical
 ----
 
 ==== 2.2 Create system-tools branch
@@ -107,40 +108,41 @@ git push -u origin packages/tactical
 [source,bash]
 ----
 git checkout main
-git checkout -b packages/system-tools
-git checkout --orphan packages/system-tools
+git checkout -b pkgs/system-tools
+git checkout --orphan pkgs/system-tools
 
 # Keep only system tools packages
 find pkgs -maxdepth 1 -type d ! -name pkgs ! -name fd ! -name dysk ! -name fsarchiver ! -name pwgen ! -name bash-preexec ! -name ble-sh ! -name rotz -exec rm -rf {} +
 
 cp templates/package-branch-pixi.toml pixi.toml
 
-cat > README.md << 'EOF'
-# System Tools - meso-forge
+cat > README.adoc << 'EOF'
+= System Tools - meso-forge
 
 This branch contains system utilities, file management, and shell enhancement packages.
 
-## Packages
+== Packages
 
-- **fd** - Fast file finder (Rust alternative to find)
-- **dysk** - Disk usage analyzer
-- **fsarchiver** - Filesystem archiver
-- **pwgen** - Password generator
-- **bash-preexec** - Bash preexec hook
-- **ble-sh** - Bash Line Editor
-- **rotz** - Dotfiles manager
+* *fd* - Fast file finder (Rust alternative to find)
+* *dysk* - Disk usage analyzer
+* *fsarchiver* - Filesystem archiver
+* *pwgen* - Password generator
+* *bash-preexec* - Bash preexec hook
+* *ble-sh* - Bash Line Editor
+* *rotz* - Dotfiles manager
 
-## Usage
+== Usage
 
-```bash
+[source,bash]
+----
 pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
 pixi run build-all
-```
+----
 EOF
 
 git add .
 git commit -m "Create system-tools branch"
-git push -u origin packages/system-tools
+git push -u origin pkgs/system-tools
 ----
 
 ==== 2.3 Create development-tools branch
@@ -148,42 +150,42 @@ git push -u origin packages/system-tools
 [source,bash]
 ----
 git checkout main
-git checkout -b packages/development-tools
-git checkout --orphan packages/development-tools
+git checkout -b pkgs/development-tools
+git checkout --orphan pkgs/development-tools
 
 # Keep only development tools
 find pkgs -maxdepth 1 -type d ! -name pkgs ! -name metashell ! -name jank ! -name devcontainer-cli ! -name gtksourceview5 ! -name ratatui ! -name podlet -exec rm -rf {} +
 
 cp templates/package-branch-pixi.toml pixi.toml
 
-cat > README.md << 'EOF'
-# Development Tools - meso-forge
+cat > README.adoc << 'EOF'
+= Development Tools - meso-forge
 
 Software development, IDE components, and development environment packages.
 
-## Packages
+== Packages
 
-- **metashell** - Interactive C++ shell
-- **jank** - Clojure dialect
-- **devcontainer-cli** - Development container CLI
-- **gtksourceview5** - Source code editing widget
-- **ratatui** - Terminal UI framework (Rust)
-- **podlet** - Podman quadlet generator
+* *metashell* - Interactive C++ shell
+* *jank* - Clojure dialect
+* *devcontainer-cli* - Development container CLI
+* *gtksourceview5* - Source code editing widget
+* *ratatui* - Terminal UI framework (Rust)
+* *podlet* - Podman quadlet generator
 EOF
 
 git add .
 git commit -m "Create development-tools branch"
-git push -u origin packages/development-tools
+git push -u origin pkgs/development-tools
 ----
 
 ==== 2.4 Create remaining domain branches
 
 Repeat the process for:
 
-* `packages/documentation-tools`
-* `packages/cloud-infrastructure`
-* `packages/communication-media`
-* `packages/data-processing`
+* `pkgs/documentation-tools`
+* `pkgs/cloud-infrastructure`
+* `pkgs/communication-media`
+* `pkgs/data-processing`
 
 === Phase 3: Update Main Branch
 
@@ -214,13 +216,13 @@ pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
 
 == Package Branches
 
-* link:++https://github.com/phreed/meso-forge/tree/packages/tactical++[Tactical Packages] - Military and defense systems
-* link:++https://github.com/phreed/meso-forge/tree/packages/system-tools++[System Tools] - System utilities and shell enhancements
-* link:++https://github.com/phreed/meso-forge/tree/packages/development-tools++[Development Tools] - Software development tools
-* link:++https://github.com/phreed/meso-forge/tree/packages/documentation-tools++[Documentation Tools] - Documentation generation
-* link:++https://github.com/phreed/meso-forge/tree/packages/cloud-infrastructure++[Cloud Infrastructure] - Cloud and infrastructure tools
-* link:++https://github.com/phreed/meso-forge/tree/packages/communication-media++[Communication & Media] - Communication and media tools
-* link:++https://github.com/phreed/meso-forge/tree/packages/data-processing++[Data Processing] - Data processing and analysis
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/tactical++[Tactical Packages] - Military and defense systems
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/system-tools++[System Tools] - System utilities and shell enhancements
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/development-tools++[Development Tools] - Software development tools
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/documentation-tools++[Documentation Tools] - Documentation generation
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/cloud-infrastructure++[Cloud Infrastructure] - Cloud and infrastructure tools
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/communication-media++[Communication & Media] - Communication and media tools
+* link:++https://github.com/phreed/meso-forge/tree/pkgs/data-processing++[Data Processing] - Data processing and analysis
 
 == Usage
 
@@ -237,8 +239,8 @@ meso-forge test
 [source,bash]
 ----
 # Create new domain branch
-git checkout -b packages/my-domain
-git checkout --orphan packages/my-domain
+git checkout -b pkgs/my-domain
+git checkout --orphan pkgs/my-domain
 
 # Copy template
 cp templates/package-branch-pixi.toml pixi.toml
@@ -267,10 +269,10 @@ name: Build Packages
 on:
   push:
     branches:
-      - 'packages/**'
+      - 'pkgs/**'
   pull_request:
     branches:
-      - 'packages/**'
+      - 'pkgs/**'
 
 jobs:
   build:
@@ -282,7 +284,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: packages/${{ matrix.branch }}
+        ref: pkgs/${{ matrix.branch }}
 
     - name: Install pixi
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -332,7 +334,7 @@ jobs:
 [source,bash]
 ----
 # For each package branch
-git checkout packages/tactical
+git checkout pkgs/tactical
 pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
 pixi run build-all
 pixi run test
