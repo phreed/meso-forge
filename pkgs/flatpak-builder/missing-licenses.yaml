@@ -1,0 +1,20 @@
+# Missing licenses file for flatpak-builder package
+# This file documents any license files that may be missing from the source distribution
+# or need special handling during the build process.
+
+# Currently, flatpak-builder includes the COPYING file (LGPL-2.1-or-later) in the source tarball
+# No additional license files are known to be missing at this time.
+
+# If any third-party dependencies are bundled or statically linked that have missing
+# license files, they should be documented here with their license information.
+
+# Example format:
+# missing_licenses:
+#   - package_name: "example-lib"
+#     license: "MIT"
+#     license_text: |
+#       MIT License text here...
+#     source_url: "https://github.com/example/example-lib"
+#     reason: "License file not included in source distribution"
+
+missing_licenses: []

@@ -1,0 +1,123 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "1.4.4"
+
+package:
+  name: flatpak-builder
+  version: ${{ version }}
+
+source:
+  url: https://github.com/flatpak/flatpak-builder/releases/download/${{ version }}/flatpak-builder-${{ version }}.tar.xz
+  sha256: dc27159394baaa2cb523f52f874472ff50d161983233264ca2a22e850741ec7a
+
+build:
+  number: 0
+  script:
+    interpreter: bash
+    content: |
+      echo "WARNING: This build has limitations due to missing dependencies in conda-forge:"
+      echo "  - ostree: Required for core flatpak functionality"
+      echo "  - debugedit: Required for build process"
+      echo "  - appstream: Required for metadata validation"
+      echo ""
+      echo "This package may not be fully functional without system-provided dependencies."
+      echo ""
+
+      # Check for system dependencies
+      if ! command -v ostree &> /dev/null; then
+        echo "ERROR: ostree not found. Please install ostree through your system package manager."
+        echo "       Ubuntu/Debian: sudo apt install libostree-dev"
+        echo "       Fedora/RHEL: sudo dnf install ostree-devel"
+        exit 1
+      fi
+
+      # Setup build directory with available features
+      meson setup _build \
+        --prefix=$PREFIX \
+        --libdir=lib \
+        --buildtype=release \
+        -Dyaml=enabled \
+        -Ddocs=disabled \
+        -Dtests=false \
+        -Dinstalled_tests=false \
+        -Dfuse=compatible
+
+      # Build and install
+      meson compile -C _build
+      meson install -C _build
+
+requirements:
+  build:
+    - meson
+    - ninja
+    - pkg-config
+    - gcc
+  host:
+    - glib >=2.66
+    - json-glib
+    - libcurl
+    - elfutils >=0.8.12
+    - libxml2 >=2.4
+    - yaml
+  run:
+    - flatpak
+    - git
+    - tar
+    - patch
+    - coreutils
+    - p7zip
+    - unzip
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # flatpak-builder binary
+        - bin/flatpak-builder
+
+  # Test 2: Basic functionality test
+  - requirements:
+      run:
+        - flatpak
+    script:
+      interpreter: bash
+      content: |
+        # Test that flatpak-builder can show help
+        flatpak-builder --help
+
+        # Test that flatpak-builder can show version
+        flatpak-builder --version
+
+about:
+  homepage: https://github.com/flatpak/flatpak-builder
+  license: LGPL-2.1-or-later
+  license_file: COPYING
+  summary: Tool to build flatpaks from source
+  description: |
+    flatpak-builder is a tool for building flatpaks from sources.
+    It reads a JSON or YAML based manifest to automatically download,
+    build, and install projects which eventually get exported into a flatpak.
+
+    The tool supports various source types including git repositories,
+    archives, and more. It handles the complete build process including
+    dependency resolution, compilation, and packaging.
+
+    IMPORTANT LIMITATIONS:
+    This conda-forge package has limitations due to missing dependencies:
+    - ostree (>=2017.14): Must be installed via system package manager
+    - debugedit (>=5.0): Must be installed via system package manager
+    - appstream (>=0.15.0): Must be installed via system package manager
+
+    Users must install these dependencies through their Linux distribution's
+    package manager before using flatpak-builder. Without these dependencies,
+    flatpak-builder will not function properly.
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-releases:
+      - flatpak/flatpak-builder

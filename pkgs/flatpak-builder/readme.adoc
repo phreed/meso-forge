@@ -1,0 +1,117 @@
+= flatpak-builder
+
+A tool for building Flatpak applications from source manifests.
+
+== Overview
+
+`flatpak-builder` is the primary tool for creating Flatpak applications. It reads JSON or YAML manifest files that describe how to build an application and its dependencies, then automates the entire build process from source to finished Flatpak package.
+
+[IMPORTANT]
+====
+This conda-forge package has significant limitations due to missing dependencies that are not available in conda-forge:
+
+* **ostree** (>=2017.14) - Core flatpak functionality
+* **debugedit** (>=5.0) - Build process requirement
+* **appstream** (>=0.15.0) - Metadata validation
+
+These dependencies must be installed through your Linux distribution's package manager before using flatpak-builder.
+====
+
+== Features
+
+* Builds Flatpak applications from JSON or YAML manifests
+* Supports multiple source types (git, archives, files, patches, etc.)
+* Automatic dependency resolution and building
+* Incremental builds with intelligent caching
+* Integration with the Flatpak ecosystem
+
+== Usage
+
+Basic usage:
+```bash
+flatpak-builder build-dir manifest.json
+```
+
+With automatic export to repository:
+```bash
+flatpak-builder --repo=repo build-dir manifest.json
+```
+
+== Dependencies
+
+=== Conda-forge Dependencies
+
+This package includes the following dependencies from conda-forge:
+
+* **flatpak** - Core Flatpak runtime and tools
+* **git** - For git-based sources
+* **tar**, **unzip**, **p7zip** - For archive extraction
+* **patch** - For applying patches
+* **coreutils** - Basic utilities
+* **glib**, **json-glib**, **libcurl**, **elfutils**, **libxml2**, **yaml** - Core libraries
+
+=== System Dependencies (Required)
+
+The following dependencies are **NOT** available in conda-forge and must be installed via your system package manager:
+
+[source,bash]
+----
+# Ubuntu/Debian
+sudo apt install libostree-dev debugedit appstream
+
+# Fedora/RHEL/CentOS
+sudo dnf install ostree-devel debugedit appstream
+
+# Arch Linux
+sudo pacman -S ostree debugedit appstream
+----
+
+Without these system dependencies, flatpak-builder will not function properly.
+
+== Manifest Format
+
+flatpak-builder uses JSON or YAML manifests that describe:
+
+* Application metadata (ID, runtime, SDK)
+* Build modules and their sources
+* Build options and flags
+* Permissions and sandbox settings
+
+Example minimal manifest:
+```json
+{
+    "app-id": "org.example.MyApp",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "23.08",
+    "sdk": "org.freedesktop.Sdk",
+    "command": "myapp",
+    "modules": [
+        {
+            "name": "myapp",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://example.com/myapp.tar.gz",
+                    "sha256": "..."
+                }
+            ]
+        }
+    ]
+}
+```
+
+== Installation Notes
+
+Due to the dependency limitations, the recommended installation process is:
+
+1. Install system dependencies through your package manager
+2. Install this conda package
+3. Verify functionality with `flatpak-builder --version`
+
+== Links
+
+* https://github.com/flatpak/flatpak-builder[Source Repository]
+* https://docs.flatpak.org/en/latest/flatpak-builder-command-reference.html[Command Reference]
+* https://docs.flatpak.org/en/latest/manifests.html[Manifest Format Documentation]
+* https://raw.githubusercontent.com/flatpak/flatpak-builder/main/data/flatpak-manifest.schema.json[JSON Schema for Manifests]
+* https://ostreedev.github.io/ostree/[OSTree Documentation]
