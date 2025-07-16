@@ -5,6 +5,17 @@
 
 This is derived from link:{rust-forge}[rust-forge project].
 
+== Migration to Domain-Based Structure
+
+🚧 **This repository is transitioning to a domain-based branch structure.**
+
+* **Current Status**: Tooling package complete and ready
+* **Migration Guide**: See link:.doc/migration/index.adoc[Migration Documentation]
+* **Tooling Package**: `meso-forge-tooling` v0.1.1 available
+* **Quick Reference**: link:.doc/migration/quick-reference.adoc[Command Reference]
+
+The migration will organize packages into domain-specific branches while maintaining all existing functionality through the centralized tooling package.
+
 == Tasks
 
 The following pixi tasks are provided:

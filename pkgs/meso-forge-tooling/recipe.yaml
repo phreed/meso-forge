@@ -1,0 +1,198 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "0.1.1"
+
+package:
+  name: meso-forge-tooling
+  version: ${{ version }}
+
+source:
+  path: ../../
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    interpreter: bash
+    content: |
+      # Create the tooling directory structure
+      mkdir -p $PREFIX/share/meso-forge-tooling
+
+      # Copy all tooling components
+      cp -r scripts $PREFIX/share/meso-forge-tooling/
+      cp -r .scripts $PREFIX/share/meso-forge-tooling/
+      cp -r pkg-skeletons $PREFIX/share/meso-forge-tooling/
+
+      # Copy configuration files
+      cp pixi.toml $PREFIX/share/meso-forge-tooling/
+      cp conda-forge.yml $PREFIX/share/meso-forge-tooling/
+      cp auth.json.example $PREFIX/share/meso-forge-tooling/
+
+      # Copy documentation
+      cp README.adoc $PREFIX/share/meso-forge-tooling/
+      cp LICENSE.txt $PREFIX/share/meso-forge-tooling/
+
+      # Create wrapper script for meso-forge command
+      mkdir -p $PREFIX/bin
+      cat > $PREFIX/bin/meso-forge << 'EOF'
+      #!/bin/bash
+
+      # meso-forge - Multi-package build suite wrapper
+
+      MESO_FORGE_TOOLING_ROOT="$CONDA_PREFIX/share/meso-forge-tooling"
+
+      if [[ ! -d "$MESO_FORGE_TOOLING_ROOT" ]]; then
+          echo "Error: meso-forge-tooling not found at $MESO_FORGE_TOOLING_ROOT"
+          exit 1
+      fi
+
+      # Change to the current directory (where packages are)
+      cd "$(pwd)"
+
+      case "$1" in
+          build|build-all|build-noarch|build-platform|build-pkg)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_single.nu" "${@:2}"
+              ;;
+          publish|publish-pd|publish-s3)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/publish.nu" "${@:2}"
+              ;;
+          test|test-packages)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/test_packages.nu" "${@:2}"
+              ;;
+          lint|lint-recipes)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/lint_recipes.nu" "${@:2}"
+              ;;
+          init-package)
+              cp -r "$MESO_FORGE_TOOLING_ROOT/pkg-skeletons/${2:-_skeleton_python}" "./pkgs/$3"
+              echo "Created package skeleton at ./pkgs/$3"
+              ;;
+          version-update)
+              python "$MESO_FORGE_TOOLING_ROOT/.scripts/version_ctl.py" "${@:2}"
+              ;;
+          help|--help|-h)
+              cat << 'HELP'
+      meso-forge - Multi-package build suite
+
+      USAGE:
+          meso-forge <command> [options]
+
+      COMMANDS:
+          build <package>         Build a specific package
+          build-all              Build all packages
+          build-noarch           Build noarch packages only
+          build-platform         Build platform-specific packages
+          publish                Publish built packages
+          publish-pd             Publish to prefix.dev
+          publish-s3             Publish to S3
+          test                   Test built packages
+          lint                   Lint recipe files
+          init-package <type> <name>  Create new package from skeleton
+          version-update         Update package versions
+          help                   Show this help
+
+      PACKAGE SKELETONS:
+          _skeleton_python       Python package
+          _skeleton_rust         Rust package
+          _skeleton_cxx_appl     C++ application
+          _skeleton_cxx_hdr      C++ header-only library
+          _skeleton_cxx_meson    C++ with Meson build
+          _skeleton_go           Go package
+          _skeleton_js           JavaScript/Node.js package
+          _skeleton_jvm          JVM-based package
+          _skeleton_rlang        R language package
+          _skeleton_ruby         Ruby package
+
+      EXAMPLES:
+          meso-forge build my-package
+          meso-forge publish-pd
+          meso-forge init-package _skeleton_rust my-rust-tool
+          meso-forge version-update --package my-package
+
+      For more detailed help, see the documentation at:
+      $MESO_FORGE_TOOLING_ROOT/README.adoc
+      HELP
+              ;;
+          *)
+              echo "Unknown command: $1"
+              echo "Use 'meso-forge help' for usage information"
+              exit 1
+              ;;
+      esac
+      EOF
+
+      chmod +x $PREFIX/bin/meso-forge
+
+      # Create environment activation script
+      mkdir -p $PREFIX/etc/conda/activate.d
+      cat > $PREFIX/etc/conda/activate.d/meso-forge-tooling.sh << 'EOF'
+      export MESO_FORGE_TOOLING_ROOT="$CONDA_PREFIX/share/meso-forge-tooling"
+      export MESO_FORGE_VERSION="0.1.1"
+      EOF
+
+requirements:
+  host:
+    - python >=3.9
+  run:
+    - nushell >=0.105.1
+    - rattler-build >=0.40.0
+    - rattler-index >=0.22.4
+    - git >=2.49.0
+    - python >=3.9
+    - pyyaml >=6.0.2
+    - typer >=0.16.0
+    - requests >=2.32.3
+    - ruamel.yaml >=0.17.0
+    - semver >=3.0.2
+
+tests:
+  - script:
+      interpreter: bash
+      content: |
+        # Test that the meso-forge command is available
+        meso-forge help
+
+        # Test that tooling files are accessible
+        test -d "$CONDA_PREFIX/share/meso-forge-tooling/scripts"
+        test -d "$CONDA_PREFIX/share/meso-forge-tooling/.scripts"
+        test -d "$CONDA_PREFIX/share/meso-forge-tooling/pkg-skeletons"
+
+        # Test that required files exist
+        test -f "$CONDA_PREFIX/share/meso-forge-tooling/pixi.toml"
+        test -f "$CONDA_PREFIX/share/meso-forge-tooling/README.adoc"
+
+        # Test that environment variables are set
+        test -n "$MESO_FORGE_TOOLING_ROOT"
+        test -n "$MESO_FORGE_VERSION"
+
+        echo "All meso-forge-tooling tests passed!"
+
+about:
+  homepage: https://github.com/phreed/meso-forge
+  repository: https://github.com/phreed/meso-forge
+  documentation: https://github.com/phreed/meso-forge/blob/main/README.adoc
+  license: MIT
+  license_file: LICENSE.txt
+  summary: Multi-package build suite for conda packages
+  description: |
+    meso-forge-tooling provides the complete build infrastructure for creating
+    and maintaining conda packages across multiple domains. It includes:
+
+    - Build scripts and utilities (Nu shell based)
+    - Package templates and skeletons for multiple languages
+    - Publishing infrastructure for conda channels
+    - Testing and validation tools
+    - Version management utilities
+    - Linting and quality assurance tools
+
+    This tooling package is designed to be used by domain-specific package
+    repositories, providing a consistent build experience across different
+    package categories while allowing for domain-specific customization.
+
+    The tooling supports building packages for multiple languages including
+    Python, Rust, C++, Go, JavaScript, R, Ruby, and JVM-based languages.
+
+extra:
+  recipe-maintainers:
+    - phreed

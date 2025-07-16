@@ -1,0 +1,327 @@
+= meso-forge-tooling
+:version: 0.1.0
+:homepage: https://github.com/phreed/meso-forge
+:documentation: https://github.com/phreed/meso-forge/blob/main/README.adoc
+
+Multi-package build suite for conda packages with domain-based organization.
+
+== Overview
+
+`meso-forge-tooling` provides the complete build infrastructure for creating and maintaining conda packages across multiple domains. It separates the build tooling from the packages themselves, allowing for better organization and independent development of different package categories.
+
+== Features
+
+* **Multi-language Support** - Build packages for Python, Rust, C++, Go, JavaScript, R, Ruby, and JVM languages
+* **Domain Organization** - Support for domain-specific package branches
+* **Comprehensive Tooling** - Build, test, publish, and lint functionality
+* **Package Templates** - Ready-to-use skeletons for different language ecosystems
+* **Version Management** - Automated version tracking and updates
+* **Quality Assurance** - Built-in linting and validation tools
+
+== Installation
+
+[source,bash]
+----
+# Install globally using pixi
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge -c conda-forge
+
+# Verify installation
+meso-forge help
+----
+
+== Quick Start
+
+=== Using in Package Branches
+
+Package branches depend on `meso-forge-tooling` and use it through simple commands:
+
+[source,bash]
+----
+# In a package branch directory
+pixi run build-all          # Build all packages
+pixi run build my-package   # Build specific package
+pixi run publish            # Publish to conda channel
+pixi run test               # Test built packages
+pixi run lint               # Validate recipes
+----
+
+=== Creating New Packages
+
+[source,bash]
+----
+# Create new package from template
+pixi run new-package _skeleton_rust my-rust-tool
+pixi run new-package _skeleton_python my-python-lib
+pixi run new-package _skeleton_cxx_appl my-cpp-app
+----
+
+== Commands
+
+=== Build Commands
+
+[cols="2,3"]
+|===
+|Command |Description
+
+|`meso-forge build <package>`
+|Build a specific package
+
+|`meso-forge build-all`
+|Build all packages in current directory
+
+|`meso-forge build-noarch`
+|Build only architecture-independent packages
+
+|`meso-forge build-platform`
+|Build only platform-specific packages
+|===
+
+=== Publishing Commands
+
+[cols="2,3"]
+|===
+|Command |Description
+
+|`meso-forge publish-pd`
+|Publish packages to prefix.dev
+
+|`meso-forge publish-s3`
+|Publish packages to S3-compatible storage
+|===
+
+=== Quality Assurance
+
+[cols="2,3"]
+|===
+|Command |Description
+
+|`meso-forge test`
+|Test built packages
+
+|`meso-forge lint`
+|Lint and validate recipe files
+|===
+
+=== Package Management
+
+[cols="2,3"]
+|===
+|Command |Description
+
+|`meso-forge init-package <type> <name>`
+|Create new package from skeleton
+
+|`meso-forge version-update`
+|Update package versions automatically
+|===
+
+== Package Templates
+
+The tooling includes ready-to-use templates for different ecosystems:
+
+[cols="2,3"]
+|===
+|Template |Description
+
+|`_skeleton_python`
+|Python packages with setuptools/pip
+
+|`_skeleton_rust`
+|Rust packages with Cargo
+
+|`_skeleton_cxx_appl`
+|C++ applications with CMake
+
+|`_skeleton_cxx_hdr`
+|Header-only C++ libraries
+
+|`_skeleton_cxx_meson`
+|C++ packages with Meson build system
+
+|`_skeleton_go`
+|Go packages with modules
+
+|`_skeleton_js`
+|JavaScript/Node.js packages with npm
+
+|`_skeleton_jvm`
+|JVM-based packages (Java, Scala, Kotlin)
+
+|`_skeleton_rlang`
+|R language packages
+
+|`_skeleton_ruby`
+|Ruby packages with gems
+|===
+
+== Domain-Based Organization
+
+`meso-forge-tooling` supports organizing packages into domain-specific branches:
+
+* **tactical-packages** - Military and defense systems
+* **system-tools** - System utilities and shell enhancements
+* **development-tools** - Software development tools
+* **documentation-tools** - Documentation generation
+* **cloud-infrastructure** - Cloud and infrastructure tools
+* **communication-media** - Communication and media tools
+* **data-processing** - Data processing and analysis
+
+Each domain branch uses the same tooling but focuses on packages within their specific area.
+
+== Package Structure
+
+Each package should follow this structure:
+
+[source]
+----
+pkgs/
+└── package-name/
+    ├── recipe.yaml           # Main recipe file
+    ├── readme.adoc          # Package documentation
+    ├── missing-licenses.yaml # License tracking
+    └── PACKAGE_INFO.md      # Package metadata
+----
+
+== Configuration
+
+The tooling uses standard conda-forge practices and configurations:
+
+* **Channels**: conda-forge (primary) + custom channels
+* **Platforms**: linux-64, linux-aarch64, with optional osx/win support
+* **Build System**: rattler-build for modern conda package building
+* **Testing**: Comprehensive test suites for package validation
+
+== Environment Variables
+
+[cols="2,3"]
+|===
+|Variable |Description
+
+|`MESO_FORGE_TOOLING_ROOT`
+|Path to tooling installation
+
+|`MESO_FORGE_VERSION`
+|Version of installed tooling
+
+|`RATTLER_AUTH_FILE`
+|Authentication file for publishing
+|===
+
+== Dependencies
+
+Core dependencies included with the tooling:
+
+* **nushell** - Modern shell for build scripts
+* **rattler-build** - Modern conda package builder
+* **rattler-index** - Channel indexing tools
+* **git** - Version control integration
+* **python** - Python ecosystem support
+* **pyyaml** - YAML processing for recipes
+
+== Examples
+
+=== Building a Single Package
+
+[source,bash]
+----
+# Navigate to package branch
+cd my-packages
+
+# Build specific package
+meso-forge build my-awesome-tool
+
+# Test the built package
+meso-forge test
+----
+
+=== Publishing Packages
+
+[source,bash]
+----
+# Set up authentication
+export RATTLER_AUTH_FILE=~/.rattler-auth.json
+
+# Publish to prefix.dev
+meso-forge publish-pd
+
+# Or publish to custom S3 bucket
+meso-forge publish-s3 --channel s3://my-bucket/conda
+----
+
+=== Creating a New Rust Package
+
+[source,bash]
+----
+# Create package from Rust template
+meso-forge init-package _skeleton_rust my-rust-cli
+
+# Edit the recipe
+edit pkgs/my-rust-cli/recipe.yaml
+
+# Build and test
+meso-forge build my-rust-cli
+meso-forge test
+----
+
+== Migration from Monolithic Repository
+
+If migrating from a single repository with all packages:
+
+1. Install `meso-forge-tooling`
+2. Create domain-specific branches
+3. Copy packages to appropriate branches
+4. Update `pixi.toml` to use the tooling
+5. Test builds in each branch
+
+See the migration guide for detailed instructions.
+
+== Troubleshooting
+
+=== Common Issues
+
+**Tooling not found:**
+[source,bash]
+----
+# Ensure tooling is installed
+pixi global list | grep meso-forge-tooling
+
+# Reinstall if needed
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+----
+
+**Build failures:**
+[source,bash]
+----
+# Check recipe syntax
+meso-forge lint
+
+# Verify dependencies are available
+rattler-build --dry-run recipe.yaml
+----
+
+**Publishing failures:**
+[source,bash]
+----
+# Check authentication
+test -f "$RATTLER_AUTH_FILE"
+
+# Verify channel access
+rattler-index channels
+----
+
+== Contributing
+
+1. **Package Contributions**: Submit packages to appropriate domain branches
+2. **Tooling Improvements**: Submit PRs to the main tooling repository
+3. **Documentation**: Keep package README files updated
+4. **Testing**: Ensure all packages build and test successfully
+
+== License
+
+MIT License - see LICENSE.txt for details.
+
+== Support
+
+* **Issues**: https://github.com/phreed/meso-forge/issues
+* **Documentation**: https://github.com/phreed/meso-forge/blob/main/README.adoc
+* **Examples**: See domain-specific package branches

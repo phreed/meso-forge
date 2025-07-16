@@ -1,0 +1,402 @@
+= Migration Guide: Splitting meso-forge into Domain-Based Branches
+:toc: left
+:toclevels: 3
+:sectanchors:
+:sectlinks:
+
+This guide outlines the step-by-step process for migrating from the current monolithic meso-forge repository to a domain-based branch structure with tooling as a separate conda package.
+
+== Overview
+
+We are transitioning from:
+
+* *Current:* Single repository with all packages and tooling
+* *Target:* Tooling as conda package + domain-specific branches
+
+== Migration Steps
+
+=== Phase 1: Create and Test Tooling Package
+
+==== 1.1 Build the meso-forge-tooling package
+
+[source,bash]
+----
+cd meso-forge
+pixi run build-pkg meso-forge-tooling
+----
+
+==== 1.2 Publish the tooling package
+
+[source,bash]
+----
+pixi run publish-pd
+----
+
+==== 1.3 Test tooling installation
+
+[source,bash]
+----
+# Install the tooling globally
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge -c conda-forge
+
+# Verify installation
+meso-forge help
+----
+
+=== Phase 2: Create Domain Branches
+
+==== 2.1 Create tactical-packages branch
+
+[source,bash]
+----
+# Create and checkout new branch
+git checkout -b packages/tactical
+git checkout --orphan packages/tactical
+
+# Remove everything except tactical packages
+find pkgs -maxdepth 1 -type d ! -name pkgs ! -name freetakserver ! -name freetakserver-ui ! -name pytak ! -name takproto ! -name digitalpy -exec rm -rf {} +
+
+# Copy template configuration
+cp templates/package-branch-pixi.toml pixi.toml
+
+# Create branch-specific README
+cat > README.md << 'EOF'
+# Tactical Packages - meso-forge
+
+This branch contains packages for military, defense, and tactical data systems.
+
+## Packages
+
+- **freetakserver** - FreeTAK Server for tactical data
+- **freetakserver-ui** - UI for FreeTAK Server
+- **pytak** - Python TAK (Team Awareness Kit) library
+- **takproto** - TAK protocol implementation
+- **digitalpy** - Digital Python framework for tactical systems
+
+## Usage
+
+```bash
+# Install meso-forge-tooling first
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+
+# Build all tactical packages
+pixi run build-all
+
+# Build specific package
+pixi run build freetakserver
+
+# Publish packages
+pixi run publish
+```
+
+## Contributing
+
+1. Packages should relate to tactical/military domains
+2. Follow the package template structure
+3. Update this README when adding new packages
+EOF
+
+# Commit the tactical branch
+git add .
+git commit -m "Create tactical-packages branch"
+git push -u origin packages/tactical
+----
+
+==== 2.2 Create system-tools branch
+
+[source,bash]
+----
+git checkout main
+git checkout -b packages/system-tools
+git checkout --orphan packages/system-tools
+
+# Keep only system tools packages
+find pkgs -maxdepth 1 -type d ! -name pkgs ! -name fd ! -name dysk ! -name fsarchiver ! -name pwgen ! -name bash-preexec ! -name ble-sh ! -name rotz -exec rm -rf {} +
+
+cp templates/package-branch-pixi.toml pixi.toml
+
+cat > README.md << 'EOF'
+# System Tools - meso-forge
+
+This branch contains system utilities, file management, and shell enhancement packages.
+
+## Packages
+
+- **fd** - Fast file finder (Rust alternative to find)
+- **dysk** - Disk usage analyzer
+- **fsarchiver** - Filesystem archiver
+- **pwgen** - Password generator
+- **bash-preexec** - Bash preexec hook
+- **ble-sh** - Bash Line Editor
+- **rotz** - Dotfiles manager
+
+## Usage
+
+```bash
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+pixi run build-all
+```
+EOF
+
+git add .
+git commit -m "Create system-tools branch"
+git push -u origin packages/system-tools
+----
+
+==== 2.3 Create development-tools branch
+
+[source,bash]
+----
+git checkout main
+git checkout -b packages/development-tools
+git checkout --orphan packages/development-tools
+
+# Keep only development tools
+find pkgs -maxdepth 1 -type d ! -name pkgs ! -name metashell ! -name jank ! -name devcontainer-cli ! -name gtksourceview5 ! -name ratatui ! -name podlet -exec rm -rf {} +
+
+cp templates/package-branch-pixi.toml pixi.toml
+
+cat > README.md << 'EOF'
+# Development Tools - meso-forge
+
+Software development, IDE components, and development environment packages.
+
+## Packages
+
+- **metashell** - Interactive C++ shell
+- **jank** - Clojure dialect
+- **devcontainer-cli** - Development container CLI
+- **gtksourceview5** - Source code editing widget
+- **ratatui** - Terminal UI framework (Rust)
+- **podlet** - Podman quadlet generator
+EOF
+
+git add .
+git commit -m "Create development-tools branch"
+git push -u origin packages/development-tools
+----
+
+==== 2.4 Create remaining domain branches
+
+Repeat the process for:
+
+* `packages/documentation-tools`
+* `packages/cloud-infrastructure`
+* `packages/communication-media`
+* `packages/data-processing`
+
+=== Phase 3: Update Main Branch
+
+==== 3.1 Create tooling-only main branch
+
+[source,bash]
+----
+git checkout main
+
+# Remove all package directories
+rm -rf pkgs/*
+# Keep only the tooling package
+git checkout HEAD -- pkgs/meso-forge-tooling
+
+# Update main README to focus on tooling
+cat > README.adoc << 'EOF'
+= meso-forge-tooling
+:repository: https://github.com/phreed/meso-forge
+
+Multi-package build suite for conda packages.
+
+== Installation
+
+[source,bash]
+----
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+----
+
+== Package Branches
+
+* link:++https://github.com/phreed/meso-forge/tree/packages/tactical++[Tactical Packages] - Military and defense systems
+* link:++https://github.com/phreed/meso-forge/tree/packages/system-tools++[System Tools] - System utilities and shell enhancements
+* link:++https://github.com/phreed/meso-forge/tree/packages/development-tools++[Development Tools] - Software development tools
+* link:++https://github.com/phreed/meso-forge/tree/packages/documentation-tools++[Documentation Tools] - Documentation generation
+* link:++https://github.com/phreed/meso-forge/tree/packages/cloud-infrastructure++[Cloud Infrastructure] - Cloud and infrastructure tools
+* link:++https://github.com/phreed/meso-forge/tree/packages/communication-media++[Communication & Media] - Communication and media tools
+* link:++https://github.com/phreed/meso-forge/tree/packages/data-processing++[Data Processing] - Data processing and analysis
+
+== Usage
+
+[source,bash]
+----
+# In a package branch directory
+meso-forge build-all
+meso-forge publish
+meso-forge test
+----
+
+== Creating New Package Branches
+
+[source,bash]
+----
+# Create new domain branch
+git checkout -b packages/my-domain
+git checkout --orphan packages/my-domain
+
+# Copy template
+cp templates/package-branch-pixi.toml pixi.toml
+
+# Add packages and commit
+git add .
+git commit -m "Create my-domain branch"
+----
+EOF
+
+git add .
+git commit -m "Convert main branch to tooling-only"
+git push
+----
+
+=== Phase 4: Update CI/CD
+
+==== 4.1 Create GitHub Actions for branches
+
+Create `.github/workflows/build-packages.yml`:
+
+[source,yaml]
+----
+name: Build Packages
+
+on:
+  push:
+    branches:
+      - 'packages/**'
+  pull_request:
+    branches:
+      - 'packages/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [tactical, system-tools, development-tools, documentation-tools, cloud-infrastructure, communication-media, data-processing]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: packages/${{ matrix.branch }}
+
+    - name: Install pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
+
+    - name: Install meso-forge-tooling
+      run: pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+
+    - name: Build packages
+      run: pixi run build-all
+
+    - name: Test packages
+      run: pixi run test
+----
+
+==== 4.2 Update tooling CI
+
+Create `.github/workflows/build-tooling.yml`:
+
+[source,yaml]
+----
+name: Build Tooling
+
+on:
+  push:
+    branches: [main]
+    paths: ['pkgs/meso-forge-tooling/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
+    - name: Build tooling
+      run: pixi run build-pkg meso-forge-tooling
+    - name: Publish tooling
+      run: pixi run publish-pd
+      env:
+        RATTLER_AUTH_FILE: ${{ secrets.RATTLER_AUTH_FILE }}
+----
+
+=== Phase 5: Validation and Testing
+
+==== 5.1 Test each branch independently
+
+[source,bash]
+----
+# For each package branch
+git checkout packages/tactical
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+pixi run build-all
+pixi run test
+----
+
+==== 5.2 Verify package publishing
+
+[source,bash]
+----
+# Test that packages can still be found
+pixi search freetakserver -c https://prefix.dev/meso-forge
+pixi search rotz -c https://prefix.dev/meso-forge
+----
+
+==== 5.3 Test new package creation
+
+[source,bash]
+----
+# In a package branch
+pixi run new-package _skeleton_rust my-new-tool
+----
+
+== Post-Migration Benefits
+
+=== For Maintainers
+
+* *Domain Focus:* Work on packages in your area of expertise
+* *Reduced Complexity:* Fewer packages per branch
+* *Independent Releases:* Release domains at different cadences
+* *Clear Ownership:* Domain teams own their branches
+
+=== For Users
+
+* *Easier Discovery:* Find packages by domain
+* *Targeted Installation:* Install only relevant package categories
+* *Better Documentation:* Domain-specific documentation
+
+=== For CI/CD
+
+* *Faster Builds:* Only build changed domains
+* *Parallel Processing:* Build domains in parallel
+* *Targeted Testing:* Test only relevant packages
+
+== Rollback Plan
+
+If issues arise, rollback is possible:
+
+. *Immediate:* Revert to main branch for urgent fixes
+. *Partial:* Cherry-pick fixes from domain branches to main
+. *Full:* Merge all domain branches back to main
+
+== Timeline
+
+* *Week 1:* Build and test tooling package
+* *Week 2:* Create first domain branch (tactical)
+* *Week 3:* Create remaining domain branches
+* *Week 4:* Update CI/CD and documentation
+* *Week 5:* Validation and cleanup
+
+== Success Criteria
+
+* [ ] meso-forge-tooling package builds and installs
+* [ ] All domain branches build successfully
+* [ ] Existing packages still installable
+* [ ] CI/CD works for all branches
+* [ ] Documentation updated
+* [ ] Team training completed

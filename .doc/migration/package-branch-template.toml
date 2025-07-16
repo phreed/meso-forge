@@ -1,0 +1,79 @@
+"$schema" = "https://pixi.sh/latest/schema/manifest/schema.json"
+
+[workspace]
+name = "meso-forge-packages"
+version = "0.1.0"
+description = "Domain-specific conda packages for meso-forge"
+authors = ["meso-forge maintainers"]
+channels = ["conda-forge", "https://prefix.dev/meso-forge"]
+
+platforms = [
+    "linux-64",
+    "linux-aarch64",
+    # "osx-arm64",
+    # "win-64",
+    # "osx-64",
+]
+
+[dependencies]
+# Core dependency on meso-forge-tooling
+meso-forge-tooling = "0.1.1"
+
+# Build tasks using meso-forge tooling
+[tasks.build-all]
+cmd = ["meso-forge", "build-all"]
+description = "Build all packages in this domain"
+
+[tasks.build]
+args = [{ arg = "package" }]
+cmd = ["meso-forge", "build", "{{ package }}"]
+description = "Build a specific package"
+
+[tasks.build-noarch]
+cmd = ["meso-forge", "build-noarch"]
+description = "Build noarch packages only"
+
+[tasks.build-platform]
+cmd = ["meso-forge", "build-platform"]
+description = "Build platform-specific packages"
+
+[tasks.publish]
+cmd = ["meso-forge", "publish-pd"]
+description = "Publish packages to prefix.dev"
+
+[tasks.publish-s3]
+cmd = ["meso-forge", "publish-s3"]
+description = "Publish packages to S3"
+
+[tasks.test]
+cmd = ["meso-forge", "test"]
+description = "Test built packages"
+
+[tasks.lint]
+cmd = ["meso-forge", "lint"]
+description = "Lint and validate recipes"
+
+[tasks.clean]
+cmd = "rm -rf output/"
+description = "Clean build artifacts"
+
+[tasks.new-package]
+args = [
+    { arg = "type", default = "_skeleton_python" },
+    { arg = "name" }
+]
+cmd = ["meso-forge", "init-package", "{{ type }}", "{{ name }}"]
+description = "Create new package from skeleton"
+
+[tasks.update-versions]
+cmd = ["meso-forge", "version-update", "--each"]
+description = "Update all package versions"
+
+[tasks.update-version]
+args = [{ arg = "package" }]
+cmd = ["meso-forge", "version-update", "--package", "{{ package }}"]
+description = "Update specific package version"
+
+# Environment for this package branch
+[environments]
+default = { solve-group = "default" }
