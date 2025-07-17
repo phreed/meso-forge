@@ -2,7 +2,7 @@
 schema_version: 1
 
 context:
-  version: "0.1.3"
+  version: "0.1.4"
 
 package:
   name: meso-forge-tooling
@@ -77,8 +77,14 @@ build:
           build-platform)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/build_platform.nu" "${@:2}"
               ;;
-          publish|publish-pd|publish-s3)
+          publish)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/publish.nu" "${@:2}"
+              ;;
+          publish-pd)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/publish.nu" --mode pd "${@:2}"
+              ;;
+          publish-s3)
+              nu "$MESO_FORGE_TOOLING_ROOT/scripts/publish.nu" --mode s3 "${@:2}"
               ;;
           test|test-packages)
               nu "$MESO_FORGE_TOOLING_ROOT/scripts/test_packages.nu" "${@:2}"
@@ -150,7 +156,7 @@ build:
       mkdir -p $PREFIX/etc/conda/activate.d
       cat > $PREFIX/etc/conda/activate.d/meso-forge-tooling.sh << 'EOF'
       export MESO_FORGE_TOOLING_ROOT="$CONDA_PREFIX/share/meso-forge-tooling"
-      export MESO_FORGE_VERSION="0.1.3"
+      export MESO_FORGE_VERSION="0.1.4"
       EOF
 
 requirements:
