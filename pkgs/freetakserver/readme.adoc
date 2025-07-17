@@ -1,0 +1,106 @@
+= freetakserver
+:version: 2.2.1
+
+
+// GENERATED CONTENT START
+
+An open source server for the TAK family of applications.
+
+== Description
+
+This module provides the Free TAK Server implementation. The TAK family provides applications used for situational awareness. It is used by civilian and military organization for planning.
+
+== Links
+
+* Homepage: https://github.com/FreeTAKTeam/FreeTakServer
+* Documentation: https://freetakteam.github.io/FreeTAKServer-User-Docs/
+
+== Package Information
+
+* **License**: EPL-2.0
+* **Version**: 2.2.1
+* **Architecture**: No-architecture (pure python)
+
+== Requirements
+
+=== Host Requirements
+
+* pip
+* python >=${{ python_min }}
+* poetry-core
+
+=== Run Requirements
+
+* python >=${{ python_min }},<4.0.0
+* bcrypt
+* bitarray
+* click >=8.1.3
+* colorama >= 0.4.6
+* connexion >= 2.6.0
+* connexion-with-swagger-ui >= 2.6.0
+* cryptography
+* defusedxml 0.7.1.*
+* digitalpy
+* dnspython
+* eventlet 0.35.2.*
+* flask 3.0.2.*
+* flask-cors 4.0.0.*
+* flask-httpauth 4.8.0.*
+* flask-login 0.6.3.*
+* flask-socketio 5.3.6.*
+* flask-sqlalchemy 3.1.1.*
+* geographiclib 1.52.*
+* geopy 2.2.0.*
+* greenlet 3.1.1.*
+* itsdangerous >=2.0.1
+* jinja2 3.1.3.*
+* lxml
+* markupsafe 2.1.5.*
+* monotonic 1.6.*
+* opentelemetry-sdk
+* pathlib2 2.3.7.post1.*
+* pillow 11.0.0.*
+* protobuf
+* psutil 6.1.1.*
+* pyjwt
+* pykml 0.2.0.*
+* pyopenssl
+* python-dateutil 2.7.0.*
+* python-engineio 4.11.2.*
+* python-socketio 5.11.1.*
+* pyyaml 6.0.2.*
+* pyzmq
+* qrcode 7.3.1.*
+* ruamel.yaml 0.18.10.*
+* ruamel.yaml.clib 0.2.8.*
+* six 1.16.0.*
+* sqlalchemy 2.0.38.*
+* swagger-ui-bundle >=0.0.2
+* tabulate 0.8.7.*
+* testresources 2.0.2.*
+* werkzeug 3.0.1.*
+* wtforms 2.3.3.*
+* xmltodict
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge freetakserver
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+https://github.com/prefix-dev/recipe-format
