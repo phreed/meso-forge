@@ -1,94 +1,33 @@
-name: Build packages (CI)
-
-# This workflow builds conda packages for multiple platforms
-#
-# Trigger Strategy:
-# - Manual execution: Always available via workflow_dispatch
-# - Automatic execution: Only when pushing to or creating PR against the 'build' branch
-# - The 'build' branch should be used for changes that are ready to build packages
-# - Use 'packages' or other branches for development work that shouldn't trigger builds
-
-# this is important for trusted publishing
-permissions:
-  id-token: write
+name: Build Packages
 
 on:
   push:
     branches:
-      - build
-  workflow_dispatch:
+      - 'pkgs/**'
   pull_request:
     branches:
-      - build
+      - 'pkgs/**'
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - { target: linux-64, os: ubuntu-24.04 }
-          - { target: linux-aarch64, os: ubuntu-24.04 }
-          # - { target: win-64, os: windows-latest }
-          # - { target: osx-64, os: macos-13 }
-          # - { target: osx-arm64, os: macos-14 }
-      fail-fast: false
+        branch: [tactical, system-tools, development-tools, documentation-tools, cloud-infrastructure, communication-media, data-processing]
 
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+    - uses: actions/checkout@v4
+      with:
+        ref: pkgs/${{ matrix.branch }}
 
-      - uses: prefix-dev/setup-pixi@v0.8.10
-        with:
-          pixi-version: v0.49.0
-          cache: true
-          # cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-          log-level: vvv
-          run-install: true
-          # https://github.com/prefix-dev/setup-pixi?tab=readme-ov-file#token
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+    - name: Install pixi
+      uses: prefix-dev/setup-pixi@v0.8.1
 
-      - name: Build each package
-        env:
-          TARGET_PLATFORM: ${{ matrix.target }}
-        run: pixi run build-for-platform $TARGET_PLATFORM
+    - name: Install meso-forge-tooling
+      run: pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
 
-      # https://github.com/actions/upload-artifact?tab=readme-ov-file#upload-using-multiple-paths-and-exclusions
-      #
-      # Alternative approach: Clean problematic files before upload
-      # - name: Clean files with colons (if exclusion doesn't work)
-      #   run: find output/ -name "*:*" -delete || true
+    - name: Build packages
+      run: pixi run build-all
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: packages-${{ matrix.target }}
-          path: |
-            output/
-            !**/*:*
-          retention-days: 30
-          include-hidden-files: false
-          if-no-files-found: error
-
-  build-summary:
-    name: Build Summary
-    runs-on: ubuntu-latest
-    needs: build
-    if: always()
-    steps:
-      - name: Check build results
-        run: |
-          echo "Build jobs completed with the following results:"
-          echo "Build job status: ${{ needs.build.result }}"
-
-          if [[ "${{ needs.build.result }}" == "failure" ]]; then
-            echo "❌ Some builds failed"
-            exit 1
-          elif [[ "${{ needs.build.result }}" == "success" ]]; then
-            echo "✅ All builds completed successfully"
-          else
-            echo "⚠️ Build completed with status: ${{ needs.build.result }}"
-          fi
+    - name: Test packages
+      run: pixi run test
