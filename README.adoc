@@ -1,0 +1,34 @@
+= Tactical Packages - meso-forge
+
+This branch contains packages for military, defense, and tactical data systems.
+
+== Packages
+
+* *freetakserver* - FreeTAK Server for tactical data
+* *freetakserver-ui* - UI for FreeTAK Server
+* *pytak* - Python TAK (Team Awareness Kit) library
+* *takproto* - TAK protocol implementation
+* *digitalpy* - Digital Python framework for tactical systems
+
+== Usage
+
+[source,bash]
+----
+# Install meso-forge-tooling first
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+
+# Build all tactical packages
+pixi run build-all
+
+# Build specific package
+pixi run build freetakserver
+
+# Publish packages
+pixi run publish
+----
+
+== Contributing
+
+1. Packages should relate to tactical/military domains
+2. Follow the package template structure
+3. Update this README when adding new packages
