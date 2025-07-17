@@ -1,0 +1,12 @@
+= Development Tools - meso-forge
+
+Software development, IDE components, and development environment packages.
+
+== Packages
+
+* *metashell* - Interactive C++ shell
+* *jank* - Clojure dialect
+* *devcontainer-cli* - Development container CLI
+* *gtksourceview5* - Source code editing widget
+* *ratatui* - Terminal UI framework (Rust)
+* *podlet* - Podman quadlet generator
