@@ -1,0 +1,195 @@
+= Domain-Based Package Groups for meso-forge
+:toc: left
+:toclevels: 3
+:sectanchors:
+:sectlinks:
+
+This document outlines the proposed domain-based grouping of packages for splitting into separate branches.
+
+== Proposed Domain Groups
+
+=== 1. tactical-packages
+
+*Purpose:* Military, defense, and tactical data systems
+
+*Packages:*
+
+* `freetakserver` - FreeTAK Server for tactical data
+* `freetakserver-ui` - UI for FreeTAK Server
+* `pytak` - Python TAK (Team Awareness Kit) library
+* `takproto` - TAK protocol implementation
+* `digitalpy` - Digital Python framework for tactical systems
+
+*Rationale:* These packages form a cohesive ecosystem for tactical awareness and military data systems.
+
+=== 2. system-tools
+
+*Purpose:* System utilities, file management, and shell enhancements
+
+*Packages:*
+
+* `fd` - Fast file finder (Rust alternative to find)
+* `dysk` - Disk usage analyzer
+* `fsarchiver` - Filesystem archiver
+* `pwgen` - Password generator
+* `bash-preexec` - Bash preexec hook
+* `ble-sh` - Bash Line Editor
+* `rotz` - Dotfiles manager
+
+*Rationale:* Core system administration and productivity tools that enhance the shell and filesystem experience.
+
+=== 3. development-tools
+
+*Purpose:* Software development, IDE components, and development environments
+
+*Packages:*
+
+* `metashell` - Interactive C++ shell
+* `jank` - Clojure dialect
+* `devcontainer-cli` - Development container CLI
+* `gtksourceview5` - Source code editing widget
+* `ratatui` - Terminal UI framework (Rust)
+* `podlet` - Podman quadlet generator
+
+*Rationale:* Tools that directly support software development workflows and development environment setup.
+
+=== 4. documentation-tools
+
+*Purpose:* Documentation generation and presentation
+
+*Packages:*
+
+* `asciidoctor-revealjs` - AsciiDoc to reveal.js converter
+
+*Rationale:* Tools for creating and presenting technical documentation.
+
+=== 5. cloud-infrastructure
+
+*Purpose:* Cloud services, infrastructure management, and deployment tools
+
+*Packages:*
+
+* `doctl` - DigitalOcean command line interface
+* `nifi` - Apache NiFi data processing
+* `bitwarden-cli` - Bitwarden password manager CLI
+* `internxt-cli` - Internxt cloud storage CLI
+
+*Rationale:* Tools for managing cloud infrastructure, data pipelines, and secure storage.
+
+=== 6. communication-media
+
+*Purpose:* Communication, streaming, and media processing
+
+*Packages:*
+
+* `iamb` - Matrix chat client
+* `node-red` - Flow-based programming for IoT
+* `node-red-worldmap` - World map node for Node-RED
+* `mediamtx` - Media streaming server
+* `mumble-voip` - VoIP communication
+
+*Rationale:* Tools for real-time communication, streaming, and IoT data flows.
+
+=== 7. data-processing
+
+*Purpose:* Data storage, processing, and analysis tools
+
+*Packages:*
+
+* `opendal-oli` - OpenDAL CLI for data access
+* `asyncio` - Asynchronous I/O library
+* `flask-jwt-extended` - JWT extension for Flask
+* `testresources` - Testing resource management
+
+*Rationale:* Libraries and tools for data processing, storage access, and testing infrastructure.
+
+== Branch Structure
+
+[source]
+----
+meso-forge-tooling (main tooling branch)
+├── scripts/
+├── .scripts/
+├── pkg-skeletons/
+├── pixi.toml (tooling configuration)
+└── README.adoc
+
+packages/tactical (tactical-packages branch)
+├── freetakserver/
+├── freetakserver-ui/
+├── pytak/
+├── takproto/
+├── digitalpy/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/system-tools (system-tools branch)
+├── fd/
+├── dysk/
+├── fsarchiver/
+├── pwgen/
+├── bash-preexec/
+├── ble-sh/
+├── rotz/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/development-tools (development-tools branch)
+├── metashell/
+├── jank/
+├── devcontainer-cli/
+├── gtksourceview5/
+├── ratatui/
+├── podlet/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/documentation-tools (documentation-tools branch)
+├── asciidoctor-revealjs/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/cloud-infrastructure (cloud-infrastructure branch)
+├── doctl/
+├── nifi/
+├── bitwarden-cli/
+├── internxt-cli/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/communication-media (communication-media branch)
+├── iamb/
+├── node-red/
+├── node-red-worldmap/
+├── mediamtx/
+├── mumble-voip/
+└── pixi.toml (references meso-forge-tooling)
+
+packages/data-processing (data-processing branch)
+├── opendal-oli/
+├── asyncio/
+├── flask-jwt-extended/
+├── testresources/
+└── pixi.toml (references meso-forge-tooling)
+----
+
+== Implementation Strategy
+
+. *Phase 1:* Create meso-forge-tooling as a conda package
+. *Phase 2:* Create package branches with minimal pixi.toml that depends on tooling
+. *Phase 3:* Migrate packages to appropriate branches
+. *Phase 4:* Update CI/CD to work with multi-branch structure
+. *Phase 5:* Archive/clean main branch
+
+== Benefits
+
+* *Domain Expertise:* Maintainers can focus on specific domains
+* *Reduced Complexity:* Each branch has fewer, related packages
+* *Independent Releases:* Domains can release at different cadences
+* *Clear Ownership:* Domain-specific teams can own their branches
+* *Easier Discovery:* Users can find packages by domain
+* *Scalable Growth:* New domains can be added as needed
+
+== Tooling Package Dependencies
+
+Each package branch will depend on `meso-forge-tooling` which provides:
+
+* Build scripts and utilities
+* Package templates and skeletons
+* Publishing and testing infrastructure
+* Shared configuration and best practices

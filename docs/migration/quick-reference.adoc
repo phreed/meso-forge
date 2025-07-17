@@ -1,0 +1,307 @@
+= meso-forge Tooling - Quick Reference
+:toc: left
+:toclevels: 2
+:sectanchors:
+:sectlinks:
+
+Quick reference for the `meso-forge-tooling` command-line interface.
+
+== Installation
+
+[source,bash]
+----
+# Install tooling globally
+pixi global install "meso-forge-tooling=0.1.1" -c https://prefix.dev/meso-forge -c conda-forge
+
+# Verify installation
+meso-forge help
+----
+
+== Build Commands
+
+[cols="3,4,2"]
+|===
+|Command |Description |Usage
+
+|`meso-forge build <package>`
+|Build a specific package
+|Any branch
+
+|`meso-forge build-all`
+|Build all packages in current directory
+|Domain branches
+
+|`meso-forge build-noarch`
+|Build only architecture-independent packages
+|Any branch
+
+|`meso-forge build-platform`
+|Build only platform-specific packages
+|Any branch
+|===
+
+== Publishing Commands
+
+[cols="3,4,2"]
+|===
+|Command |Description |Notes
+
+|`meso-forge publish-pd`
+|Publish packages to prefix.dev
+|Requires auth
+
+|`meso-forge publish-s3`
+|Publish packages to S3-compatible storage
+|Requires AWS config
+|===
+
+== Quality Assurance
+
+[cols="3,4,2"]
+|===
+|Command |Description |When to use
+
+|`meso-forge test`
+|Test built packages
+|After building
+
+|`meso-forge lint`
+|Lint and validate recipe files
+|Before committing
+|===
+
+== Package Management
+
+[cols="3,4,2"]
+|===
+|Command |Description |Examples
+
+|`meso-forge init-package <type> <name>`
+|Create new package from skeleton
+|See templates below
+
+|`meso-forge version-update`
+|Update package versions automatically
+|Regular maintenance
+|===
+
+== Package Templates
+
+[cols="2,4"]
+|===
+|Template |Description
+
+|`_skeleton_python`
+|Python packages with setuptools/pip
+
+|`_skeleton_rust`
+|Rust packages with Cargo
+
+|`_skeleton_cxx_appl`
+|C++ applications with CMake
+
+|`_skeleton_cxx_hdr`
+|Header-only C++ libraries
+
+|`_skeleton_cxx_meson`
+|C++ packages with Meson build system
+
+|`_skeleton_go`
+|Go packages with modules
+
+|`_skeleton_js`
+|JavaScript/Node.js packages with npm
+
+|`_skeleton_jvm`
+|JVM-based packages (Java, Scala, Kotlin)
+
+|`_skeleton_rlang`
+|R language packages
+
+|`_skeleton_ruby`
+|Ruby packages with gems
+|===
+
+== Common Workflows
+
+=== Building Packages
+
+[source,bash]
+----
+# Build all packages in domain
+pixi run build-all
+
+# Build specific package
+pixi run build my-package
+
+# Test after building
+pixi run test
+----
+
+=== Publishing Workflow
+
+[source,bash]
+----
+# Set up authentication (one time)
+export RATTLER_AUTH_FILE=~/.rattler-auth.json
+
+# Build and publish
+pixi run build-all
+pixi run publish
+----
+
+=== Creating New Package
+
+[source,bash]
+----
+# Create from Rust template
+meso-forge init-package _skeleton_rust my-rust-tool
+
+# Edit the recipe
+edit pkgs/my-rust-tool/recipe.yaml
+
+# Build and test
+meso-forge build my-rust-tool
+meso-forge test
+----
+
+=== Domain Branch Setup
+
+[source,bash]
+----
+# Clone domain branch
+git clone -b packages/system-tools https://github.com/user/meso-forge.git
+
+# Install tooling
+pixi global install "meso-forge-tooling=0.1.1" -c https://prefix.dev/meso-forge
+
+# Build all packages in domain
+pixi run build-all
+----
+
+== Pixi Tasks in Domain Branches
+
+[cols="2,4"]
+|===
+|Task |Command
+
+|`pixi run build-all`
+|`meso-forge build-all`
+
+|`pixi run build <pkg>`
+|`meso-forge build <pkg>`
+
+|`pixi run publish`
+|`meso-forge publish-pd`
+
+|`pixi run test`
+|`meso-forge test`
+
+|`pixi run lint`
+|`meso-forge lint`
+
+|`pixi run new-package <type> <name>`
+|`meso-forge init-package <type> <name>`
+|===
+
+== Environment Variables
+
+[cols="2,4"]
+|===
+|Variable |Description
+
+|`MESO_FORGE_TOOLING_ROOT`
+|Path to tooling installation
+
+|`MESO_FORGE_VERSION`
+|Version of installed tooling
+
+|`RATTLER_AUTH_FILE`
+|Authentication file for publishing
+|===
+
+== Troubleshooting
+
+=== Tooling not found
+[source,bash]
+----
+# Check if installed
+pixi global list | grep meso-forge-tooling
+
+# Reinstall if needed
+pixi global install "meso-forge-tooling=0.1.1" -c https://prefix.dev/meso-forge
+----
+
+=== Build failures
+[source,bash]
+----
+# Check recipe syntax
+meso-forge lint
+
+# Verify dependencies
+rattler-build build --render-only recipe.yaml
+----
+
+=== Publishing failures
+[source,bash]
+----
+# Check authentication
+test -f "$RATTLER_AUTH_FILE"
+
+# Verify channel access
+pixi search my-package -c https://prefix.dev/meso-forge
+----
+
+== Examples by Domain
+
+=== Tactical Packages
+[source,bash]
+----
+git checkout packages/tactical
+pixi run build freetakserver
+pixi run test
+pixi run publish
+----
+
+=== System Tools
+[source,bash]
+----
+git checkout packages/system-tools
+pixi run build rotz
+pixi run new-package _skeleton_rust new-system-tool
+----
+
+=== Development Tools
+[source,bash]
+----
+git checkout packages/development-tools
+pixi run build-all
+pixi run lint
+----
+
+== Getting Help
+
+[source,bash]
+----
+# Show all commands
+meso-forge help
+
+# Get help for specific command
+meso-forge build --help
+
+# Version information
+meso-forge --version
+----
+
+== Links
+
+* **Tooling Package**: https://prefix.dev/meso-forge/noarch/meso-forge-tooling-0.1.1-h4616a5c_0.conda
+* **Migration Guide**: link:migration-guide.adoc[Full Migration Documentation]
+* **Domain Groups**: link:domain-groups.adoc[Package Organization]
+* **Issues**: https://github.com/phreed/meso-forge/issues
+
+---
+
+**Quick Reference Version**: 1.0 +
+**Tooling Version**: 0.1.1 +
+**Last Updated**: 2025-07-16

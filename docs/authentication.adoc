@@ -1,0 +1,406 @@
+= Authentication Guide for meso-forge Tools
+
+This document explains how authentication works across the meso-forge toolchain, particularly for package management operations like publishing and retracting packages.
+
+== Overview
+
+The meso-forge tools support multiple authentication methods to integrate seamlessly with the conda/mamba ecosystem. Authentication is handled in order of precedence, allowing for flexible configuration in different environments.
+
+== Authentication Methods
+
+=== 1. Environment Variables (Highest Precedence)
+
+Direct environment variables provide the simplest authentication method for single-channel operations.
+
+[source,bash]
+----
+# prefix.dev
+export PREFIX_API_TOKEN=pfx_your_api_token_here
+
+# Anaconda.org
+export ANACONDA_API_TOKEN=your_anaconda_token_here
+
+# AWS S3 (for S3-based conda channels)
+export AWS_ACCESS_KEY_ID=your_access_key
+export AWS_SECRET_ACCESS_KEY=your_secret_key
+----
+
+=== 2. RATTLER_AUTH_FILE (Recommended)
+
+The `RATTLER_AUTH_FILE` provides a centralized authentication configuration that works across all rattler-based tools (rattler-build, pixi, etc.).
+
+[source,bash]
+----
+export RATTLER_AUTH_FILE=~/.rattler/auth.json
+----
+
+=== 3. Default Auth File Locations (Fallback)
+
+If no explicit configuration is provided, tools will check these locations automatically:
+
+- `~/.rattler/auth.json` (rattler ecosystem standard)
+- `~/.conda/auth.json` (conda ecosystem compatibility)
+- `~/.config/rattler/auth.json` (XDG Base Directory standard)
+
+== Auth File Format
+
+=== Standard Format
+
+The auth file uses JSON format with URL-based authentication entries:
+
+[source,json]
+----
+{
+  "https://prefix.dev": {
+    "BearerToken": "pfx_your_api_token_here"
+  },
+  "https://anaconda.org": {
+    "BearerToken": "your_anaconda_token_here"
+  },
+  "https://conda.anaconda.org": {
+    "BearerToken": "your_anaconda_token_here"
+  }
+}
+----
+
+=== Channel-Specific Authentication
+
+For channel-specific authentication (useful for private channels):
+
+[source,json]
+----
+{
+  "https://prefix.dev/api/v1/upload/my-private-channel": {
+    "BearerToken": "pfx_channel_specific_token"
+  },
+  "https://prefix.dev": {
+    "BearerToken": "pfx_general_token"
+  }
+}
+----
+
+=== S3 Authentication
+
+For S3-based conda channels:
+
+[source,json]
+----
+{
+  "s3://my-conda-bucket": {
+    "aws_access_key_id": "AKIA...",
+    "aws_secret_access_key": "...",
+    "aws_session_token": "..."
+  },
+  "https://my-minio-server.com": {
+    "aws_access_key_id": "minioadmin",
+    "aws_secret_access_key": "minioadmin"
+  }
+}
+----
+
+=== Mixed Environment
+
+A complete auth file for a mixed environment:
+
+[source,json]
+----
+{
+  "_comment": "Authentication for meso-forge conda toolchain",
+
+  "https://prefix.dev": {
+    "BearerToken": "pfx_your_prefix_dev_token"
+  },
+
+  "https://anaconda.org": {
+    "BearerToken": "your_anaconda_org_token"
+  },
+
+  "https://my-company.prefix.dev": {
+    "BearerToken": "pfx_company_specific_token"
+  },
+
+  "s3://company-conda-packages": {
+    "aws_access_key_id": "AKIA...",
+    "aws_secret_access_key": "...",
+    "aws_region": "us-west-2"
+  },
+
+  "https://artifactory.company.com/conda": {
+    "username": "your_username",
+    "password": "your_password"
+  }
+}
+----
+
+== Setting Up Authentication
+
+=== For prefix.dev
+
+1. *Obtain API Token*
+   - Go to https://prefix.dev
+   - User Icon → Settings → API Keys
+   - Create new API key (starts with `pfx_`)
+
+2. *Configure Authentication*
+
+   *Option A: Environment Variable*
+   [source,bash]
+   ----
+   export PREFIX_API_TOKEN=pfx_your_token_here
+   ----
+
+   *Option B: Auth File (Recommended)*
+   [source,bash]
+   ----
+   mkdir -p ~/.rattler
+   cat > ~/.rattler/auth.json << EOF
+   {
+     "https://prefix.dev": {
+       "BearerToken": "pfx_your_token_here"
+     }
+   }
+   EOF
+   export RATTLER_AUTH_FILE=~/.rattler/auth.json
+   ----
+
+=== For Anaconda.org
+
+1. *Obtain API Token*
+   [source,bash]
+   ----
+   anaconda auth --create --name my-upload-token
+   ----
+
+2. *Configure Authentication*
+   [source,bash]
+   ----
+   # Add to your auth file
+   {
+     "https://anaconda.org": {
+       "BearerToken": "your_anaconda_token"
+     }
+   }
+   ----
+
+=== For S3-based Channels
+
+1. *Configure AWS Credentials*
+   [source,bash]
+   ----
+   # Option A: AWS CLI
+   aws configure
+
+   # Option B: Auth file
+   {
+     "s3://your-bucket": {
+       "aws_access_key_id": "...",
+       "aws_secret_access_key": "..."
+     }
+   }
+   ----
+
+== Integration with Conda Ecosystem
+
+=== rattler-build Integration
+
+The auth file is automatically used by `rattler-build` for channel authentication:
+
+[source,yaml]
+----
+# recipe.yaml
+channels:
+  - https://prefix.dev/my-channel  # Uses auth from RATTLER_AUTH_FILE
+  - conda-forge
+----
+
+=== pixi Integration
+
+pixi respects the same authentication configuration:
+
+[source,toml]
+----
+# pixi.toml
+[project]
+channels = ["https://prefix.dev/my-channel", "conda-forge"]
+----
+
+=== mamba/conda Integration
+
+While mamba/conda don't directly use `RATTLER_AUTH_FILE`, you can configure channel authentication:
+
+[source,bash]
+----
+# For mamba/conda
+conda config --set channel_alias https://prefix.dev/my-channel
+conda config --add channels https://prefix.dev/my-channel
+----
+
+== Security Best Practices
+
+=== File Permissions
+
+Ensure auth files have restrictive permissions:
+
+[source,bash]
+----
+chmod 600 ~/.rattler/auth.json
+----
+
+=== Token Management
+
+1. *Use Specific Tokens*: Create channel-specific tokens when possible
+2. *Regular Rotation*: Rotate tokens periodically
+3. *Scope Limitation*: Use tokens with minimal required permissions
+4. *Environment Isolation*: Use different tokens for dev/staging/prod
+
+=== Avoiding Token Exposure
+
+[source,bash]
+----
+# ❌ Bad: Token in command history
+curl -H "Authorization: Bearer pfx_token" ...
+
+# ✅ Good: Token from file or environment
+curl -H "Authorization: Bearer ${PREFIX_API_TOKEN}" ...
+----
+
+== Troubleshooting
+
+=== Authentication Debug Mode
+
+Most tools support verbose authentication debugging:
+
+[source,bash]
+----
+# For package_retract.nu
+nu package_retract.nu mypackage --channel mychannel --versions "1.0.0" --verbose
+
+# For rattler-build
+rattler-build build recipe.yaml --log-level debug
+----
+
+=== Common Issues
+
+1. *Token Format Issues*
+   ----
+   Error: Invalid token format
+   Solution: Ensure prefix.dev tokens start with 'pfx_'
+   ----
+
+2. *File Permission Errors*
+   ----
+   Error: Cannot read auth file
+   Solution: chmod 600 ~/.rattler/auth.json
+   ----
+
+3. *JSON Syntax Errors*
+   ----
+   Error: Failed to parse auth file
+   Solution: Validate JSON syntax with: python -m json.tool auth.json
+   ----
+
+4. *Channel URL Mismatch*
+   ----
+   Error: No authentication found for channel
+   Solution: Ensure auth file URLs exactly match channel URLs
+   ----
+
+=== Validation Commands
+
+[source,bash]
+----
+# Check auth file syntax
+python -m json.tool ~/.rattler/auth.json
+
+# Test authentication
+curl -H "Authorization: Bearer $(jq -r '."https://prefix.dev".BearerToken' ~/.rattler/auth.json)" \
+     https://prefix.dev/api/graphql \
+     -d '{"query": "{ viewer { login }}"}'
+
+# Check file permissions
+ls -la ~/.rattler/auth.json
+----
+
+== Environment-Specific Configurations
+
+=== Development Environment
+
+[source,bash]
+----
+# ~/.rattler/auth.json
+{
+  "https://prefix.dev": {
+    "BearerToken": "pfx_dev_token"
+  }
+}
+----
+
+=== CI/CD Environment
+
+[source,bash]
+----
+# Use environment variables in CI
+export PREFIX_AI_TOKEN=${{ secrets.PREFIX_API_TOKEN }}
+export RATTLER_AUTH_FILE=/tmp/auth.json
+
+# Or create auth file from secrets
+echo "$AUTH_FILE_CONTENT" > /tmp/auth.json
+----
+
+=== Production Environment
+
+[source,bash]
+----
+# Use secure credential management
+export RATTLER_AUTH_FILE=/etc/conda-auth/auth.json
+# Ensure proper file ownership and permissions
+----
+
+== Migration Guide
+
+=== From conda/mamba to rattler ecosystem
+
+If you're currently using conda/mamba authentication:
+
+1. *Extract existing tokens*
+   [source,bash]
+   ----
+   conda config --show-sources | grep token
+   ----
+
+2. *Create rattler auth file*
+   [source,bash]
+   ----
+   mkdir -p ~/.rattler
+   # Add tokens to ~/.rattler/auth.json
+   ----
+
+3. *Update environment*
+   [source,bash]
+   ----
+   export RATTLER_AUTH_FILE=~/.rattler/auth.json
+   ----
+
+=== From environment variables to auth file
+
+[source,bash]
+----
+# Migrate PREFIX_API_TOKEN to auth file
+cat > ~/.rattler/auth.json << EOF
+{
+  "https://prefix.dev": {
+    "BearerToken": "$PREFIX_API_TOKEN"
+  }
+}
+EOF
+
+# Remove environment variable
+unset PREFIX_API_TOKEN
+----
+
+== Related Documentation
+
+- link:package-retract.adoc[Package Retraction Guide]
+- link:https://rattler.build/latest/authentication/[rattler-build Authentication]
+- link:https://pixi.sh/latest/reference/authentication/[pixi Authentication]
+- link:https://prefix.dev/docs/prefix/api[prefix.dev API Documentation]

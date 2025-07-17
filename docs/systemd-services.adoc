@@ -1,0 +1,402 @@
+= Systemd Services in Meso-Forge
+
+This document describes the systemd service configurations for the service packages in meso-forge.
+
+== Overview
+
+Several packages in meso-forge are designed to run as system services. Each package includes:
+
+- A systemd unit file (`.service`) for service management
+- A setup script for initial configuration and user/directory creation
+- Proper security configurations and resource limits
+
+== Service Packages
+
+The following packages include systemd service configurations:
+
+. *FreeTAKServer* - Open source TAK server for situational awareness
+. *MediaMTX* - Real-time media server and proxy
+. *Mumble VoIP* - Low-latency voice chat server (Murmur)
+. *Node-RED* - Low-code programming for event-driven applications
+
+== Installation and Setup
+
+=== General Installation Process
+
+. Install the conda package containing the service
+. Run the service-specific setup script (requires root privileges)
+. Review and customize configuration files
+. Start and enable the service
+
+=== Service-Specific Instructions
+
+==== FreeTAKServer
+
+[source,bash]
+----
+# Install the package
+conda install freetakserver
+
+# Run setup script (creates user, directories, configs)
+sudo freetakserver-setup.sh
+
+# Review configuration
+sudo nano /etc/freetakserver/config.yaml
+
+# Generate SSL certificates (recommended)
+sudo -u freetakserver openssl req -x509 -newkey rsa:4096 \
+  -keyout /var/lib/freetakserver/certs/server.key \
+  -out /var/lib/freetakserver/certs/server.crt \
+  -days 365 -nodes
+
+# Start service
+sudo systemctl start freetakserver
+sudo systemctl enable freetakserver
+----
+
+*Default Ports:*
+
+- TCP CoT: 8087
+- SSL CoT: 8089
+- HTTP API: 8080
+- HTTPS API: 8443
+- Federation: 9000
+- Web UI: 5000
+
+*Key Files:*
+
+- Service file: `/opt/conda/lib/systemd/system/freetakserver.service`
+- Configuration: `/etc/freetakserver/config.yaml`
+- Environment: `/etc/default/freetakserver`
+- Data directory: `/var/lib/freetakserver/`
+- Log directory: `/var/log/freetakserver/`
+
+==== MediaMTX
+
+[source,bash]
+----
+# Install the package
+conda install mediamtx
+
+# Run setup script
+sudo mediamtx-setup.sh
+
+# Review configuration
+sudo nano /etc/mediamtx/mediamtx.yml
+
+# Start service
+sudo systemctl start mediamtx
+sudo systemctl enable mediamtx
+----
+
+*Default Ports:*
+
+- RTSP: 8554
+- RTMP: 1935
+- HLS: 8888
+- WebRTC: 8889
+- API: 9997
+- Metrics: 9998
+
+*Key Files:*
+
+- Service file: `/opt/conda/lib/systemd/system/mediamtx.service`
+- Configuration: `/etc/mediamtx/mediamtx.yml`
+- Data directory: `/var/lib/mediamtx/`
+- Log directory: `/var/log/mediamtx/`
+
+==== Mumble VoIP (Murmur Server)
+
+[source,bash]
+----
+# Install the package
+conda install mumble-voip
+
+# Run setup script
+sudo mumble-server-setup.sh
+
+# Review configuration
+sudo nano /etc/mumble/murmur.ini
+
+# Optional: Generate SSL certificates
+sudo -u mumble openssl req -x509 -newkey rsa:4096 \
+  -keyout /var/lib/mumble/server.key \
+  -out /var/lib/mumble/server.crt \
+  -days 365 -nodes
+
+# Start service
+sudo systemctl start mumble-server
+sudo systemctl enable mumble-server
+----
+
+*Default Port:* 64738 (TCP/UDP)
+
+*Key Files:*
+
+- Service file: `/opt/conda/lib/systemd/system/mumble-server.service`
+- Configuration: `/etc/mumble/murmur.ini`
+- Environment: `/etc/default/mumble-server`
+- Data directory: `/var/lib/mumble/`
+- Log directory: `/var/log/mumble/`
+- SuperUser password: `/var/lib/mumble/superuser_password.txt`
+
+==== Node-RED
+
+[source,bash]
+----
+# Install the package
+conda install node-red
+
+# Run setup script
+sudo node-red-setup.sh
+
+# Review configuration
+sudo nano /var/lib/node-red/settings.js
+
+# Optional: Enable authentication in settings.js
+
+# Start service
+sudo systemctl start node-red
+sudo systemctl enable node-red
+----
+
+*Default Port:* 1880 (HTTP)
+
+*Key Files:*
+
+- Service file: `/opt/conda/lib/systemd/system/node-red.service`
+- Settings: `/var/lib/node-red/settings.js`
+- Environment: `/etc/default/node-red`
+- Data directory: `/var/lib/node-red/`
+- Log directory: `/var/log/node-red/`
+
+== Service Management
+
+=== Common Commands
+
+[source,bash]
+----
+# Start a service
+sudo systemctl start <service-name>
+
+# Stop a service
+sudo systemctl stop <service-name>
+
+# Restart a service
+sudo systemctl restart <service-name>
+
+# Enable service to start on boot
+sudo systemctl enable <service-name>
+
+# Disable service from starting on boot
+sudo systemctl disable <service-name>
+
+# Check service status
+sudo systemctl status <service-name>
+
+# View service logs
+sudo journalctl -u <service-name> -f
+
+# View recent logs
+sudo journalctl -u <service-name> --since="1 hour ago"
+----
+
+=== Service Names
+
+- `freetakserver` (alias: `fts`)
+- `mediamtx`
+- `mumble-server` (alias: `murmur`)
+- `node-red`
+
+== Security Features
+
+All systemd unit files include security hardening:
+
+- *User Isolation*: Each service runs as its own dedicated user
+- *Filesystem Protection*: Limited read/write access to specific directories
+- *Network Restrictions*: IP address filtering for local/private networks only
+- *Resource Limits*: Memory and file descriptor limits
+- *Privilege Restrictions*: No new privileges, restricted capabilities
+- *Process Isolation*: Private temporary directories, protected system areas
+
+== Monitoring and Logs
+
+=== Log Locations
+
+- *System logs*: `journalctl -u <service-name>`
+- *Service-specific logs*: `/var/log/<service-name>/`
+- *Systemd status*: `systemctl status <service-name>`
+
+=== Log Rotation
+
+All services include logrotate configurations:
+
+- Daily rotation
+- 14-day retention
+- Compression of old logs
+- Automatic service reload on rotation
+
+== Troubleshooting
+
+=== Common Issues
+
+. *Permission Denied*: Ensure setup script was run with sudo
+. *Port Already in Use*: Check for conflicting services on default ports
+. *Configuration Errors*: Review service-specific config files
+. *SSL/TLS Issues*: Verify certificate paths and permissions
+
+=== Debug Mode
+
+To run services in debug mode, modify the environment files:
+
+[source,bash]
+----
+# Example for Node-RED
+sudo nano /etc/default/node-red
+# Add: NODE_RED_LOG_LEVEL=debug
+
+# Example for FreeTAKServer
+sudo nano /etc/default/freetakserver
+# Change: FTS_LOG_LEVEL=DEBUG
+
+sudo systemctl restart <service-name>
+----
+
+=== Check Service Dependencies
+
+[source,bash]
+----
+# View service dependencies
+systemctl list-dependencies <service-name>
+
+# Check network connectivity
+sudo systemctl status network-online.target
+----
+
+== Configuration Management
+
+=== Backup Configurations
+
+[source,bash]
+----
+# Create backup directory
+sudo mkdir -p /opt/service-configs-backup
+
+# Backup all service configurations
+sudo cp -r /etc/freetakserver /opt/service-configs-backup/
+sudo cp -r /etc/mediamtx /opt/service-configs-backup/
+sudo cp -r /etc/mumble /opt/service-configs-backup/
+sudo cp /var/lib/node-red/settings.js /opt/service-configs-backup/
+----
+
+=== Version Control
+
+Consider using a configuration management tool like Ansible, Puppet, or simple git repositories to track configuration changes.
+
+== Development and Testing
+
+=== Local Development
+
+For development purposes, services can be run directly without systemd:
+
+[source,bash]
+----
+# FreeTAKServer
+python3 -m FreeTAKServer.controllers.services.FTS
+
+# MediaMTX
+mediamtx /path/to/config.yml
+
+# Node-RED
+node-red --userDir /path/to/userdir
+
+# Mumble Server
+murmur -ini /path/to/murmur.ini
+----
+
+=== Testing Configuration Changes
+
+. Make configuration changes
+. Test configuration syntax (if applicable)
+. Restart service: `sudo systemctl restart <service-name>`
+. Check status: `sudo systemctl status <service-name>`
+. Monitor logs: `sudo journalctl -u <service-name> -f`
+
+== Support and Documentation
+
+=== Official Documentation
+
+- *FreeTAKServer*: https://freetakteam.github.io/FreeTAKServer-User-Docs/
+- *MediaMTX*: https://github.com/bluenviron/mediamtx
+- *Mumble*: https://wiki.mumble.info/wiki/Murmur.ini
+- *Node-RED*: https://nodered.org/docs/
+
+=== Systemd Documentation
+
+- *systemd.service*: `man systemd.service`
+- *systemctl*: `man systemctl`
+- *journalctl*: `man journalctl`
+
+== Contributing
+
+When adding new service packages to meso-forge:
+
+. Create a `systemd/` directory in the package
+. Add a proper `.service` unit file
+. Create a setup script following the established pattern
+. Update the package recipe to include systemd files
+. Add security hardening configurations
+. Include log rotation setup
+. Update this documentation
+
+=== Service File Template
+
+[source,ini]
+----
+[Unit]
+Description=Your Service Description
+Documentation=https://your-service-docs.com
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=yourservice
+Group=yourservice
+ExecStart=/opt/conda/bin/your-service
+WorkingDirectory=/var/lib/yourservice
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/yourservice
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+# Network settings
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.0.0.0/8
+IPAddressAllow=172.16.0.0/12
+IPAddressAllow=192.168.0.0/16
+
+# Resource limits
+LimitNOFILE=65536
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=yourservice
+
+[Install]
+WantedBy=multi-user.target
+----

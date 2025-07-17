@@ -1,0 +1,220 @@
+= Migration Checklist
+:toc: left
+:toclevels: 2
+:sectanchors:
+:sectlinks:
+
+This checklist tracks the progress of migrating meso-forge from monolithic to domain-based structure.
+
+== Pre-Migration Setup
+
+=== Tooling Package
+* [x] Build meso-forge-tooling package
+* [x] Fix nushell dependency (v0.1.1)
+* [x] Publish to meso-forge channel
+* [x] Verify installation works
+* [x] Test all commands functional
+
+=== Planning and Documentation
+* [x] Define domain groups (7 domains)
+* [x] Categorize all 32 packages
+* [x] Create migration guide
+* [x] Create package branch templates
+* [x] Convert documentation to AsciiDoc
+
+== Phase 1: Pilot Domain (tactical-packages)
+
+=== Branch Creation
+* [ ] Create `packages/tactical` orphan branch
+* [ ] Remove non-tactical packages
+* [ ] Add template pixi.toml
+* [ ] Create domain-specific README
+* [ ] Commit and push branch
+
+=== Verification
+* [ ] Install meso-forge-tooling on branch
+* [ ] Test `pixi run build-all`
+* [ ] Test `pixi run publish`
+* [ ] Verify packages still installable
+* [ ] Document any issues
+
+== Phase 2: Core Domains
+
+=== system-tools Branch
+* [ ] Create `packages/system-tools` branch
+* [ ] Copy system tool packages (7 packages)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+=== development-tools Branch
+* [ ] Create `packages/development-tools` branch
+* [ ] Copy development packages (6 packages)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+=== documentation-tools Branch
+* [ ] Create `packages/documentation-tools` branch
+* [ ] Copy documentation package (1 package)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+== Phase 3: Remaining Domains
+
+=== cloud-infrastructure Branch
+* [ ] Create `packages/cloud-infrastructure` branch
+* [ ] Copy cloud packages (4 packages)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+=== communication-media Branch
+* [ ] Create `packages/communication-media` branch
+* [ ] Copy communication packages (5 packages)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+=== data-processing Branch
+* [ ] Create `packages/data-processing` branch
+* [ ] Copy data processing packages (4 packages)
+* [ ] Configure pixi.toml
+* [ ] Test build process
+* [ ] Verify publishing
+
+== Phase 4: Infrastructure Updates
+
+=== CI/CD Configuration
+* [ ] Create multi-branch GitHub Actions
+* [ ] Update build workflows for domains
+* [ ] Test automated builds
+* [ ] Update publishing workflows
+* [ ] Test automated publishing
+
+=== Main Branch Cleanup
+* [ ] Remove package directories from main
+* [ ] Keep only meso-forge-tooling package
+* [ ] Update main README.adoc
+* [ ] Archive migration documentation
+* [ ] Update repository description
+
+== Phase 5: Validation and Go-Live
+
+=== Cross-Domain Testing
+* [ ] Test all 7 domain branches build successfully
+* [ ] Verify package publishing works
+* [ ] Test package installation from all domains
+* [ ] Verify no package conflicts
+* [ ] Test CI/CD pipelines
+
+=== Documentation and Training
+* [ ] Update README files for all branches
+* [ ] Create contributor guidelines per domain
+* [ ] Update project documentation
+* [ ] Announce migration completion
+* [ ] Train team on new workflow
+
+=== Quality Assurance
+* [ ] All packages still installable
+* [ ] No broken dependencies
+* [ ] All CI/CD pipelines functional
+* [ ] Documentation complete and accurate
+* [ ] Team comfortable with new workflow
+
+== Post-Migration Tasks
+
+=== Optimization
+* [ ] Monitor build times per domain
+* [ ] Optimize CI/CD resource usage
+* [ ] Collect feedback from contributors
+* [ ] Refine domain boundaries if needed
+* [ ] Update tooling based on usage
+
+=== Maintenance
+* [ ] Set up regular tooling updates
+* [ ] Establish domain ownership
+* [ ] Create contribution guidelines
+* [ ] Plan for new package onboarding
+* [ ] Monitor package growth per domain
+
+== Success Criteria
+
+* [ ] All 32 packages successfully migrated
+* [ ] All packages remain installable
+* [ ] Build times improved or maintained
+* [ ] Contributors comfortable with new structure
+* [ ] Clear domain ownership established
+* [ ] Documentation complete and up-to-date
+* [ ] CI/CD fully functional across all branches
+* [ ] Rollback plan tested and documented
+
+== Rollback Criteria
+
+If any of these occur, consider rollback:
+* [ ] Critical packages become unbuildable
+* [ ] Significant contributor workflow disruption
+* [ ] CI/CD failures that can't be quickly resolved
+* [ ] Major dependency resolution issues
+* [ ] Team productivity significantly impacted
+
+== Package Count Verification
+
+[cols="2,1,1"]
+|===
+|Domain |Expected |Actual
+
+|tactical-packages
+|5
+|[ ]
+
+|system-tools
+|7
+|[ ]
+
+|development-tools
+|6
+|[ ]
+
+|documentation-tools
+|1
+|[ ]
+
+|cloud-infrastructure
+|4
+|[ ]
+
+|communication-media
+|5
+|[ ]
+
+|data-processing
+|4
+|[ ]
+
+|**Total**
+|**32**
+|**[ ]**
+|===
+
+== Notes and Issues
+
+_Use this section to track any issues encountered during migration:_
+
+* Issue 1: [Date] - Description and resolution
+* Issue 2: [Date] - Description and resolution
+
+== Completion Sign-off
+
+* [ ] **Technical Lead Approval**: Migration technically successful
+* [ ] **Team Lead Approval**: Team workflow validated
+* [ ] **Documentation Review**: All docs updated and accurate
+* [ ] **Final Testing**: All packages and workflows functional
+
+---
+
+**Migration Start Date**: _____________ +
+**Pilot Completion Date**: _____________ +
+**Full Migration Date**: _____________ +
+**Sign-off Date**: _____________

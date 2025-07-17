@@ -1,0 +1,22 @@
+{
+  "_comment": "Example authentication file for rattler/conda tools",
+  "_note": "Replace 'pfx_your_api_token_here' with your actual prefix.dev API token",
+
+  "https://prefix.dev": {
+    "BearerToken": "pfx_your_api_token_here"
+  },
+
+  "https://anaconda.org": {
+    "BearerToken": "your_anaconda_token_here"
+  },
+
+  "https://conda.anaconda.org": {
+    "BearerToken": "your_anaconda_token_here"
+  },
+
+  "s3://my-conda-bucket": {
+    "aws_access_key_id": "YOUR_ACCESS_KEY",
+    "aws_secret_access_key": "YOUR_SECRET_KEY",
+    "aws_session_token": "YOUR_SESSION_TOKEN"
+  }
+}

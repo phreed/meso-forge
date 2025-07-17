@@ -1,0 +1,446 @@
+= Recipe Version Pattern Configuration
+:toc:
+:toc-placement: preamble
+:sectlinks:
+:sectanchors:
+
+This document describes how to configure version pattern matching for automatic version detection in meso-forge recipes.
+
+== Overview
+
+The `version_ctl.py` script can automatically detect the latest upstream version from GitHub releases.
+By default, it uses a standard semantic versioning pattern, but you can customize this behavior using the `version-pattern` field in your recipe's `extra` section.
+
+== Default Behavior
+
+When no `version-pattern` is specified, the script uses the default pattern:
+
+[source,regex]
+----
+^(\d+\.\d+\.\d+)
+----
+
+This matches standard semantic versions like:
+- `1.0.0`
+- `2.15.3`
+- `10.2.0`
+
+== Configuring Version Patterns and Mode
+
+To specify custom version patterns and detection mode, add a structured `version` field to the `extra` section of your recipe:
+
+[source,yaml]
+----
+extra:
+  recipe-maintainers:
+    - username
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)
+      - ^v(\d+\.\d+\.\d+)
+----
+
+=== Pattern Format
+
+Version patterns are regular expressions that:
+
+1. **Must include a capture group** `()` to extract the version number
+2. **Are tested against cleaned tag names** (for GitHub) or version numbers (for other APIs)
+3. **Support multiple patterns** - the first matching pattern wins
+4. **Use standard regex syntax** (Rust regex crate)
+
+=== Mode Configuration
+
+The `version` field uses structured mode names to specify which API to use:
+
+- **`github-release`** - Uses GitHub Releases API only (no tags fallback)
+- **`github-tags`** - Uses GitHub Tags API only
+- **`rubygems-api`** - Uses RubyGems API for gem versions
+- **`pypi-api`** - Uses PyPI API (not yet implemented)
+- **`npm-api`** - Uses npm registry API (not yet implemented)
+
+If not specified, the mode is automatically detected from the source URL and will fall back from releases to tags for GitHub repositories.
+
+== Common Pattern Examples
+
+=== GitHub Patterns
+
+==== Standard Semantic Versioning
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)
+----
+Matches: `1.2.3`, `10.0.1`, `2.15.7`
+
+==== Version with 'v' prefix
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^v(\d+\.\d+\.\d+)
+----
+Matches: `v1.2.3`, `v10.0.1`, `v2.15.7`
+
+==== Application-specific releases
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^cli-v(\d+\.\d+\.\d+)
+----
+Matches: `cli-v2025.5.0`, `cli-v2024.12.1`
+
+This is useful for monorepos that release multiple applications with different tags.
+
+==== Multiple version formats
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)
+      - ^v(\d+\.\d+\.\d+)
+      - ^release-(\d+\.\d+\.\d+)
+----
+Matches any of: `1.2.3`, `v1.2.3`, `release-1.2.3`
+
+==== Date-based versions
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^(\d{4}\.\d{1,2}\.\d{1,2})
+----
+Matches: `2025.1.15`, `2024.12.1`
+
+==== Complex version patterns
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+)?)
+----
+Matches: `1.2.3`, `1.2.3-beta`, `1.2.3-rc1`
+
+=== RubyGems Patterns
+
+==== Standard Gem Versioning
+[source,yaml]
+----
+source:
+  url: https://rubygems.org/gems/my-gem/versions/1.2.3
+# or
+  url: https://github.com/user/repo/archive/refs/tags/v1.2.3.tar.gz
+extra:
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+)
+----
+Uses RubyGems API to find the latest stable version of the gem.
+
+==== Gem with Pre-release Support
+[source,yaml]
+----
+extra:
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+(?:\.\w+\d*)?)
+----
+Matches: `1.2.3`, `1.2.3.pre1`, `1.2.3.beta2`
+
+Note: Pre-release versions are automatically filtered out by default in RubyGems mode.
+
+==== Gem Name Extraction
+The gem name is automatically extracted from RubyGems URLs or falls back to the package name:
+
+[source,yaml]
+----
+package:
+  name: my-package
+source:
+  url: https://rubygems.org/gems/different-gem-name/versions/1.0.0
+extra:
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+)
+----
+Will check versions for `different-gem-name` gem, not `my-package`.
+
+== How It Works
+
+The version pattern matching process varies by mode. When a recipe has multiple sources, only the first source is used for version checking and updates.
+
+=== GitHub Mode
+1. **Fetches all releases** from the GitHub repository using the `/releases` API
+2. **Filters releases** by skipping drafts and pre-releases
+3. **Cleans tag names** by removing common prefixes
+4. **Tests each pattern** against the cleaned tag name
+5. **Falls back to tags** if no releases match the patterns (only when mode is auto-detected)
+6. **Extracts version** from the first capture group of the matching pattern
+7. **Sorts versions** semantically and returns the latest
+
+**Note:** Tags fallback only occurs when no `extra: version:` configuration is provided and the mode is auto-detected from github.com URLs. When `github-release` is explicitly specified, it will not fall back to tags.
+
+**Multiple Sources:** When a recipe has multiple sources (e.g., main source + local files), only the first source is used for version detection. Additional sources are ignored for version checking purposes.
+
+=== RubyGems Mode
+1. **Fetches all versions** using RubyGems API `/api/v1/versions/:gem-name.json`
+2. **Filters versions** by skipping pre-release versions
+3. **Tests each pattern** directly against version numbers
+4. **Extracts version** from the first capture group of the matching pattern
+5. **Sorts versions** semantically and returns the latest
+
+=== Tag Name Cleaning
+
+Before pattern matching, tag names are cleaned:
+
+1. Remove package name prefix if present (e.g., `mypackage-v1.2.3` → `v1.2.3`)
+2. Remove leading 'v' if present (e.g., `v1.2.3` → `1.2.3`)
+
+This cleaning happens **before** your pattern is applied, so design your patterns accordingly.
+
+== Real-World Examples
+
+=== GitHub Monorepo Example
+
+For the Bitwarden CLI package, which releases multiple applications in one repository:
+
+[source,yaml]
+----
+# bitwarden-cli recipe.yaml
+source:
+  url: https://github.com/bitwarden/clients/archive/refs/tags/cli-v${{ version }}.tar.gz
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    github-release:
+      - ^cli-v(\d+\.\d+\.\d+)
+----
+
+This ensures only CLI releases are considered, filtering out:
+- `web-v2025.6.0`
+- `desktop-v2025.5.1`
+- `browser-v2025.5.1`
+
+And matches only:
+- `cli-v2025.5.0`
+- `cli-v2025.4.0`
+- `cli-v2025.3.0`
+
+=== RubyGems Example
+
+For a Ruby gem package:
+
+[source,yaml]
+----
+# asciidoctor recipe.yaml
+source:
+  url: https://rubygems.org/gems/asciidoctor/versions/${{ version }}
+extra:
+  recipe-maintainers:
+    - username
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+)
+----
+
+This will use the RubyGems API to find the latest stable version of the `asciidoctor` gem.
+
+== Testing Your Patterns
+
+To test your version patterns and mode configuration:
+
+[source,console]
+----
+# Dry run to see what version would be detected
+pixi run -e update python .scripts/version_ctl.py --package your-package --dry-run
+
+# Check multiple packages
+pixi run -e update python .scripts/version_ctl.py --each --dry-run
+----
+
+The output will show:
+- Which mode is being used (github-release, rubygems-api, etc.)
+- Which patterns are being used
+- How many matching versions were found
+- Which version was selected
+- For auto-detected GitHub mode: whether it fell back to tags
+
+== Best Practices
+
+=== 1. Use Specific Patterns
+Prefer specific patterns over overly broad ones:
+
+[source,yaml]
+----
+# Good - specific to CLI releases
+version-pattern:
+  - ^cli-v(\d+\.\d+\.\d+)
+
+# Less ideal - might match unintended releases
+version-pattern:
+  - ^.*-v(\d+\.\d+\.\d+)
+----
+
+=== 2. Test Thoroughly
+Always test your patterns with dry-run mode before committing.
+
+=== 3. Document Complex Patterns
+Add comments for non-obvious patterns:
+
+[source,yaml]
+----
+extra:
+  version-pattern:
+    # Match only stable releases, exclude beta/rc
+    - ^(\d+\.\d+\.\d+)$
+----
+
+=== 4. Handle Edge Cases
+Consider what happens if no versions match your pattern:
+- **Auto-detected GitHub mode**: Falls back to tags with the same patterns
+- **Explicit `github-release` mode**: Reports an error if no releases match (no tags fallback)
+- **Explicit `github-tags` mode**: Reports an error if no tags match
+- **RubyGems mode**: Reports an error if no gem versions match
+- **Other modes**: Report an error if no versions match
+
+=== 5. Multiple Sources
+When your recipe has multiple sources, only the first source is used for version checking:
+- **Primary source**: Used for version detection and updates
+- **Additional sources**: Ignored for version purposes (typically local files or patches)
+- **Best practice**: Ensure your primary version source is listed first
+
+== Troubleshooting
+
+=== No Matching Versions
+If you see "No releases/versions match version patterns":
+
+1. **Check the actual versions** in the source (GitHub releases/tags or RubyGems versions)
+2. **Verify your regex syntax** - test with an online regex tool
+3. **For GitHub**: Remember tag cleaning - your pattern tests against cleaned tags
+4. **Consider pre-releases** - they are automatically filtered out
+5. **Check mode configuration** - ensure the correct API is being used
+6. **For explicit modes**: No fallback behavior - if `github-release` finds no matches, it won't try tags
+
+=== Invalid Regex Error
+If you see "Invalid regex pattern":
+
+1. **Escape special characters** like `.` as `\.`
+2. **Use proper capture groups** with parentheses `()`
+3. **Test your regex** with a regex validator
+
+=== Wrong Version Selected
+If an unexpected version is selected:
+
+1. **Check semantic version sorting** - `10.0.0` > `9.0.0` > `2.0.0`
+2. **Verify your capture group** extracts the right part
+3. **Consider multiple patterns** if you need to match different formats
+
+== Quick Reference
+
+=== Common Version Pattern Templates
+
+Copy and adapt these patterns for your recipes:
+
+[source,yaml]
+----
+# Standard semantic versioning (default)
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)
+
+# Version with 'v' prefix (GitHub)
+extra:
+  version:
+    github-release:
+      - ^v(\d+\.\d+\.\d+)
+
+# Application-specific in monorepo (GitHub)
+extra:
+  version:
+    github-release:
+      - ^myapp-v(\d+\.\d+\.\d+)
+
+# Multiple applications (first match wins) (GitHub)
+extra:
+  version:
+    github-release:
+      - ^cli-v(\d+\.\d+\.\d+)
+      - ^server-v(\d+\.\d+\.\d+)
+
+# Year.month.patch format
+extra:
+  version:
+    github-release:
+      - ^(\d{4}\.\d{1,2}\.\d{1,2})
+
+# Include pre-release suffixes (GitHub)
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+(?:-(?:alpha|beta|rc)\d*)?)
+
+# Release prefix (GitHub)
+extra:
+  version:
+    github-release:
+      - ^release-(\d+\.\d+\.\d+)
+
+# Version with build metadata (GitHub)
+extra:
+  version:
+    github-release:
+      - ^v(\d+\.\d+\.\d+)(?:\+.*)?
+
+# Four-part versioning
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+\.\d+)
+
+# RubyGems standard versioning
+extra:
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+)
+
+# RubyGems with pre-release (auto-filtered)
+extra:
+  version:
+    rubygems-api:
+      - ^(\d+\.\d+\.\d+(?:\.\w+\d*)?)
+
+# GitHub tags only (no releases fallback)
+extra:
+  version:
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)
+----
+
+=== Pattern Testing Checklist
+
+Before committing your pattern:
+
+1. ✅ **Dry run test**: `pixi run -e update python .scripts/version_ctl.py --package mypackage --dry-run`
+2. ✅ **Check capture group**: Ensure `()` captures only the version number
+3. ✅ **Verify against actual versions**: Visit source (GitHub releases or RubyGems) to confirm format
+4. ✅ **Test edge cases**: Consider what happens with pre-releases, different prefixes
+5. ✅ **Verify mode**: Ensure correct API mode is configured or auto-detected
+6. ✅ **Multiple sources**: If using multiple sources, ensure the version source is first
+7. ✅ **Document complex patterns**: Add comments for future maintainers
+
+== Related Documentation
+
+- link:../scripts/version_ctl.py[Version Control Script]
+- link:https://docs.github.com/en/rest/releases[GitHub Releases API]
+- link:https://guides.rubygems.org/rubygems-org-api/[RubyGems API Documentation]
+- link:https://docs.rs/regex/latest/regex/[Rust Regex Documentation]

@@ -1,0 +1,192 @@
+= Migration Documentation
+:toc: left
+:toclevels: 2
+:sectanchors:
+:sectlinks:
+
+This directory contains comprehensive documentation for migrating meso-forge from a monolithic repository structure to a domain-based branch organization.
+
+== Quick Navigation
+
+* **link:index.adoc[📋 Migration Index]** - Overview and navigation hub
+* **link:domain-groups.adoc[🏗️ Domain Groups]** - Package categorization and rationale
+* **link:migration-guide.adoc[📖 Migration Guide]** - Step-by-step implementation
+* **link:tooling-complete.adoc[✅ Tooling Complete]** - Status and features
+* **link:tooling-verified.adoc[🔍 Tooling Verified]** - Final verification report
+
+== Executive Summary
+
+The meso-forge project is transitioning from a single repository containing 32 packages to a domain-based architecture with:
+
+* **Centralized Tooling**: `meso-forge-tooling` conda package (v0.1.1)
+* **7 Domain Branches**: Packages grouped by purpose and technology
+* **Consistent Interface**: Unified build/publish commands across domains
+* **Improved Scalability**: Better organization as package count grows
+
+== Migration Status
+
+[cols="3,1,3"]
+|===
+|Component |Status |Details
+
+|**Tooling Package**
+|✅ Complete
+|Built, published, and verified at v0.1.1
+
+|**Domain Planning**
+|✅ Complete
+|All 32 packages categorized into 7 domains
+
+|**Migration Guide**
+|✅ Complete
+|Step-by-step instructions with commands
+
+|**Templates**
+|✅ Complete
+|Package branch configurations ready
+
+|**Documentation**
+|✅ Complete
+|Comprehensive guides and references
+|===
+
+== Domain Overview
+
+[cols="2,1,4"]
+|===
+|Domain |Count |Purpose
+
+|**tactical-packages**
+|5
+|Military, defense, and tactical data systems
+
+|**system-tools**
+|7
+|System utilities, file management, shell enhancements
+
+|**development-tools**
+|6
+|Software development, IDE components, environments
+
+|**documentation-tools**
+|1
+|Documentation generation and presentation
+
+|**cloud-infrastructure**
+|4
+|Cloud services, infrastructure management
+
+|**communication-media**
+|5
+|Communication, streaming, and media processing
+
+|**data-processing**
+|4
+|Data storage, processing, and analysis tools
+|===
+
+== Getting Started
+
+=== For Repository Maintainers
+
+1. **Review Planning**: Read link:domain-groups.adoc[Domain Groups] to understand the new structure
+2. **Install Tooling**: `pixi global install "meso-forge-tooling=0.1.1" -c https://prefix.dev/meso-forge`
+3. **Follow Guide**: Use link:migration-guide.adoc[Migration Guide] for step-by-step implementation
+4. **Start Small**: Begin with tactical-packages as a pilot domain
+
+=== For Package Contributors
+
+1. **Install Tooling**: Get `meso-forge-tooling` package globally
+2. **Use Commands**: `meso-forge build-all`, `meso-forge publish`, etc.
+3. **Follow Domain**: Work within your relevant domain branch
+4. **Maintain Standards**: Use provided templates and guidelines
+
+=== For Package Users
+
+* **No Changes**: Package installation remains the same
+* **Better Discovery**: Find packages by domain/purpose
+* **Same Channels**: All packages available from existing channels
+
+== Key Benefits
+
+=== Scalability
+* Smaller, focused repositories per domain
+* Independent development and release cycles
+* Easier to onboard domain-specific contributors
+
+=== Maintainability
+* Clear ownership boundaries
+* Reduced complexity per branch
+* Domain expertise concentration
+
+=== User Experience
+* Improved package discovery
+* Domain-specific documentation
+* Targeted installation options
+
+== Architecture Comparison
+
+=== Before (Monolithic)
+[source]
+----
+meso-forge/
+├── pkgs/
+│   ├── asciidoctor-revealjs/
+│   ├── freetakserver/
+│   ├── fd/
+│   ├── rotz/
+│   └── ... (32 packages total)
+├── scripts/
+├── .scripts/
+└── pkg-skeletons/
+----
+
+=== After (Domain-Based)
+[source]
+----
+meso-forge (main - tooling only)
+├── pkgs/meso-forge-tooling/
+└── .doc/migration/
+
+packages/tactical
+├── pkgs/freetakserver/
+├── pkgs/pytak/
+└── pixi.toml
+
+packages/system-tools
+├── pkgs/fd/
+├── pkgs/rotz/
+└── pixi.toml
+
+... (5 more domain branches)
+----
+
+== Implementation Timeline
+
+* **Week 1**: Create tactical-packages branch (pilot)
+* **Week 2**: Create 3 additional domain branches
+* **Week 3**: Complete remaining branches + CI/CD updates
+* **Week 4**: Testing, validation, and documentation
+* **Week 5**: Go-live and archive monolithic structure
+
+== Support and Issues
+
+* **General Issues**: https://github.com/phreed/meso-forge/issues
+* **Migration Questions**: Create issue with `migration` label
+* **Tooling Problems**: Create issue with `tooling` label
+* **Documentation**: This directory contains comprehensive guides
+
+== File Descriptions
+
+`index.adoc`:: Main navigation and overview document
+`domain-groups.adoc`:: Detailed breakdown of package categorization
+`migration-guide.adoc`:: Step-by-step implementation instructions
+`tooling-complete.adoc`:: Status report on tooling package completion
+`tooling-verified.adoc`:: Final verification and dependency correction report
+`package-branch-template.toml`:: Template pixi.toml for domain branches
+
+---
+
+**Migration Status**: Ready to Begin +
+**Tooling Version**: 0.1.1 +
+**Documentation Version**: 2025-07-16

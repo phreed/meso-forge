@@ -1,0 +1,462 @@
+= Nushell Scripts Usage Documentation
+
+This document provides a comprehensive overview of where and how the nushell scripts in the `.scripts` directory are used within the meso-forge project.
+
+== Overview
+
+The nushell scripts in `.scripts/` provide the core functionality for building, testing, publishing, and managing conda packages in the meso-forge project. They are integrated through multiple layers:
+
+. *Pixi Tasks* - Primary integration point via `pixi.toml`
+. *GitHub Actions* - CI/CD workflows
+. *Root-level Scripts* - Convenience wrappers
+. *Direct Command Line* - Manual usage
+
+== Integration Points
+
+=== 1. Pixi Tasks (Primary Integration)
+
+The scripts are primarily invoked through pixi tasks defined in `pixi.toml`. These tasks provide a standardized interface for package management operations.
+
+==== Core Build Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run build`
+|`.scripts/build.nu`
+|Build individual packages
+
+|`pixi run build-each`
+|Multiple build tasks
+|Build all packages for a platform
+
+|`pixi run build-skeletons`
+|Multiple build tasks
+|Build skeleton packages
+|===
+
+*Usage Examples:*
+[source,bash]
+----
+# Build a specific package
+pixi run build pwgen
+
+# Build with specific platform
+pixi run build pwgen linux-64
+
+# Build all packages
+pixi run build-each linux-64
+----
+
+==== Package Management Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run check-package`
+|`.scripts/check_package_exists.nu`
+|Check if package exists in repositories
+
+|`pixi run package-status`
+|`.scripts/build.nu` (package-status function)
+|Show package status across repositories
+
+|`pixi run clean`
+|`.scripts/manifest_utils.nu`
+|Remove specific package files
+|===
+
+*Usage Examples:*
+[source,bash]
+----
+# Check if package exists
+pixi run check-package numpy linux-64
+
+# Show package status
+pixi run package-status numpy linux-64
+
+# Clean specific package
+pixi run clean numpy linux-64
+----
+
+==== Testing Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run test`
+|`.scripts/test_package.nu`
+|Test individual packages
+
+|`pixi run test-each`
+|`.scripts/test_package.nu` (test-each function)
+|Test all packages
+
+|`pixi run test-status`
+|`.scripts/test_package.nu` (test-status function)
+|Show testing status
+|===
+
+*Usage Examples:*
+[source,bash]
+----
+# Test a package
+pixi run test numpy linux-64
+
+# Test all packages
+pixi run test-each linux-64
+
+# Show test status
+pixi run test-status
+----
+
+==== Publishing Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run publish-pd`
+|`.scripts/package_publish.nu`
+|Publish to prefix.dev
+
+|`pixi run publish-s3`
+|`.scripts/package_publish.nu`
+|Publish to S3
+
+|`pixi run publish-each-pd`
+|`.scripts/package_publish.nu` (publish-each function)
+|Publish all packages to prefix.dev
+
+|`pixi run publish-each-s3`
+|`.scripts/package_publish.nu` (publish-each function)
+|Publish all packages to S3
+|===
+
+*Usage Examples:*
+[source,bash]
+----
+# Publish to prefix.dev
+pixi run publish-pd numpy linux-64
+
+# Publish to S3
+pixi run publish-s3 numpy linux-64
+
+# Publish all packages to prefix.dev
+pixi run publish-each-pd linux-64
+
+# Dry run
+pixi run publish-pd-dry numpy linux-64
+----
+
+==== Package Retraction Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run retract-pd`
+|`.scripts/package_retract.nu`
+|Retract from prefix.dev
+
+|`pixi run retract-s3`
+|`.scripts/package_retract.nu`
+|Retract from S3
+|===
+
+*Usage Examples:*
+[source,bash]
+----
+# Retract from prefix.dev
+pixi run retract-pd mypackage --channel meso-forge --versions "1.0.0"
+
+# Retract from S3
+pixi run retract-s3 mypackage --channel s3://pixi/meso-forge --versions "1.0.0"
+
+# Dry run
+pixi run retract-pd-dry mypackage --channel meso-forge --versions "1.0.0"
+----
+
+==== Manifest Management Tasks
+
+[cols="3*", options="header"]
+|===
+|Task |Script |Purpose
+
+|`pixi run list-manifest`
+|`.scripts/manifest_utils.nu` (manifest-summary function)
+|Show manifest summary
+
+|`pixi run clean-manifest`
+|`.scripts/manifest_utils.nu` (manifest-cleanup function)
+|Clean up manifest entries
+
+|`pixi run publish-status`
+|`.scripts/package_publish.nu` (publish-status function)
+|Show publish status
+|===
+
+=== 2. GitHub Actions Integration
+
+The scripts are used in CI/CD workflows for automated building and publishing.
+
+==== Build Workflow (`.github/workflows/build-packages.yml`)
+
+*Triggers:*
+
+* Push to `packages` branch
+* Pull requests to `packages` branch
+* Manual workflow dispatch
+
+*Key Steps:*
+[source,yaml]
+----
+- name: Build all packages
+  env:
+    TARGET_PLATFORM: ${{ matrix.target }}
+  run: pixi run build-each $TARGET_PLATFORM
+----
+
+*Script Usage:*
+
+* Uses `pixi run build-each` which internally calls multiple instances of `.scripts/build.nu`
+* Builds packages for multiple platforms (currently linux-64)
+* Uploads artifacts for the publish workflow
+
+==== Publish Workflow (`.github/workflows/publish-packages.yml`)
+
+*Triggers:*
+
+* Successful completion of build workflow
+* Manual workflow dispatch
+
+*Key Steps:*
+[source,yaml]
+----
+- name: Publish packages
+  env:
+    TARGET_PLATFORM: ${{ matrix.target }}
+  run: pixi run publish-each-pd
+----
+
+*Script Usage:*
+
+* Uses `pixi run publish-each-pd` which calls `.scripts/package_publish.nu`
+* Publishes built packages to prefix.dev
+* Downloads artifacts from build workflow
+
+=== 3. Root-Level Script Wrappers
+
+There are convenience wrapper scripts in the project root that import from `.scripts/`:
+
+==== `package_publish.nu`
+[source,nu]
+----
+use manifest_utils.nu *
+----
+
+* Wrapper around `.scripts/package_publish.nu`
+* Uses relative imports to `.scripts/manifest_utils.nu`
+
+==== `package_retract.nu`
+[source,nu]
+----
+use manifest_utils.nu *
+----
+
+* Wrapper around `.scripts/package_retract.nu`
+* Uses relative imports to `.scripts/manifest_utils.nu`
+
+NOTE: These wrappers appear to have import path issues since `manifest_utils.nu` is in `.scripts/`, not the root directory.
+
+=== 4. Direct Command Line Usage
+
+The scripts can be run directly for development and debugging:
+
+[source,bash]
+----
+# Direct script execution
+nu .scripts/build.nu mypackage --target-platform linux-64
+nu .scripts/check_package_exists.nu numpy --platform linux-64 --check_all
+nu .scripts/test_package.nu mypackage --target-platform linux-64
+----
+
+== Script Dependencies and Data Flow
+
+=== Inter-Script Dependencies
+
+----
+build.nu
+├── imports: check_package_exists.nu
+├── imports: manifest_utils.nu
+└── calls: external rattler-build
+
+check_package_exists.nu
+└── calls: external micromamba
+
+package_publish.nu
+├── imports: manifest_utils.nu
+└── calls: external rattler-build
+
+package_retract.nu
+├── imports: manifest_utils.nu
+└── calls: http commands (native)
+
+test_package.nu
+├── imports: manifest_utils.nu
+└── calls: external rattler-build
+
+manifest_utils.nu
+└── standalone (no dependencies)
+----
+
+=== Data Flow
+
+----
+1. Package Recipe (recipe.yaml)
+   ↓
+2. build.nu → Build Package → conda file
+   ↓
+3. manifest_utils.nu → Update Manifest
+   ↓
+4. test_package.nu → Test Package
+   ↓
+5. package_publish.nu → Publish Package
+   ↓
+6. Repository (prefix.dev, S3)
+----
+
+=== Shared Data Structures
+
+*Manifest File (`./pkgs-out/conda-manifest.json`):*
+[source,json]
+----
+{
+  "linux-64": {
+    "package-name": {
+      "path": "/path/to/package.conda",
+      "filename": "package-1.0.0-build.conda",
+      "size": 1234567,
+      "modified": "2023-12-01T10:30:00Z",
+      "build_time": "2023-12-01 10:30:00 +0000",
+      "status": "built"
+    }
+  }
+}
+----
+
+== Environment Variables
+
+The scripts rely on several environment variables:
+
+[cols="3*", options="header"]
+|===
+|Variable |Purpose |Used By
+
+|`RATTLER_AUTH_FILE`
+|Authentication for rattler-build
+|package_publish.nu, package_retract.nu
+
+|`PREFIX_API_TOKEN`
+|API token for prefix.dev
+|package_retract.nu
+
+|`AWS_ACCESS_KEY_ID`
+|AWS credentials for S3
+|check_package_exists.nu, package_retract.nu
+
+|`AWS_SECRET_ACCESS_KEY`
+|AWS credentials for S3
+|check_package_exists.nu, package_retract.nu
+|===
+
+== Key Features of the Integration
+
+=== 1. Unified Interface
+All operations are accessible through `pixi run` commands, providing a consistent user experience.
+
+=== 2. Error Handling
+Scripts provide structured error output and appropriate exit codes for CI/CD integration.
+
+=== 3. Dry Run Support
+Most publishing and retraction operations support `--dry-run` for safe testing.
+
+=== 4. Platform Support
+All scripts support multiple target platforms (currently focused on linux-64).
+
+=== 5. Manifest Tracking
+Built packages are tracked in a JSON manifest for efficient management.
+
+== Usage Patterns
+
+=== Development Workflow
+[source,bash]
+----
+# 1. Build package
+pixi run build mypackage
+
+# 2. Test package
+pixi run test mypackage
+
+# 3. Check status
+pixi run package-status mypackage
+
+# 4. Publish (dry run first)
+pixi run publish-pd-dry mypackage
+pixi run publish-pd mypackage
+----
+
+=== CI/CD Workflow
+[source,bash]
+----
+# Automated in GitHub Actions
+pixi run build-each linux-64        # Build all packages
+pixi run publish-each-pd linux-64   # Publish all packages
+----
+
+=== Maintenance Workflow
+[source,bash]
+----
+# Check what's built
+pixi run list-manifest
+
+# Clean up old builds
+pixi run clean-manifest
+
+# Check publish status
+pixi run publish-status
+----
+
+== Best Practices for Usage
+
+. *Always use pixi tasks* instead of direct script execution for consistency
+. *Use dry-run modes* before actual publish/retract operations
+. *Check package status* before building to avoid unnecessary work
+. *Monitor manifest* to track built packages
+. *Use appropriate target platforms* for your deployment environment
+
+== Troubleshooting
+
+=== Common Issues
+
+. *Import Errors in Root Scripts*
+   * Root-level `package_publish.nu` and `package_retract.nu` have incorrect import paths
+   * Use `.scripts/package_publish.nu` directly or fix import paths
+
+. *Authentication Issues*
+   * Ensure `RATTLER_AUTH_FILE` is set for publishing
+   * Verify API tokens for prefix.dev and S3 credentials
+
+. *Build Failures*
+   * Check dependencies in `recipe.yaml`
+   * Verify target platform compatibility
+   * Review build logs in manifest
+
+. *Missing External Tools*
+   * Ensure `rattler-build`, `micromamba` are available
+   * Install through pixi dependencies
+
+This integration provides a comprehensive package management system with clear separation of concerns and robust error handling.

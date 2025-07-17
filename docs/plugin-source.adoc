@@ -1,0 +1,388 @@
+= Plugin Source Architecture
+:toc:
+:toc-placement: preamble
+:source-highlighter: highlight.js
+
+This document describes the plugin-based architecture for handling different source types in the meso-forge version control system.
+
+== Overview
+
+The meso-forge version control system uses a plugin architecture to handle different types of source repositories and package registries. This modular approach allows for easy extension to support new source types while maintaining clean separation of concerns.
+
+=== Key Benefits
+
+* **Modularity**: Each source type is isolated in its own plugin
+* **Extensibility**: Easy to add support for new source types
+* **Maintainability**: Clear separation of concerns and responsibilities
+* **Testability**: Individual plugins can be tested independently
+* **Flexibility**: Different behaviors and optimizations for different source types
+
+== Architecture Components
+
+=== Base Plugin Interface
+
+All source plugins inherit from the `SourcePlugin` abstract base class defined in `plugins_source/__init__.py`:
+
+[source,python]
+----
+class SourcePlugin(ABC):
+    """Base class for all source type plugins."""
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Return the name of this source plugin."""
+        pass
+
+    @property
+    @abstractmethod
+    def supported_schemes(self) -> List[str]:
+        """Return list of URL schemes this plugin supports."""
+        pass
+
+    @abstractmethod
+    def can_handle(self, source_url: str) -> bool:
+        """Return True if this plugin can handle the given source URL."""
+        pass
+
+    @abstractmethod
+    async def get_latest_version(self, source_url: str, package_name: str,
+                               version_patterns: Optional[List[str]] = None,
+                               mode: Optional[str] = None, quiet: bool = False,
+                               **kwargs) -> Optional[VersionInfo]:
+        """Get the latest version information from the source."""
+        pass
+
+    @abstractmethod
+    def extract_source_info(self, source_url: str) -> dict:
+        """Extract relevant information from the source URL."""
+        pass
+----
+
+=== Plugin Manager
+
+The `PluginManager` class handles automatic discovery and loading of plugins:
+
+* **Automatic Discovery**: Scans the `plugins_source/` directory for `*_plugin.py` files
+* **Dynamic Loading**: Uses `importlib` to load plugin modules at runtime
+* **URL Routing**: Matches source URLs to appropriate plugins
+* **Plugin Access**: Provides methods to access plugins by name or URL
+
+=== Version Information
+
+The `VersionInfo` named tuple standardizes version data across all plugins:
+
+[source,python]
+----
+class VersionInfo(NamedTuple):
+    version: str                      # Semantic version (e.g., "1.2.3")
+    download_url: Optional[str]       # Direct download URL
+    tag_name: Optional[str]          # Original tag/version name
+    source_type: str                 # Plugin type ("github", "rubygems", etc.)
+    asset_name: Optional[str]        # Asset filename (for release assets)
+----
+
+== Implemented Plugins
+
+=== GitHub Plugin (`github_plugin.py`)
+
+Handles GitHub repositories with support for multiple modes:
+
+==== Supported URLs
+* `https://github.com/owner/repo`
+* `https://api.github.com/repos/owner/repo`
+* `git+https://github.com/owner/repo`
+
+==== Modes
+* **`github-release`**: Uses GitHub Releases API
+* **`github-tags`**: Uses GitHub Tags API
+* **Auto-detection**: Tries releases first, falls back to tags
+
+==== Features
+* GitHub API token authentication via `GITHUB_TOKEN` environment variable
+* Semantic version sorting with fallback to string sorting
+* Tag name cleaning (removes `v` prefix, package name prefix)
+* Asset pattern matching for binary releases
+
+==== Example Usage in Recipe
+
+[source,yaml]
+----
+extra:
+  version:
+    github-release:
+      - ^(\d+\.\d+\.\d+)$
+----
+
+=== RubyGems Plugin (`rubygem_plugin.py`)
+
+Handles Ruby gem packages from RubyGems.org and compatible registries:
+
+==== Supported URLs
+* `https://rubygems.org/gems/gem-name`
+* `https://rubygems.org/downloads/gem-name-1.0.0.gem`
+* `https://gem.fury.io/...`
+
+==== Features
+* Template URL parsing (handles `${{ version }}` placeholders)
+* Automatic gem name extraction from URLs
+* Version pattern matching
+* Direct gem download URL generation
+
+==== Example Usage in Recipe
+
+[source,yaml]
+----
+source:
+  url: https://rubygems.org/downloads/asciidoctor-revealjs-${{ version }}.gem
+
+extra:
+  version:
+    rubygems:
+      - ^(\d+\.\d+\.\d+)$
+----
+
+=== Git Plugin (`git_plugin.py`)
+
+Handles general Git repositories (non-GitHub/GitLab):
+
+==== Supported URLs
+* `git://example.com/repo.git`
+* `git+https://example.com/repo.git`
+* `git+ssh://git@example.com/repo.git`
+* `https://example.com/repo.git` (non-GitHub/GitLab)
+
+==== Features
+* Tag-based version detection using `git ls-remote`
+* Branch-based fallback for repositories without tags
+* No cloning required (uses remote operations)
+* Commit hash-based versioning for branches
+
+==== Limitations
+* Requires `git` command-line tool
+* Limited to repositories with public access
+* Archive URL generation is generic (hosting-specific URLs not supported)
+
+== Adding New Plugins
+
+=== Plugin Structure
+
+Create a new file `plugins_source/newtype_plugin.py`:
+
+[source,python]
+----
+"""
+NewType source plugin for version control.
+"""
+
+import requests
+from typing import List, Optional
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from plugins_source import SourcePlugin, VersionInfo
+
+
+class NewTypePlugin(SourcePlugin):
+    """Plugin for handling NewType repositories."""
+
+    @property
+    def name(self) -> str:
+        return "newtype"
+
+    @property
+    def supported_schemes(self) -> List[str]:
+        return ["https://newtype.com"]
+
+    def can_handle(self, source_url: str) -> bool:
+        return any(scheme in source_url for scheme in self.supported_schemes)
+
+    def extract_source_info(self, source_url: str) -> dict:
+        # Parse URL and extract relevant information
+        return {"parsed_info": "value"}
+
+    async def get_latest_version(self, source_url: str, package_name: str,
+                               version_patterns: Optional[List[str]] = None,
+                               mode: Optional[str] = None, quiet: bool = False,
+                               **kwargs) -> Optional[VersionInfo]:
+        # Implement version fetching logic
+        return VersionInfo(
+            version="1.0.0",
+            download_url="https://example.com/download",
+            source_type="newtype"
+        )
+----
+
+=== Integration
+
+The plugin will be automatically discovered and loaded by the `PluginManager` on next run. No additional registration is required.
+
+=== Recipe Configuration
+
+Configure recipes to use the new plugin:
+
+[source,yaml]
+----
+source:
+  url: https://newtype.com/package/mypackage
+
+extra:
+  version:
+    newtype:
+      - ^(\d+\.\d+\.\d+)$
+----
+
+== Usage in Recipes
+
+=== Version Patterns
+
+Define version patterns in the recipe's `extra.version` section:
+
+[source,yaml]
+----
+extra:
+  version:
+    github-tags:                    # Plugin mode
+      - ^(\d+\.\d+\.\d+)$          # Semantic version
+      - ^v(\d+\.\d+\.\d+)$         # Version with 'v' prefix
+----
+
+=== Mode Selection
+
+Plugins can support multiple modes for different behaviors:
+
+* **GitHub**: `github-release`, `github-tags`
+* **RubyGems**: `rubygems` (API-based)
+* **Git**: `git-tags`, `git-branches`
+
+=== Asset Patterns
+
+For plugins that support asset downloads (like GitHub release assets):
+
+
+
+== Testing
+
+=== Plugin Testing
+
+Test individual plugins using the provided test script:
+
+[source,bash]
+----
+pixi run -e update python .scripts/test_plugins.py
+----
+
+=== Integration Testing
+
+Test with actual packages:
+
+[source,bash]
+----
+# Test GitHub plugin
+pixi run -e update python .scripts/version_ctl.py --package digitalpy --dry-run
+
+# Test RubyGems plugin
+pixi run -e update python .scripts/version_ctl.py --package asciidoctor-revealjs --dry-run
+
+# Test Git plugin
+pixi run -e update python .scripts/version_ctl.py --package jank --dry-run
+----
+
+== Troubleshooting
+
+=== Plugin Loading Issues
+
+If a plugin fails to load, check:
+
+1. **File naming**: Must end with `_plugin.py`
+2. **Class inheritance**: Must inherit from `SourcePlugin`
+3. **Import errors**: Ensure all required dependencies are available
+4. **Abstract methods**: All abstract methods must be implemented
+
+=== Version Detection Issues
+
+Common issues with version detection:
+
+1. **Pattern mismatch**: Verify version patterns match actual tags/versions
+2. **Authentication**: Set `GITHUB_TOKEN` for GitHub API access
+3. **Network access**: Ensure the system can reach external APIs
+4. **Rate limiting**: GitHub API has rate limits for unauthenticated requests
+
+=== Debug Mode
+
+Enable verbose output for debugging:
+
+[source,bash]
+----
+pixi run -e update python .scripts/version_ctl.py --package mypackage --verbose --dry-run
+----
+
+== Future Enhancements
+
+=== Planned Plugins
+
+* **PyPI Plugin**: Python Package Index support
+* **NPM Plugin**: Node.js package registry support
+* **GitLab Plugin**: GitLab repository support
+* **Conda Plugin**: Conda package registry support
+
+=== Advanced Features
+
+* **Caching**: Cache API responses to reduce network calls
+* **Parallel Processing**: Process multiple packages concurrently
+* **Custom Headers**: Support for custom API headers and authentication
+* **Webhook Integration**: Real-time notifications of new versions
+
+== API Reference
+
+=== PluginManager Methods
+
+[source,python]
+----
+manager = PluginManager()
+
+# Get plugin for URL
+plugin = manager.get_plugin_for_url("https://github.com/owner/repo")
+
+# Get plugin by name
+plugin = manager.get_plugin_by_name("github")
+
+# List all plugins
+plugins = manager.list_plugins()
+
+# Get latest version using appropriate plugin
+version_info = await manager.get_latest_version(
+    source_url="https://github.com/owner/repo",
+    package_name="mypackage",
+    version_patterns=["^(\d+\.\d+\.\d+)$"],
+    quiet=False
+)
+----
+
+=== VersionInfo Fields
+
+[source,python]
+----
+version_info = VersionInfo(
+    version="1.2.3",                    # Cleaned semantic version
+    download_url="https://...",         # Direct download URL
+    tag_name="v1.2.3",                 # Original tag name
+    source_type="github",              # Plugin type
+    asset_name="package-1.2.3.tar.gz"  # Asset filename (optional)
+)
+----
+
+== Contributing
+
+When contributing new plugins or enhancements:
+
+1. **Follow the plugin interface**: Implement all required abstract methods
+2. **Add comprehensive tests**: Include unit tests and integration tests
+3. **Document new features**: Update this documentation
+4. **Handle errors gracefully**: Provide meaningful error messages
+5. **Support common patterns**: Handle typical URL and version patterns
+6. **Maintain backward compatibility**: Don't break existing functionality
+
+For questions or contributions, please refer to the main project documentation.
