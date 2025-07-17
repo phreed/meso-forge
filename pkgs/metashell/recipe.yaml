@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "5.0.0"
+
+package:
+  name: metashell
+  version: ${{ version }}
+
+source:
+  url: https://github.com/metashell/metashell/archive/refs/tags/v5.0.0.tar.gz
+  sha256: 028e37be072ec4e85d18ead234a208d07225cf335c0bb1c98d4d4c3e30c71f0e
+  target_directory: metashell
+  patches:
+    - ./patches/01-include-missing-cstddef.patch
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and build
+      cd metashell
+      ^cmake -S 3rd/templight/llvm -B build/templight -DLIBCLANG_BUILD_STATIC=ON -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_PROJECTS=clang ${{ CMAKE_ARGS }}
+      ^cmake --build build/templight --target templight
+      ^cmake -S . -B build/metashell ${{ CMAKE_ARGS }}
+      ^cmake --build build/metashell
+      ^cmake --install build/metashell
+
+requirements:
+  build:
+    - nushell
+    - tar
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+      # - ${{ stdlib('c') }}
+    - cmake
+  host:
+    - if: linux
+      then:
+        - libedit
+        - libxml2
+        - zlib
+        - readline
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Metashell binary
+        - ${{ "Library/" if win }}bin/metashell${{ ".exe" if win }}
+
+      # Test 2: Functional test
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        "template <class T> struct add_const { using type = const T; };
+        add_const<int>::type" | save test.hpp
+        ^($env.PREFIX | path join "bin" "metashell") -H < test.hpp | ^grep "const int"
+
+about:
+  homepage: http://metashell.org
+  license: GPL-3.0-or-later
+  license_file: "metashell/LICENSE"
+  summary: Metaprogramming shell for C++ templates
+
+extra:
+  recipe-maintainers:
+    - phreed

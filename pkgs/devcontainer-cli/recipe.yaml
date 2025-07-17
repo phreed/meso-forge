@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "0.77.0"
+
+package:
+  name: devcontainer-cli
+  version: ${{ version }}
+
+source:
+  url: https://github.com/devcontainers/cli/archive/refs/tags/v0.77.0.tar.gz
+  sha256: d625d0006dfb8b626b9ff692ede931a5a4a89013e9115d9ce7a5a1a471c3ecf0
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      $env.YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
+      ^yarn
+      ^yarn compile
+
+      # Install the CLI entry point
+      let bin_dir = ($env.PREFIX | path join "bin")
+      ^mkdir -p $bin_dir
+      ^cp devcontainer.js ($bin_dir | path join "devcontainer")
+      ^chmod +x ($bin_dir | path join "devcontainer")
+
+      # Install the compiled distribution files
+      let lib_dir = ($env.PREFIX | path join "lib" "devcontainer-cli")
+      ^mkdir -p $lib_dir
+      ^cp -r dist $lib_dir
+
+      # Update the entry point to use the installed location
+      let devcontainer_path = ($bin_dir | path join "devcontainer")
+      let old_require = "require('./dist/spec-node/devContainersSpecCLI')"
+      let prefix_path = $env.PREFIX
+      let new_require = ("require('" + $prefix_path + "/lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI')")
+      let content = (open $devcontainer_path)
+      let new_content = ($content | str replace $old_require $new_require)
+      $new_content | save --force $devcontainer_path
+
+requirements:
+  build:
+    - nushell
+    - tar
+    - yarn
+    - python
+    - make
+    - ${{ compiler('cxx') }}
+    - pkg-config
+  host:
+    - nodejs
+  run:
+    - nodejs
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Devcontainer CLI binary
+        - ${{ "Library/" if win }}bin/devcontainer${{ ".cmd" if win }}
+          # JavaScript application files
+        - ${{ "Library/" if win }}lib/devcontainer-cli/dist/spec-node/devContainersSpecCLI.js
+
+      # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^devcontainer --help
+        # stderr:
+        #   contains: "Please create a configuration file"
+        # exit: 2
+
+about:
+  homepage: https://containers.dev/
+  license: MIT
+  license_file:
+    - "*/LICENSE.txt"
+  summary: Configure Devcontainer CLI
+  description: |
+    A reference implementation for the specification that
+    can create and configure a dev container from a devcontainer.json.
+  repository: https://github.com/devcontainers/cli
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)$

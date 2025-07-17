@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 0.3.0
+
+package:
+  version: ${{ version }}
+  name: podlet
+
+source:
+  url: https://github.com/containers/podlet/archive/refs/tags/v0.3.0.tar.gz
+  sha256: b91398ef75566a2a646e9845d1211854e7275fce727d4b976e7d8a3c4430ae52
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and build
+      cargo build --release
+      mkdir ($env.PREFIX | path join "bin")
+      cp target/release/podlet ($env.PREFIX | path join "bin" "podlet")
+
+requirements:
+  build:
+    - nushell
+    - tar
+    - rust
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Podlet binary
+        - ${{ "Library/" if win }}bin/podlet${{ ".exe" if win }}
+
+      # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test that binary exists and is executable
+        - ^which podlet
+          # Test version output contains expected version
+        - ^podlet --version | ^grep "${{ version }}"
+          # Test help command works
+        - ^podlet --help | ^grep -i "usage"
+          # Test that binary can show subcommands
+        - ^podlet --help | ^grep -i "command"
+
+about:
+  homepage: https://crates.io/crates/podlet
+  summary: Generate Podman Quadlet files from a Podman command, compose file, or existing object
+  description: |
+    Generate Podman Quadlet files from a Podman command, compose file, or existing object
+  license: MPL-2.0
+  license_file:
+    - "LICENSE"
+  documentation: https://github.com/containers/podlet/blob/main/README.md
+  repository: https://github.com/containers/podlet
+
+extra:
+  recipe-maintainers:
+    - phreed

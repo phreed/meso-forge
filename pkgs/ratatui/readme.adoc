@@ -1,0 +1,56 @@
+= ratatui
+:version: 0.30.0
+
+
+// GENERATED CONTENT START
+
+A Rust crate for cooking TUIs
+
+== Description
+
+Ratatui (ˌræ.təˈtu.i) is a Rust crate for cooking up terminal user interfaces (TUIs). It provides a simple and flexible way to create text-based user interfaces in the terminal, which can be used for command-line applications, dashboards, and other interactive console programs.
+
+== Links
+
+* Homepage: https://ratatui.rs
+* Repository: https://github.com/ratatui/ratatui
+* Documentation: https://docs.rs/ratatui/latest/ratatui/
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 0.30.0
+
+== Requirements
+
+=== Build Requirements
+
+* pkgconf
+* rust
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge ratatui
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+https://ratatui.rs/
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

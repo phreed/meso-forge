@@ -1,0 +1,110 @@
+context:
+  major_version: "5.14"
+  version: "5.14.0"
+  # major_version: "5.16"
+  # version: "5.16.0"
+
+package:
+  name: gtksourceview5
+  version: ${{ version }}
+
+source:
+  url: https://download.gnome.org/sources/gtksourceview/${{ major_version }}/gtksourceview-${{ version }}.tar.xz
+  sha256: c40d1f7309d111f5805fec47c1fead519c4b8d506317ce5e90013ce47d65e9c6
+  # sha256: ab35d420102f3e8b055dd3b8642d3a48209f888189e6254d0ffb4b6a7e8c3566
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      $env.PKG_CONFIG_PATH = ($env.BUILD_PREFIX | path join "lib" "pkgconfig") + ":" + ($env.PREFIX | path join "lib" "pkgconfig") + ":" + ($env.PKG_CONFIG_PATH | default "")
+      ^meson setup build --prefix=($env.PREFIX) --libdir=lib64 -Dintrospection=disabled -Dvapi=false -Dsysprof=false --wrap-mode=nofallback
+      ^meson compile -C build --verbose
+      ^meson install -C build
+
+requirements:
+  build:
+    - nushell
+    - c-compiler
+    - cxx-compiler
+    - meson
+    - ninja
+    - pkgconf
+    - pkg-config
+    - gtk4
+    - glib
+    - zlib
+    - expat
+    - fontconfig
+    - xorg-xproto
+    - xorg-kbproto
+    - xorg-xextproto
+    - xorg-renderproto
+    - liblzma-devel
+    - xorg-libx11
+    - xorg-libxext
+    - xorg-libxrender
+    - xorg-libxi
+    - xorg-libxfixes
+    - xorg-libxcursor
+    - xorg-libxdamage
+    - xorg-libxrandr
+    - cairo
+    - pango
+    - gdk-pixbuf
+    - harfbuzz
+    - freetype
+    - libpng
+
+  host:
+    - cairo
+    - fontconfig
+    - fribidi
+    - gdk-pixbuf
+    - glib
+    - libglib
+    - glib-tools
+    - gtk4
+    - pango
+    - pcre2
+    - libxml2
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # GtkSourceView5 library files (try lib64 first, then lib as fallback)
+        - ${{ "Library/" if win }}lib*/libgtksourceview-5${{ ".dll" if win else ".so*" }}
+        # Header files
+        - ${{ "Library/" if win }}include/gtksourceview-5/gtksourceview/gtksourceview.h
+        # pkg-config files (try lib64 first, then lib as fallback)
+        - ${{ "Library/" if win }}lib*/pkgconfig/gtksourceview-5.pc
+
+  # Test 2: Functional tests
+  # - requirements:
+  #     build:
+  #       - nushell
+  #   script:
+  #     interpreter: nu
+  #     content: |
+  #       # Simple test that doesn't require package installation
+  #       # This avoids dependency resolution issues during test phase
+  #       ^echo "Tests skipped due to complex dependency resolution"
+  #       exit 0
+
+about:
+  homepage: https://projects.gnome.org/gtksourceview/
+  license: LGPL-2.1-or-later
+  summary: Text view with syntax, undo/redo, and text marks
+  description: |
+    GtkSourceView is a text widget that extends the standard GTK text widget GtkTextView.
+    It improves GtkTextView by implementing syntax highlighting and other features
+    typical of a source code editor.
+    This package provides the development files for building applications that use GtkSourceView.
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    gnome:
+      - ^(\d+\.\d+\.\d+)
