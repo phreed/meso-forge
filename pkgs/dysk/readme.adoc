@@ -1,0 +1,59 @@
+= dysk
+:version: 2.10.0
+
+
+// GENERATED CONTENT START
+
+Linux utility to get information on filesystems, like df but better
+
+== Links
+
+* Homepage: https://dystroy.org/dysk/
+* Repository: https://github.com/Canop/dysk
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 2.10.0
+
+== Requirements
+
+=== Host Requirements
+
+* rust
+
+=== Build Requirements
+
+* rust
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge dysk
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+A linux utility to get information on filesystems, like df but better.
+
+https://dystroy.org/dysk/
+
+https://dystroy.org/dysk/install/#from-source
+https://github.com/Canop/dysk
+
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/d/dysk.rb
+
+https://github.com/prefix-dev/recipe-format

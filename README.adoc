@@ -1,0 +1,21 @@
+= System Tools - meso-forge
+
+This branch contains system utilities, file management, and shell enhancement packages.
+
+== Packages
+
+* *fd* - Fast file finder (Rust alternative to find)
+* *dysk* - Disk usage analyzer
+* *fsarchiver* - Filesystem archiver
+* *pwgen* - Password generator
+* *bash-preexec* - Bash preexec hook
+* *ble-sh* - Bash Line Editor
+* *rotz* - Dotfiles manager
+
+== Usage
+
+[source,bash]
+----
+pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge
+pixi run build-all
+----

@@ -1,0 +1,68 @@
+= fsarchiver
+:version: 0.8.8
+
+
+// GENERATED CONTENT START
+
+File system archiver for linux
+
+== Description
+
+FSArchiver is a system tool that allows you to save the contents of a filesystem to a compressed archive file. The filesystem contents can be restored on a device which has a different size and it can be restored on a different filesystem. Unlike tar/dar, FSArchiver also creates the filesystem when it extracts the data to devices. Everything is checksummed in the archive in order to protect the data. If the archive is corrupt, you just lose the current file, not the whole archive.
+
+== Links
+
+* Homepage: https://www.fsarchiver.org
+* Repository: https://github.com/fdupoux/fsarchiver
+
+== Package Information
+
+* **License**: GPL-2.0-only
+* **Version**: 0.8.8
+
+== Requirements
+
+=== Host Requirements
+
+* bzip2
+* e2fsprogs
+* libgcrypt
+* lz4
+* lzo
+* util-linux
+* liblzma
+* zlib
+* zstd
+
+=== Build Requirements
+
+* C compiler
+* make
+* autoconf
+* automake
+* libtool
+* pkg-config
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge fsarchiver
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+https://github.com/fdupoux/fsarchiver
+https://github.com/prefix-dev/recipe-format
