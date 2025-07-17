@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "2.08"
+
+package:
+  name: pwgen
+  version: ${{ version }}
+
+source:
+  url: https://github.com/tytso/pwgen/archive/refs/tags/v2.08.tar.gz
+  sha256: 8d6e94f28655e61d6126290e3eafad4d17d7fba0d0d354239522a740a270bb2f
+  patches:
+    - ./patches/10-run-autoupdate.patch
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and build
+      print "Starting pwgen build process..."
+
+      # Run autoreconf
+      print "Running autoreconf..."
+      ^autoreconf -i
+
+      # Show directory contents for debugging
+      print "Directory contents after autoreconf:"
+      ^find . -maxdepth 2
+
+      # Configure the build
+      let prefix_path = $env.PREFIX
+      let mandir_path = ($env.PREFIX | path join "share" "man")
+      print $"Configuring with prefix: ($prefix_path)"
+      ^./configure --disable-debug --disable-dependency-tracking --prefix=$prefix_path --mandir=$mandir_path
+
+      # Build the binary
+      print "Building pwgen..."
+      ^make
+
+      # Verify the binary was built
+      if not ("pwgen" | path exists) {
+        print "Error: pwgen binary not found after make"
+        exit 1
+      }
+
+      # Test the binary works
+      print "Testing built binary..."
+      let test_result = (^./pwgen --help | complete)
+      if $test_result.exit_code > 1 {
+        print "Warning: pwgen --help returned unexpected exit code, but continuing..."
+      }
+
+      # Manual installation (make install doesn't work properly)
+      print "Installing pwgen manually..."
+      mkdir ($env.PREFIX | path join "bin")
+      mkdir ($env.PREFIX | path join "share" "man" "man1")
+      cp pwgen ($env.PREFIX | path join "bin" "pwgen")
+      if ("pwgen.1" | path exists) {
+        cp pwgen.1 ($env.PREFIX | path join "share" "man" "man1" "pwgen.1")
+      }
+
+      # Verify installation
+      let installed_binary = ($env.PREFIX | path join "bin" "pwgen")
+      if not ($installed_binary | path exists) {
+        print "Error: pwgen binary not found in installation directory"
+        exit 1
+      }
+
+      print "pwgen installation completed successfully"
+
+requirements:
+  build:
+    - nushell
+    - tar
+    - ${{ compiler('c') }}
+      # - ${{ stdlib('c') }}
+    - autoconf
+    - automake
+    - make
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # pwgen binary
+        - ${{ "Library/" if win }}bin/pwgen${{ ".exe" if win }}
+          # Man page
+        - ${{ "Library/" if win }}share/man/man1/pwgen.1
+
+    # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^pwgen --secure 20 10
+
+about:
+  homepage: https://pwgen.sourceforge.net/
+  license: GPL-2.0-only
+  license_file:
+    - debian/copyright
+  summary: Password generator
+  description: |
+    pwgen generates random, meaningless but pronounceable passwords.
+    These passwords contain either only lowercase letters, or upper
+    and lower case mixed, or digits thrown in.
+  repository: https://sourceforge.net/projects/pwgen/
+
+extra:
+  recipe-maintainers:
+    - phreed
+  version:
+    github-tags:
+      - ^(\d+\.\d+)

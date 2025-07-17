@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+# doctl Package Recipe
+# ===================
+#
+# doctl is the official command-line interface (CLI) for the DigitalOcean API.
+# It allows you to interact with all of your DigitalOcean resources directly from the command line.
+
+context:
+  name: doctl
+  version: "1.131.0"
+  github_org: digitalocean
+  github_repo: doctl
+  main_package: ./cmd/doctl
+  binary_name: doctl
+  uses_git_version: false
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/${{ github_org }}/${{ github_repo }}/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: "2db73f5f4cfcc2500dec92858e0a5032541e68e6c315603b3b7698029b8bf14e"
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      echo $"Building ($env.PKG_NAME) version ($env.PKG_VERSION)..."
+
+      # Set up LDFLAGS for optimized binary
+      mut ldflags = ["-s" "-w"]
+
+      # Add version injection - doctl uses -X to set version variables at build time
+      # Parse version components (e.g., "1.131.0" -> major=1, minor=131, patch=0)
+      let version_parts = ($env.PKG_VERSION | split row ".")
+      let major = ($version_parts | get 0)
+      let minor = ($version_parts | get 1)
+      let patch = ($version_parts | get 2)
+
+      $ldflags = ($ldflags | append $"-X github.com/digitalocean/doctl.Major=($major)")
+      $ldflags = ($ldflags | append $"-X github.com/digitalocean/doctl.Minor=($minor)")
+      $ldflags = ($ldflags | append $"-X github.com/digitalocean/doctl.Patch=($patch)")
+      $ldflags = ($ldflags | append $"-X github.com/digitalocean/doctl.Build=conda-forge")
+
+      let ldflags_str = ($ldflags | str join " ")
+
+      # Build the binary
+      # Use CGO_ENABLED=0 for static binaries without C dependencies
+      $env.CGO_ENABLED = "0"
+      go build -ldflags $ldflags_str -o $"($env.PREFIX)/bin/doctl" ./cmd/doctl
+
+      # Collect licenses from all dependencies
+      print "Collecting dependency licenses..."
+      let license_dir = $"($env.SRC_DIR)/license-files"
+      mkdir $license_dir
+
+      # Save licenses, ignoring common problematic packages
+      (go-licenses save ./cmd/doctl
+        --save_path=$license_dir
+        --ignore=golang.org/x/sys/unix
+        --ignore=golang.org/x/crypto/internal/poly1305
+        --ignore=golang.org/x/crypto/salsa20/salsa
+        --ignore=golang.org/x/crypto/argon2
+        --ignore=golang.org/x/crypto/blake2b
+        --ignore=golang.org/x/sys/cpu
+        --ignore=golang.org/x/crypto/sha3
+        --ignore=github.com/ugorji/go/codec
+        --ignore=github.com/benburkert/openpgp
+        --ignore=k8s.io/api
+        --ignore=k8s.io/apimachinery
+        --ignore=k8s.io/client-go
+        | complete | ignore)
+
+requirements:
+  build:
+    - nushell
+    - ${{ compiler('go-nocgo') }}
+    - go-licenses
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Go binary
+        - ${{ "Library/" if win }}bin/doctl${{ ".exe" if win }}
+
+  # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        # Test that version command works (doesn't crash)
+        - ^doctl version
+
+        # Test help command works
+        - ^doctl --help
+
+        # Test auth command help (should work without authentication)
+        - ^doctl auth --help
+
+        # Test compute command help (should work without authentication)
+        - ^doctl compute --help
+
+about:
+  homepage: https://github.com/${{ github_org }}/${{ github_repo }}
+  repository: https://github.com/${{ github_org }}/${{ github_repo }}
+  documentation: https://docs.digitalocean.com/reference/doctl/
+  summary: The official command line interface for the DigitalOcean API
+  description: |
+    doctl is a command-line interface (CLI) for the DigitalOcean API.
+    It allows you to interact with all of your DigitalOcean resources directly
+    from the command line, including Droplets, Kubernetes clusters, Load Balancers,
+    Databases, and more. doctl provides a convenient way to manage your
+    DigitalOcean infrastructure without using the web-based control panel.
+
+    Key features:
+    - Manage Droplets (virtual machines)
+    - Work with Kubernetes clusters
+    - Configure Load Balancers and Firewalls
+    - Manage databases and block storage
+    - Handle DNS records and domains
+    - Work with container registries
+    - SSH directly to Droplets by name
+  license: Apache-2.0
+  license_file:
+    - LICENSE.txt
+    # Include collected dependency licenses
+    - license-files/
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-tags:
+      - ^v(\d+\.\d+\.\d+)$

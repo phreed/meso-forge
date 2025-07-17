@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 4.7.1
+  python_min: 3.11
+
+package:
+  name: flask-jwt-extended
+  version: ${{ version }}
+
+source:
+  url: https://github.com/vimalloc/flask-jwt-extended/archive/refs/tags/4.7.1.tar.gz
+  sha256: c5bba87248b2253537891511f928dd3b51faf74e8e5ec1746529a6a36d819b9a
+  target_directory: flask-jwt-extended
+
+build:
+  noarch: python
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and install
+      cd flask-jwt-extended
+      ^pip install . -v
+
+requirements:
+  build:
+    - nushell
+    - tar
+  host:
+    - pip
+    - python ==${{ python_min }}
+    - setuptools
+    - wheel
+  run:
+    - python >=${{ python_min }},<4.0.0
+    - flask >=2.0,<4.0
+    - pyjwt >=2.0,<3.0
+    - werkzeug >=0.14
+  run_exports:
+    weak:
+      - ${{ pin_subpackage("flask-jwt-extended", upper_bound="x.x") }}
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Python library package
+        - site-packages/flask_jwt_extended/__init__.py
+
+      # Test 2: Python import test
+  - script:
+      interpreter: python
+      content: |
+        import flask_jwt_extended
+
+about:
+  homepage: https://github.com/vimalloc/flask-jwt-extended
+  summary: An open source Flask extension
+  description: |
+    A Flask JWT extension that supports refresh tokens,
+    blacklisting/revoking tokens,
+    and token freshness (for accessing critical views).
+  license: MIT
+  license_file: "flask-jwt-extended/LICENSE"
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)$

@@ -1,0 +1,85 @@
+= bitwarden-cli
+:version: 2025.2.0
+
+
+// GENERATED CONTENT START
+
+The Bitwarden command-line interface (CLI)
+
+== Description
+
+The Bitwarden command-line interface (CLI) is a powerful, fully-featured tool for accessing and managing your vault.
+Most features that you find in other Bitwarden client applications (desktop, browser extension, etc.) are available from the CLI.
+https://contributing.bitwarden.com/getting-started/clients/cli/
+
+== Links
+
+* Homepage: https://bitwarden.com/help/cli/
+* Repository: https://github.com/bitwarden/clients/tree/main/apps/cli
+* Documentation: https://contributing.bitwarden.com/getting-started/clients/cli
+* Usage: https://bitwarden.com/help/cli/
+
+== Package Information
+
+* **License**: Apache-2.0
+* **Version**: 2025.2.0
+* **Architecture**: No-architecture (pure generic)
+
+== Requirements
+
+=== Host Requirements
+
+* nodejs
+* jest
+
+=== Build Requirements
+
+* yarn
+* webpack-cli
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge bitwarden-cli
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+https://bitwarden.com/help/cli/
+
+It seems to be a `typescript` program.
+https://bitwarden.com/help/cli/#tab-npm-bI3gMs3A3z4pl0fwvRie9
+
+https://github.com/bitwarden/clients
+
+bitwarden-cli: stable 2025.1.3
+Secure and free password manager for all of your devices
+
+https://bitwarden.com/
+
+== Homebrew formula
+
+https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/b/bitwarden-cli.rb
+
+== License
+License: GPL-3.0-only
+
+== Dependencies
+Required: node ✔
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

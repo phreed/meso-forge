@@ -1,0 +1,54 @@
+[Unit]
+Description=Node-RED - Low-code programming for event-driven applications
+Documentation=https://nodered.org/docs/
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nodered
+Group=nodered
+ExecStart=/opt/conda/bin/node-red --userDir /var/lib/node-red
+WorkingDirectory=/var/lib/node-red
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Environment variables
+Environment=NODE_ENV=production
+Environment=NODE_RED_OPTIONS=-v
+Environment=NODE_PATH=/opt/conda/lib/node_modules
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/node-red
+ReadWritePaths=/var/log/node-red
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+
+# Network settings - Node-RED typically uses port 1880
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.0.0.0/8
+IPAddressAllow=172.16.0.0/12
+IPAddressAllow=192.168.0.0/16
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=32768
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=node-red
+
+[Install]
+WantedBy=multi-user.target

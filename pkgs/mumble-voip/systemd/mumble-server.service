@@ -1,0 +1,51 @@
+[Unit]
+Description=Mumble VoIP Server (Murmur)
+Documentation=https://www.mumble.info/documentation/
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mumble
+Group=mumble
+ExecStart=/opt/conda/bin/murmur -ini /etc/mumble/murmur.ini
+ExecReload=/bin/kill -HUP $MAINPID
+WorkingDirectory=/var/lib/mumble
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mumble
+ReadWritePaths=/var/log/mumble
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+
+# Network settings - Mumble typically uses port 64738
+IPAddressDeny=any
+IPAddressAllow=localhost
+IPAddressAllow=10.0.0.0/8
+IPAddressAllow=172.16.0.0/12
+IPAddressAllow=192.168.0.0/16
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=32768
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mumble-server
+
+[Install]
+WantedBy=multi-user.target
+Alias=murmur.service

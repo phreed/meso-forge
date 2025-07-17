@@ -1,0 +1,56 @@
+= opendal-oli
+:version: 0.53.1
+
+
+// GENERATED CONTENT START
+
+Apache OpenDAL™ Oli
+
+== Description
+
+oli stands for OpenDAL Command Line Interface oli aims to provide a unified and user-friendly way to manipulate data stored in various storage service.
+
+== Links
+
+* Homepage: https://opendal.apache.org/apps/oli/
+* Repository: https://github.com/apache/opendal/tree/main/bin/oli
+
+== Package Information
+
+* **License**: Apache-2.0
+* **Version**: 0.53.1
+
+== Requirements
+
+=== Build Requirements
+
+* Compiler
+* cargo-bundle-licenses
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge opendal-oli
+----
+
+== Maintainers
+
+* maintainer
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+https://opendal.apache.org/apps/oli/
+
+oli stands for OpenDAL Command Line Interface.
+It aims to provide a unified and user-friendly way to manipulate data stored in various storage service.
+
+It works with other tools like the minio-client.

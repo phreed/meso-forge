@@ -1,0 +1,60 @@
+= metashell
+:version: 5.0.0
+
+
+// GENERATED CONTENT START
+
+Metaprogramming shell for C++ templates
+
+== Links
+
+* Homepage: http://metashell.org
+
+== Package Information
+
+* **License**: GPL-3.0-or-later
+* **Version**: 5.0.0
+
+== Requirements
+
+=== Host Requirements
+
+* (if linux):
+  ** libedit
+  ** libxml2
+  ** zlib
+  ** readline
+
+=== Build Requirements
+
+* C compiler
+* C++ compiler
+* cmake
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge metashell
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+http://metashell.org/
+
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format

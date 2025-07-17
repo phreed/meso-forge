@@ -1,0 +1,114 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: 4.0.9
+
+package:
+  name: node-red
+  version: ${{ version }}
+
+source:
+- url: https://github.com/node-red/node-red/archive/refs/tags/4.0.9.tar.gz
+  sha256: d3386f45d336bc1987e63a8e594e353c71e50a12c9c6d7e36c4b31af6cccfc19
+  file_name: node-red-${{ version }}.tgz
+  target_directory: node-red-src
+- path: ../../.scripts/npm_licenses.nu
+  file_name: npm_licenses.nu
+  target_directory: scripts
+- if: linux
+  then:
+    path: systemd/node-red.service
+    target_directory: systemd/node-red.service
+- if: linux
+  then:
+    path: systemd/node-red-setup.sh
+    target_directory: systemd/node-red-setup.sh
+- if: win
+  then:
+    path: bin/node-red.cmd
+    target_directory: bin/node-red.cmd
+
+build:
+  script:
+    interpreter: nu
+    content: |
+      $"building ($env.PKG_NAME)!"
+      npm install -g ./node-red-src/node-red-${{ version }}.tgz --prefix ${{ PREFIX }}
+
+      # Create node-red binary wrapper
+      let bin_dir = $"($env.PREFIX)/bin"
+      mkdir $bin_dir
+      let node_red_script = $"($env.PREFIX)/lib/node_modules/node-red/packages/node_modules/node-red/red.js"
+      let node_red_bin = $"($bin_dir)/node-red"
+
+      let wrapper_content = $"#!/bin/bash\nexec node \"($node_red_script)\" \"$@\""
+      $wrapper_content | save $node_red_bin
+      chmod +x $node_red_bin
+
+      # Install systemd unit file and setup script on Linux
+      if ($nu.os-info.name == "linux") {
+        print "Installing systemd unit file and setup script..."
+        let systemd_dir = $"($env.PREFIX)/lib/systemd/system"
+        let bin_dir = $"($env.PREFIX)/bin"
+        mkdir $systemd_dir
+        cp $"($env.SRC_DIR)/systemd/node-red.service/node-red.service" $"($systemd_dir)/node-red.service"
+        cp $"($env.SRC_DIR)/systemd/node-red-setup.sh/node-red-setup.sh" $"($bin_dir)/node-red-setup.sh"
+        chmod +x $"($bin_dir)/node-red-setup.sh"
+      }
+
+      source scripts/npm_licenses.nu
+      main | save license_summary.txt
+
+requirements:
+  build:
+  - nushell
+  - nodejs
+  host:
+  - nodejs
+  - grunt
+  run:
+  - nodejs
+
+tests:
+  # Test 1: Verify package contents are included
+- package_contents:
+    files:
+        # Node-RED Node.js package
+    - ${{ "Library/" if win }}lib/node_modules/node-red/package.json
+          # Binary/executable
+    - ${{ "Library/" if win }}bin/node-red${{ ".cmd" if win }}
+          # Systemd files (Linux only)
+    - ${{ "lib/systemd/system/node-red.service" if linux }}
+    - ${{ "bin/node-red-setup.sh" if linux }}
+
+    # Test 2: Functional tests
+- requirements:
+    build:
+    - nushell
+  script:
+    interpreter: nu
+    content:
+    - ^find . -maxdepth 2
+    - ^echo "node-red --help"
+
+about:
+  homepage: https://nodered.org
+  summary: Low-code programming for event-driven applications
+  description: |
+    Node-RED's goal is to enable anyone to build applications that collect,
+      transform and visualize their data;
+      building flows that can automate their world.
+      Its low-code nature makes it accessible to users of any background,
+      whether for home automation,
+      industrial control systems or anything in between.
+  license: Apache-2.0
+  license_file:
+  - LICENSE
+  - license-summary.txt
+  documentation: https://nodered.org/docs/
+  repository: https://github.com/node-red/node-red
+
+extra:
+  recipe-maintainers:
+  - phreed

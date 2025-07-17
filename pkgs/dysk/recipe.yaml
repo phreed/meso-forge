@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
+schema_version: 1
+
+context:
+  version: "2.10.1"
+
+package:
+  name: dysk
+  version: ${{ version }}
+
+source:
+  url: https://github.com/Canop/dysk/archive/refs/tags/v2.10.1.tar.gz
+  sha256: 3b7576b700b11052123a91780a6af26fbbd2560ad31fef917af8df8fcceffa04
+  target_directory: dysk
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Change to the extracted directory and build
+      cd dysk
+      ^cargo install --root ($env.PREFIX) --path .
+
+requirements:
+  build:
+    - nushell
+    - tar
+    - rust
+  host:
+    - rust
+  run:
+    # - if: linux
+    #   then:
+    #     - linux-only-dependency
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # Dysk binary
+        - ${{ "Library/" if win }}bin/dysk${{ ".exe" if win }}
+
+      # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content: |
+        ^dysk -s free-d | ^grep "filesystem"
+        ^dysk --version | ^grep ${{ version }}
+
+about:
+  homepage: https://dystroy.org/dysk/
+  license: MIT
+  license_file: "dysk/LICENSE"
+  summary: Linux utility to get information on filesystems, like df but better
+  repository: https://github.com/Canop/dysk
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  version:
+    github-tags:
+      - ^(\d+\.\d+\.\d+)$

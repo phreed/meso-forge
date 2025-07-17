@@ -1,0 +1,104 @@
+schema_version: 1
+
+context:
+  group: jank-lang
+  version: 0.1.0
+
+package:
+  name: jank
+  version: ${{ version }}
+
+source:
+  git: https://github.com/jank-lang/jank.git
+  rev: "fe32c9deac434de4b88b9f3e25dc2ca5b1ba925f"
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Initialize and update git submodules
+      ^git submodule update --recursive --init
+
+      # Set environment variables for clang
+      $env.CC = "clang"
+      $env.CXX = "clang++"
+
+      cd compiler+runtime
+      ^./bin/configure -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-ldl -pthread -Wl,--no-as-needed"
+      ^./bin/compile
+
+      # Install the binary
+      let bin_dir = ($env.PREFIX | path join "bin")
+      ^mkdir -p $bin_dir
+      ^cp build/jank ($bin_dir | path join "jank")
+
+requirements:
+  build:
+    - nushell
+    - clang
+    - clangxx
+    - binutils
+    - clangdev
+    - llvmdev
+    - ninja
+    - pkg-config
+    - sbcl
+    - sed
+    - cmake
+    - libzip
+    - bdw-gc
+    - libatomic_ops
+    - libffi
+    - zlib
+    - openssl
+    - doctest
+    - bzip2
+    - double-conversion
+
+  host:
+    - libboost-devel
+    - if: linux
+      then: elfutils
+    - fmt
+    - gmp
+    - libclang-cpp
+    - llvmdev
+    - libzip
+    - bdw-gc
+    - libffi
+    - zlib
+    - openssl
+    - doctest
+    - bzip2
+    - double-conversion
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # jank binary
+        - ${{ "Library/" if win }}bin/jank${{ ".exe" if win }}
+
+  # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^jank --help
+
+about:
+  license: MPL-2.0
+  license_file: LICENSE
+  summary: Jank a LLVM hosted Clojure
+  homepage: https://jank-lang.org/
+  repository: https://github.com/${{ group }}/jank
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  filter:
+    conda-size: 4356

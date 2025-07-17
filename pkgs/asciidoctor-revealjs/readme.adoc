@@ -1,0 +1,55 @@
+= asciidoctor-revealjs
+:version: 5.2.0
+
+
+// GENERATED CONTENT START
+
+A reveal.js converter for Asciidoctor and Asciidoctor.js. Write your slides in AsciiDoc!
+
+== Description
+
+Asciidoctor reveal.js is a converter for Asciidoctor and Asciidoctor.js that transforms an AsciiDoc document into an HTML5 presentation designed to be executed by the reveal.js presentation framework.
+
+== Links
+
+* Homepage: https://github.com/asciidoctor/asciidoctor-reveal.js
+
+== Package Information
+
+* **License**: MIT
+* **Version**: 5.2.0
+
+== Requirements
+
+=== Host Requirements
+
+* ruby
+
+=== Run Requirements
+
+* pin_compatible('ruby', upper_bound='x.x')
+
+== Installation
+
+This package is built using rattler-build and can be installed using mamba or conda:
+
+[source,bash]
+----
+pixi global install -c meso-forge asciidoctor-revealjs
+----
+
+== Maintainers
+
+* phreed
+
+---
+
+_This portion of the README was generated from the recipe.yaml file._
+
+_Last updated: 2025-06-11_
+
+// GENERATED CONTENT END
+
+== V1 recipe format
+
+https://github.com/prefix-dev/recipe-format
