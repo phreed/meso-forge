@@ -118,7 +118,7 @@ pixi run publish
 EOF
 
 # Commit the tactical branch
-git add pkgs/ pixi.toml README.adoc
+git add pkgs/ pixi.toml README.adoc .gitignore .gitattributes
 git commit -m "Create tactical-packages branch"
 git push -u origin pkgs/tactical
 ----
@@ -159,7 +159,7 @@ pixi run build-all
 ----
 EOF
 
-git add pkgs/ pixi.toml README.adoc
+git add pkgs/ pixi.toml README.adoc .gitignore .gitattributes
 git commit -m "Create system-tools branch"
 git push -u origin pkgs/system-tools
 ----
@@ -191,7 +191,7 @@ Software development, IDE components, and development environment packages.
 * *podlet* - Podman quadlet generator
 EOF
 
-git add pkgs/ pixi.toml README.adoc
+git add pkgs/ pixi.toml README.adoc .gitignore .gitattributes
 git commit -m "Create development-tools branch"
 git push -u origin pkgs/development-tools
 ----
@@ -268,7 +268,7 @@ git commit -m "Create my-domain branch"
 ----
 EOF
 
-git add pkgs/ README.adoc
+git add pkgs/ README.adoc .gitignore .gitattributes
 git commit -m "Convert main branch to tooling-only"
 git push
 ----
