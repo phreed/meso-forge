@@ -17,7 +17,7 @@ platforms = [
 
 [dependencies]
 # Core dependency on meso-forge-tooling
-meso-forge-tooling = ">=0.1.1,<0.2.0"
+meso-forge-tooling = ">=0.1.4,<0.2.0"
 
 # Build tasks using meso-forge tooling
 [tasks.build-all]
@@ -38,11 +38,41 @@ cmd = ["meso-forge", "build-platform"]
 description = "Build platform-specific packages"
 
 [tasks.publish]
-cmd = ["meso-forge", "publish-pd"]
+args = [
+    {arg = "force", default = "" },
+    {arg = "channel", default = "meso-forge" },
+]
+cmd = [
+    "meso-forge", "publish-pd",
+    "--channel", "{{ channel }}",
+    "{{ '--force' if force != '' else '' }}",
+]
+description = "Publish packages to prefix.dev"
+
+[tasks.publish-pd]
+args = [
+    {arg = "force", default = "" },
+    {arg = "channel", default = "meso-forge" },
+]
+cmd = [
+    "meso-forge", "publish-pd",
+    "--channel", "{{ channel }}",
+    "{{ '--force' if force != '' else '' }}",
+]
 description = "Publish packages to prefix.dev"
 
 [tasks.publish-s3]
-cmd = ["meso-forge", "publish-s3"]
+args = [
+    {arg = "force", default = "" },
+    {arg = "channel", default = "s3://pixi/meso-forge" },
+    {arg = "url", default = "https://minio.isis.vanderbilt.edu" },
+]
+cmd = [
+    "meso-forge", "publish-s3",
+    "--channel", "{{ channel }}",
+    "--url", "{{ url }}",
+    "{{ '--force' if force != '' else '' }}",
+]
 description = "Publish packages to S3"
 
 [tasks.test]
@@ -60,7 +90,7 @@ description = "Clean build artifacts"
 [tasks.new-package]
 args = [
     { arg = "type", default = "_skeleton_python" },
-    { arg = "name" }
+    { arg = "name", default = "a_new_name" },
 ]
 cmd = ["meso-forge", "init-package", "{{ type }}", "{{ name }}"]
 description = "Create new package from skeleton"
