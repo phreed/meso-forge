@@ -116,7 +116,7 @@ export def find_platform_packages [
                 print "❌ Package filtered because build section is missing"
                 return false
             }
-            if $recipe.build.noarch == nothing {
+            if $recipe.build?.noarch? == nothing {
                 print "✅ Package accepted because no build/noarch section is provided"
                 return true
             }
