@@ -2,6 +2,7 @@
 output/
 wip-out/
 .cache/
+.pixi/
 
 # Something created by rust?
 graph.json
