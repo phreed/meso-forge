@@ -1,0 +1,64 @@
+schema_version: 1
+
+context:
+  group: HaxeFoundation
+  version: 4.3.4
+
+package:
+  name: haxe-stub
+  version: ${{ version }}
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Create a minimal Haxe stub installation
+      let bin_dir = ($env.PREFIX | path join "bin")
+      mkdir $bin_dir
+
+      # Create stub haxe binary
+      echo "#!/bin/bash\necho 'Haxe ${{ version }} stub - install full haxe package for complete functionality'\necho 'This is a placeholder package for Haxe ${{ version }}'" | save ($bin_dir | path join "haxe")
+      chmod +x ($bin_dir | path join "haxe")
+
+      # Create stub haxelib binary
+      echo "#!/bin/bash\necho 'Haxelib stub - install full haxe package for complete functionality'" | save ($bin_dir | path join "haxelib")
+      chmod +x ($bin_dir | path join "haxelib")
+
+      # Create basic directory structure
+      let haxe_dir = ($env.PREFIX | path join "share" "haxe")
+      mkdir $haxe_dir
+      echo "Haxe ${{ version }} stub installation" | save ($haxe_dir | path join "README.txt")
+
+requirements:
+  build:
+    - nushell
+
+tests:
+  - package_contents:
+      files:
+        - bin/haxe
+        - bin/haxelib
+        - share/haxe/README.txt
+
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^haxe
+
+about:
+  license: GPL-2.0-or-later
+  summary: Haxe stub package - placeholder for the cross-platform toolkit
+  homepage: https://haxe.org/
+  repository: https://github.com/${{ group }}/haxe
+  documentation: https://haxe.org/documentation/
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  filter:
+    conda-size: 10

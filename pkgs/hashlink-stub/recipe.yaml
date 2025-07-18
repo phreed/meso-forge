@@ -1,0 +1,59 @@
+schema_version: 1
+
+context:
+  group: HaxeFoundation
+  version: 1.14
+
+package:
+  name: hashlink-stub
+  version: ${{ version }}
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Create a minimal HashLink stub installation
+      let bin_dir = ($env.PREFIX | path join "bin")
+      mkdir $bin_dir
+
+      # Create stub hl binary
+      echo "#!/bin/bash\necho 'HashLink ${{ version }} stub - install full hashlink package for complete functionality'\necho 'This is a placeholder package for HashLink ${{ version }}'" | save ($bin_dir | path join "hl")
+      chmod +x ($bin_dir | path join "hl")
+
+      # Create basic directory structure
+      let lib_dir = ($env.PREFIX | path join "lib")
+      mkdir $lib_dir
+      echo "HashLink ${{ version }} stub installation" | save ($lib_dir | path join "README.txt")
+
+requirements:
+  build:
+    - nushell
+
+tests:
+  - package_contents:
+      files:
+        - bin/hl
+        - lib/README.txt
+
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^hl
+
+about:
+  license: MIT
+  summary: HashLink stub package - placeholder for the Haxe virtual machine
+  homepage: https://hashlink.haxe.org/
+  repository: https://github.com/${{ group }}/hashlink
+  documentation: https://github.com/HaxeFoundation/hashlink/wiki
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  filter:
+    conda-size: 5

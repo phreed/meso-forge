@@ -1,0 +1,69 @@
+schema_version: 1
+
+context:
+  group: HaxeFoundation
+  version: 1.14
+
+package:
+  name: hashlink
+  version: ${{ version }}
+
+source:
+  git: https://github.com/HaxeFoundation/hashlink.git
+  tag: ${{ version }}
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Build HashLink with minimal dependencies
+      make
+
+      # Install binaries
+      let bin_dir = ($env.PREFIX | path join "bin")
+      mkdir $bin_dir
+      cp hl ($bin_dir | path join "hl")
+
+      # Install library
+      let lib_dir = ($env.PREFIX | path join "lib")
+      mkdir $lib_dir
+      cp libhl.so ($lib_dir | path join "libhl.so")
+
+requirements:
+  build:
+    - nushell
+    - make
+    - gcc_linux-64
+    - gxx_linux-64
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # hashlink binary
+        - bin/hl
+
+  # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^hl --version
+
+about:
+  license: MIT
+
+  summary: A virtual machine for Haxe
+  homepage: https://hashlink.haxe.org/
+  repository: https://github.com/${{ group }}/hashlink
+  documentation: https://github.com/HaxeFoundation/hashlink/wiki
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  filter:
+    conda-size: 8000

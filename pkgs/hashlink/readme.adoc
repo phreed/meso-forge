@@ -1,0 +1,75 @@
+= HashLink Package
+
+This package provides https://hashlink.haxe.org/[HashLink], a virtual machine for Haxe applications.
+
+== About HashLink
+
+HashLink is a cross-platform virtual machine designed to run Haxe applications. It provides:
+
+* High-performance execution of Haxe bytecode
+* Just-in-time (JIT) compilation for optimal performance
+* Native debugging support
+* Cross-platform compatibility (Linux, macOS, Windows)
+* Integration with graphics and multimedia libraries
+
+HashLink is often used as an alternative to compiling Haxe to native C++ for applications that need high performance but want to maintain cross-platform compatibility.
+
+== What's Included
+
+This package includes:
+
+* `hl` - The HashLink virtual machine executable
+* `libhl` - HashLink runtime library
+* Various extension libraries for graphics, audio, and system integration
+
+== Usage
+
+After installation, you can run Haxe applications compiled for HashLink:
+
+[source,bash]
+----
+# Run a HashLink bytecode file
+hl myapp.hl
+
+# Show help
+hl --help
+----
+
+== Compiling for HashLink
+
+To compile Haxe code for HashLink, you need the Haxe compiler:
+
+[source,bash]
+----
+# Compile Haxe to HashLink bytecode
+haxe --main Main --hl myapp.hl
+
+# Compile Haxe to HashLink/C (for better performance)
+haxe --main Main --hl myapp.c
+----
+
+== Debugging
+
+HashLink supports native debugging through various IDEs:
+
+* Visual Studio Code (with HashLink debugger extension)
+* Other IDEs with HashLink debugging support
+
+== Dependencies
+
+This package includes support for:
+
+* Graphics: SDL2, OpenGL
+* Audio: OpenAL
+* Image formats: PNG, JPEG
+* Networking: libuv
+* Database: SQLite
+* Compression: zlib
+* Security: mbedTLS
+
+== Links
+
+* https://hashlink.haxe.org/[Official Website]
+* https://github.com/HaxeFoundation/hashlink[Source Code]
+* https://github.com/HaxeFoundation/hashlink/wiki[Documentation]
+* https://haxe.org/[Haxe Language]

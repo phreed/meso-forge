@@ -1,0 +1,68 @@
+= Haxe Package
+
+This package provides https://haxe.org/[Haxe], the cross-platform toolkit for developing applications that can target multiple platforms from a single codebase.
+
+== About Haxe
+
+Haxe is an open source high-level strictly-typed programming language with a fast optimizing cross-compiler. Haxe can build cross-platform applications targeting:
+
+* JavaScript
+* C++
+* C#
+* Java/JVM
+* Python
+* Lua
+* PHP
+* Flash
+* HashLink VM
+* Neko VM
+
+== What's Included
+
+This package includes:
+
+* `haxe` - The Haxe compiler
+* `haxelib` - The Haxe library manager
+* Standard library files
+
+== Usage
+
+After installation, you can use Haxe to compile your projects:
+
+[source,bash]
+----
+# Compile to JavaScript
+haxe --main Main --js output.js
+
+# Compile to C++
+haxe --main Main --cpp output/
+
+# Compile to HashLink bytecode
+haxe --main Main --hl output.hl
+
+# Show help
+haxe --help
+----
+
+== Package Management
+
+Use `haxelib` to manage Haxe libraries:
+
+[source,bash]
+----
+# Install a library
+haxelib install openfl
+
+# List installed libraries
+haxelib list
+
+# Show haxelib help
+haxelib --help
+----
+
+== Links
+
+* https://haxe.org/[Official Website]
+* https://haxe.org/documentation/[Documentation]
+* https://github.com/HaxeFoundation/haxe[Source Code]
+* https://lib.haxe.org/[Haxelib Library Repository]

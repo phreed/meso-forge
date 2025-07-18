@@ -1,0 +1,73 @@
+schema_version: 1
+
+context:
+  group: HaxeFoundation
+  version: 4.3.4
+
+package:
+  name: haxe
+  version: ${{ version }}
+
+source:
+  git: https://github.com/HaxeFoundation/haxe.git
+  tag: ${{ version }}
+
+build:
+  number: 0
+  script:
+    interpreter: nu
+    content: |
+      # Build Haxe with minimal configuration
+      make tools
+
+      # Install binaries
+      let bin_dir = ($env.PREFIX | path join "bin")
+      mkdir $bin_dir
+      cp haxe ($bin_dir | path join "haxe")
+      cp haxelib ($bin_dir | path join "haxelib")
+
+      # Install standard library
+      let haxe_dir = ($env.PREFIX | path join "share" "haxe")
+      mkdir $haxe_dir
+      cp -r std $haxe_dir/
+
+requirements:
+  build:
+    - nushell
+    - make
+    - ocaml
+    - git
+
+tests:
+  # Test 1: Verify package contents are included
+  - package_contents:
+      files:
+        # haxe binary
+        - bin/haxe
+        # haxelib binary
+        - bin/haxelib
+        # standard library
+        - share/haxe/std/
+
+  # Test 2: Functional tests
+  - requirements:
+      build:
+        - nushell
+    script:
+      interpreter: nu
+      content:
+        - ^haxe --version
+
+about:
+  license: GPL-2.0-or-later
+  summary: Haxe - The Cross-Platform Toolkit
+  homepage: https://haxe.org/
+  repository: https://github.com/${{ group }}/haxe
+  documentation: https://haxe.org/documentation/
+
+extra:
+  recipe-maintainers:
+    - phreed
+
+  filter:
+    conda-size: 15000
