@@ -21,7 +21,7 @@ jobs:
         ref: pkgs/${{ matrix.branch }}
 
     - name: Install pixi
-      uses: prefix-dev/setup-pixi@v0.8.1
+      uses: prefix-dev/setup-pixi@v0.8.14
 
     - name: Install meso-forge-tooling
       run: pixi global install meso-forge-tooling -c https://prefix.dev/meso-forge

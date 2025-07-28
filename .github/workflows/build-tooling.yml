@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install pixi
-      uses: prefix-dev/setup-pixi@v0.8.1
+      uses: prefix-dev/setup-pixi@v0.8.14
     - name: Build tooling
       run: pixi run build-pkg meso-forge-tooling
     - name: Publish tooling
